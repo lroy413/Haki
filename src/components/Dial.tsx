@@ -1,0 +1,80 @@
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { color, radius, space, type } from '../theme/tokens';
+
+const STEPS = [1, 2, 3, 4, 5];
+
+type Props = {
+  label: string;
+  value: number | null;
+  onChange: (value: number) => void;
+  /** Tension reads better with the scale reversed — low is the good end. */
+  inverted?: boolean;
+  accent?: string;
+};
+
+/**
+ * One dial of the Daily Read. Five big targets, one tap each.
+ *
+ * The whole check-in has to clear in under thirty seconds or it will not happen
+ * at 11pm — which is exactly when it matters most. That budget is why this is a
+ * row of taps rather than a slider.
+ */
+export function Dial({ label, value, onChange, inverted = false, accent = color.violet }: Props) {
+  return (
+    <View style={styles.wrap}>
+      <View style={styles.header}>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.hint, { color: accent }]}>
+          {inverted ? 'low is better' : ''}
+        </Text>
+      </View>
+      <View style={styles.row}>
+        {STEPS.map((step) => {
+          const selected = value === step;
+          return (
+            <Pressable
+              key={step}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              accessibilityLabel={`${label} ${step} of 5`}
+              hitSlop={6}
+              onPress={() => {
+                void Haptics.selectionAsync();
+                onChange(step);
+              }}
+              style={({ pressed }) => [
+                styles.step,
+                selected && { backgroundColor: accent, borderColor: accent },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={[styles.stepText, selected && styles.stepTextSelected]}>{step}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { gap: space.sm },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  label: { ...type.heading, color: color.ink },
+  hint: { ...type.mono, fontSize: 10, letterSpacing: 1 },
+  row: { flexDirection: 'row', gap: space.sm },
+  step: {
+    flex: 1,
+    height: 54,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: color.line,
+    backgroundColor: color.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: { opacity: 0.7 },
+  stepText: { ...type.body, color: color.inkDim, fontVariant: ['tabular-nums'] },
+  stepTextSelected: { color: '#0A0B12', fontWeight: '700' },
+});
