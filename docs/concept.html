@@ -241,6 +241,39 @@ tr.gold td:first-child{color:var(--violet)}
 }
 .big b{font-weight:800;color:var(--violet)}
 
+/* ---------- failure modes ---------- */
+.fm{border-top:1px solid var(--line);padding:2rem 0;display:grid;grid-template-columns:15rem 1fr;gap:clamp(1.5rem,4vw,3rem);align-items:start}
+@media(max-width:820px){.fm{grid-template-columns:1fr;gap:.75rem}}
+.fm .lab{font-family:var(--mono);font-size:.625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:.6rem}
+.fm h3{font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.fm .body{max-width:62ch}
+.fm .body p:last-child{margin-bottom:0}
+.mech{
+  background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--violet);
+  border-radius:3px;padding:1.125rem 1.25rem;margin:1.25rem 0 0;
+}
+.mech h4{font-family:var(--mono);font-size:.625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--violet);margin-bottom:.5rem;font-weight:600}
+.mech p{font-size:.9375rem;color:var(--ink-dim);margin:0}
+.mech p+p{margin-top:.6rem}
+.mech ul{margin:.6rem 0 0;padding-left:1.1rem;font-size:.9375rem;color:var(--ink-dim)}
+.mech li{margin-bottom:.45rem}
+.mech li:last-child{margin-bottom:0}
+
+blockquote.pull{
+  margin:1.25rem 0;padding:.9rem 1.25rem;border-left:2px solid var(--violet);
+  font-style:italic;color:var(--ink-dim);font-size:1rem;background:transparent;
+}
+.revise{
+  border:1px dashed var(--violet);border-radius:3px;padding:1.125rem 1.25rem;margin:1.25rem 0 0;
+}
+.revise p{font-size:.9375rem;color:var(--ink-dim);margin:0}
+.revise b{color:var(--violet);font-weight:500}
+.epi{
+  font-family:var(--display);font-size:clamp(1.6rem,3.6vw,2.4rem);font-weight:400;font-style:italic;
+  letter-spacing:-.025em;line-height:1.2;color:var(--ink);max-width:20ch;margin:0 0 1.5rem;
+}
+code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);padding:.1em .35em;border-radius:2px}
+
 footer{
   padding:3rem 0 4rem;border-top:1px solid var(--line-soft);
   font-family:var(--mono);font-size:.75rem;color:var(--ink-faint);letter-spacing:.04em;
@@ -255,7 +288,7 @@ footer{
     <h1>HAKI</h1>
     <p class="lede">Every other app tracks what you <em>did</em>. This one tracks the state of your <em>will</em>.</p>
     <p class="sub">A private journal, habit forge, and mental-health instrument built on one borrowed idea: willpower is not infinite, it depletes, it recovers, and almost nobody measures theirs.</p>
-    <p class="stamp"><span>Concept v0.2</span><span>Phone-first · Expo</span><span>Local-first</span><span>Haki mode default</span></p>
+    <p class="stamp"><span>Concept v0.3</span><span>Phone-first · Expo</span><span>Local-first</span><span>Haki mode default</span></p>
   </div>
 </header>
 
@@ -273,6 +306,114 @@ footer{
         <span class="k">Theme</span>
         <span class="v2">Haki mode is the app</span>
         <p>Not a skin on a neutral app — the default, and the real thing. Plain mode is a one-tap toggle for waiting rooms and screenshares: a label map and an effects kill-switch, nothing more. Build one design system with a mute button, never two.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">The brief</span>
+    <p class="epi">"A man's dreams never die."</p>
+    <p class="prose">This is not a general-purpose productivity app and must never be designed like one. It exists to keep one person pointed at their dreams and to catch the specific ways they come off track. What follows is built from real observed failure, not from a feature list.</p>
+
+    <div style="margin-top:2.5rem">
+
+      <div class="fm">
+        <div><span class="lab">Failure mode</span><h3>The cascade</h3></div>
+        <div class="body">
+          <p>Sleep slipped. Sleep breaks training. A full week of the gym gone.</p>
+          <p>Notice what actually happened: <strong>the gym was never the lever.</strong> A normal habit app would show seven red marks on "gym" — useless and shaming at once, because it names the symptom and misses the cause. The failure was upstream, and it was mechanical, not moral.</p>
+          <div class="mech">
+            <h4>Mechanic — Keystone &amp; Cascade</h4>
+            <p>One or two habits are marked <em>keystone</em>, and downstream habits are explicitly linked to them. When a keystone destabilizes, the app fires <strong>immediately</strong> — on the first bad night, not on day three of missed training when the week is already gone.</p>
+          </div>
+          <div class="revise">
+            <p><b>This moves Foresight's core to v0, and putting all of it at v3 was wrong.</b> Mined patterns still need a year of history. But a <em>declared</em> cascade needs none — the mechanism is already known, so it gets typed in on day one. It ships in the spine.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="fm">
+        <div><span class="lab">Failure mode</span><h3>The comfort backslide</h3></div>
+        <div class="body">
+          <p>Lofty goals, then a slide once things get comfortable.</p>
+          <p>This inverts the usual design. Every productivity app is built to detect <strong>struggle</strong>. This one has to detect <strong>coasting</strong> — because a green, frictionless week isn't a success signal here. It's the leading indicator of a backslide.</p>
+          <div class="mech">
+            <h4>Mechanic — The Calm Belt</h4>
+            <p>Windless water where a ship goes nowhere. When several days pass with no resistance logged and nothing hard attempted, the app says so:</p>
+            <blockquote class="pull">Six days. No resistance logged, nothing hard attempted. Not a storm — a dead calm. This is the water you drift in.</blockquote>
+            <p>The danger was never the storm. It's the windless week.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="fm">
+        <div><span class="lab">Failure mode</span><h3>The return</h3></div>
+        <div class="body">
+          <p>A week off is a week off. What decides whether it costs a week or a year is <strong>how fast you come back</strong> — and no habit app tracks returning, because they're all built around never having left.</p>
+          <div class="mech">
+            <h4>Mechanic — The Return is a first-class event</h4>
+            <p>Coming back after a gap gets logged, counted, and weighted more heavily than an ordinary day. Your comeback time becomes a tracked number that gets shorter with practice. Sabaody, then two years, then Sabaody again — the comeback <em>is</em> the arc.</p>
+            <p>This also settles what the Hardness model is for: it exists to make the return cheap. Zeroed streaks make coming back feel pointless, which is exactly how one missed week becomes three.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="fm">
+        <div><span class="lab">Failure mode</span><h3>Unfinished projects</h3></div>
+        <div class="body">
+          <p>Distinct from consistency, and it needs its own machinery. Consistency is showing up daily; finishing is closing a loop that stays open for weeks. The same fix doesn't work on both.</p>
+          <p>The cause is almost never a decision to quit. It's <strong>silent drift</strong> — you never choose to stop, you just stop, and the project stays technically open forever. So the mechanic has to convert drift into a decision.</p>
+          <div class="mech">
+            <h4>Mechanic — An island has an ending</h4>
+            <p>In One Piece you arrive, there's a conflict, it resolves, you leave. The Log Pose does not recalibrate until the island is done.</p>
+            <ul>
+              <li><strong>A hard WIP limit.</strong> One active island per pillar. You physically cannot start something new while one is open.</li>
+              <li><strong>Finish or abandon — no third option.</strong> Abandoning is a real logged event with a reason, always allowed and never shamed. But it must be <em>chosen</em>, not drifted into.</li>
+              <li><strong>Open islands always visible,</strong> with days-at-sea on each. Most people who don't finish things have no idea how many loops they're carrying. Showing the count is most of the intervention.</li>
+              <li><strong>Bounty pays for finishing, not starting.</strong> This inverts the dopamine of the shiny new project — and it's canon: the bounty raise comes <em>after</em> the arc resolves.</li>
+            </ul>
+          </div>
+          <div class="revise">
+            <p><b>The meta-risk, said plainly:</b> this app is a project. It's exactly the kind of ambitious, exciting project that becomes number thirteen on the unfinished list — and the theming makes it <em>more</em> dangerous, not less, because there's no end to how much of it there is to build. That's the real reason v0 is four screens and the rule is <em>use it for three weeks before writing more code.</em> Not craftsmanship — self-defense. <b>If Haki can't be finished, it has no business telling you to finish anything else.</b></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap two">
+    <div>
+      <span class="eyebrow">The resolution</span>
+      <h2>Dreams stay lofty.</h2>
+      <p class="big" style="margin-top:1.5rem">Shrink the <b>unit of action</b>, never the dream.</p>
+    </div>
+    <div class="prose">
+      <p>The instinct after a backslide is to shrink the goal. <strong>Don't.</strong> That's the wrong lesson, and it's the opposite of what you love about the source material.</p>
+      <p><strong>Eternal Pose</strong> — the dream. Never revised, never made "realistic," never scaled down for a bad month.</p>
+      <p><strong>Log Pose</strong> — points at the next island <em>only</em>. One milestone, recalibrating when you arrive.</p>
+      <p>Lofty goals never caused the backslide. Acting on a lofty goal <em>directly</em> did — because there's no move that touches something that big. Which is precisely what Armament Haki is for: vague and enormous in, one concrete strikeable thing out.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap two">
+    <div>
+      <span class="eyebrow">Optional — your call</span>
+      <h2>Inherited Will</h2>
+      <p class="epi" style="font-size:clamp(1.15rem,2.4vw,1.5rem);margin-top:1.25rem">"People don't die when they are shot. They die when they are forgotten."</p>
+    </div>
+    <div class="prose">
+      <p>The most One Piece thing possible, and the most personal: a place for the people whose dreams you carry. Who they were, what they wanted, what of it you're carrying forward. It surfaces at Road Poneglyph milestones and at the weekly Setting Sail — never on a schedule, never unprompted.</p>
+      <p>Chopper carries Hiluluk. Luffy carries Ace. Law carries Corazon. The whole series argues that a dream outlives the person who held it, as long as someone keeps carrying it.</p>
+      <div class="mech" style="border-left-color:var(--crimson)">
+        <h4 style="color:var(--crimson)">Hard rule if this gets built</h4>
+        <p><strong>Memory is a source, never a stick.</strong> Nothing in this app may use a person's memory to push, guilt, or "motivate" — no "they'd be disappointed," no grief on a streak-break screen, nothing that turns loss into a lever. It's there to be drawn from, and only ever on the days you choose to open it.</p>
       </div>
     </div>
   </div>
@@ -461,21 +602,33 @@ footer{
   <div class="wrap two">
     <div>
       <span class="eyebrow">Honest assessment</span>
-      <h2>Three things here don't exist anywhere else.</h2>
-      <p class="prose">Journaling apps exist. Habit apps exist. Mood trackers are everywhere. Being straight with you about what's actually new — because these three are the app, and everything else is table stakes you can borrow from anyone.</p>
+      <h2>Six things here don't exist anywhere else.</h2>
+      <p class="prose">Journaling apps exist. Habit apps exist. Mood trackers are everywhere. Being straight with you about what's actually new — because these six are the app, and everything else is table stakes you can borrow from anyone.</p>
     </div>
     <div>
       <div class="card" style="margin-bottom:1rem">
-        <h4>1 &nbsp;· &nbsp;Will as a depleting resource</h4>
+        <h4>Will as a depleting resource</h4>
         <p>With an exhaustion warning that tells you to back off. Every competitor optimizes for more output, forever.</p>
       </div>
       <div class="card" style="margin-bottom:1rem">
-        <h4>2 &nbsp;· &nbsp;Hardness instead of streaks</h4>
-        <p>Streaks are shame machines — one miss zeroes ninety days and you delete the app. Hardness dips and recovers. It's mechanically faithful to Armament Haki <em>and</em> it removes the single worst failure mode in the category.</p>
+        <h4>Hardness instead of streaks</h4>
+        <p>Streaks are shame machines — one miss zeroes ninety days and you delete the app. Hardness dips and recovers, which is what makes the return cheap.</p>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <h4>Foresight</h4>
+        <p>Warnings fired <em>before</em> the slip. Declared cascades from day one; mined patterns once there's history.</p>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <h4>The Calm Belt</h4>
+        <p>An alarm for coasting. Everything else in the category only knows how to detect struggle — and congratulates you for the frictionless week that's actually the warning sign.</p>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <h4>The Return as a tracked skill</h4>
+        <p>Every other app is built around never having left, so none of them can help you on the one day that decides whether a gap costs a week or a year.</p>
       </div>
       <div class="card">
-        <h4>3 &nbsp;· &nbsp;Foresight</h4>
-        <p>Warnings fired <em>before</em> the slip, from your own history. Not AI magic — just correlation over your data, surfaced when it can still change something.</p>
+        <h4>Finish-or-abandon</h4>
+        <p>A WIP limit that turns silent drift into a logged decision, and a progression score that pays for completion rather than for starting.</p>
       </div>
     </div>
   </div>
@@ -492,6 +645,8 @@ footer{
       <li><span class="n">04</span><span><b>Local-first and encrypted.</b><span class="t">This is your interior life. It lives on your device, works with no internet, and exports to plain Markdown and JSON. Non-negotiable for a mental-health journal.</span></span></li>
       <li><span class="n">05</span><span><b>Two speeds.</b><span class="t">Usable in thirty seconds a day. Rewarding at twenty minutes. Never punishing for choosing the thirty seconds.</span></span></li>
       <li><span class="n">06</span><span><b>It's for one person.</b><span class="t">Ship ugly, ship fast, change it constantly. Don't build a single setting you'd only need if you had users.</span></span></li>
+      <li><span class="n">07</span><span><b>A green week is not automatically a good week.</b><span class="t">Never congratulate frictionlessness. The app's job is to notice the dead calm, not to hand out a gold star for it.</span></span></li>
+      <li><span class="n">08</span><span><b>Memory is a source, never a stick.</b><span class="t">Nothing here may use a person's memory to push, guilt, or motivate. It's drawn from on the days you choose to open it, and it never appears on a failure screen.</span></span></li>
     </ol>
   </div>
 </section>
@@ -500,11 +655,16 @@ footer{
   <div class="wrap">
     <span class="eyebrow">Build order — this one is a real sequence</span>
     <h2>Ship the spine, then live in it.</h2>
-    <p class="prose">The ordering matters more than the feature list. The temptation is to build Foresight first because it's the exciting part. It's last, because it's worthless without a year of you in the database.</p>
+    <p class="prose">The ordering matters more than the feature list. The temptation is to build the whole Haki system first because it's the exciting part — and that temptation is the same one that leaves projects unfinished.</p>
+    <div class="mech" style="max-width:66ch">
+      <h4>Definition of done for v0 — written before a line of code</h4>
+      <p>You can open the app, log a Daily Read in under thirty seconds, write a journal entry, see your Will Reserve, and get a Den Den Mushi warning the morning after a bad night's sleep.</p>
+      <p>That's the finish line. Nothing else counts, nothing else gets built, and v0 is <strong>done</strong> when those five things work — not when it feels impressive.</p>
+    </div>
     <div class="road">
       <div class="stage">
         <div class="v">v0<small>A weekend</small></div>
-        <div><h4>The Spine</h4><p>Daily Read (four dials) + The Log (Markdown entries with tags) + Will Reserve on a home screen. Nothing else. Then <strong>use it for three weeks before writing another line of code.</strong> You can't design the rest of this app until you've got three weeks of your own data sitting in it — that isn't a delay, it's the requirement.</p></div>
+        <div><h4>The Spine</h4><p>Daily Read (four dials) + The Log + Will Reserve + <strong>sleep as a declared keystone with the training cascade wired to it.</strong> Kanji nav, dark palette, Den Den Mushi nudge — identity is cheap and it's what makes you open the thing. Elaborate effects are not. Then <strong>use it for three weeks before writing another line of code.</strong></p></div>
       </div>
       <div class="stage">
         <div class="v">v1<small>Armament</small></div>
@@ -543,16 +703,19 @@ footer{
 
 <section>
   <div class="wrap">
-    <span class="eyebrow">Over to you</span>
-    <h2>One question left.</h2>
+    <span class="eyebrow">Answered</span>
+    <h2>What's breaking, and where each fix lands.</h2>
     <div style="max-width:70ch">
-      <div class="q"><span class="mark">?</span><div><h4>What's actually breaking right now?</h4><p>The most useful design input available, and the only thing still missing. What's the one thing you'd want this app to have caught last month — the slip you didn't see coming, the week that got away, the thing you keep meaning to start? Point v0 at that specific failure and the rest of the spec writes itself.</p></div></div>
+      <div class="q"><span class="mark">→</span><div><h4>A sleep slip cascading into a lost week of training</h4><p>Known mechanism, catchable on day one. <strong>v0</strong> is aimed directly at this.</p></div></div>
+      <div class="q"><span class="mark">→</span><div><h4>Backsliding once things get comfortable</h4><p>The Calm Belt, landing in <strong>v1</strong> alongside the habit engine.</p></div></div>
+      <div class="q"><span class="mark">→</span><div><h4>Projects that stay open instead of getting finished</h4><p>Finish-or-abandon, landing in <strong>v2</strong> with Log Pose, where it belongs.</p></div></div>
     </div>
+    <p class="prose" style="margin-top:2rem;color:var(--ink-dim)">Read everything in this document against those three. If a feature doesn't help with a cascade, a drift, or a finish — it's v5.</p>
   </div>
 </section>
 
 <footer>
-  <div class="wrap">HAKI · CONCEPT v0.2 · A passion project for an audience of one</div>
+  <div class="wrap">HAKI · CONCEPT v0.3 · A passion project for an audience of one</div>
 </footer>
 
 <script>

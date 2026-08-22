@@ -1,4 +1,4 @@
-# Haki — Concept v0.2
+# Haki — Concept v0.3
 
 > Every other app tracks what you **did**. This one tracks the state of your **will**.
 
@@ -10,6 +10,84 @@ A private journal, habit forge, and mental-health instrument built for an audien
 |---|---|
 | **Platform** | Phone-first. Expo (React Native) + expo-sqlite + Drizzle, local-first. Desktop via Expo Web later if wanted. |
 | **Theme** | **Haki mode is the default and is the real app.** Plain mode exists as a one-tap toggle for waiting rooms and screenshares — a label map and effects-off, nothing more. |
+
+---
+
+## The brief
+
+> *"A man's dreams never die."*
+
+This is not a general-purpose productivity app and should never be designed like one. It exists to keep one person pointed at their dreams and to catch the specific ways they come off track. Everything below is built from real observed failure, not from a feature list.
+
+### Failure mode 1 — the cascade
+
+Sleep slipped. Sleep breaks training. A full week of the gym gone.
+
+Note what actually happened: **the gym was never the lever.** A normal habit app would show seven red marks on "gym" — which is both useless and shaming, because it names the symptom and misses the cause. The failure was upstream and it was mechanical.
+
+**Keystone & Cascade.** One or two habits get marked as *keystone*, and downstream habits are explicitly linked to them. When a keystone destabilizes, the app fires **immediately** — on the first bad night, not on day three of missed training when the week is already gone.
+
+> **This moves Foresight's core to v0, and I was wrong to put all of it at v3.** Mined patterns still need a year of history. But a *declared* cascade needs none — the mechanism is already known, so it just gets typed in on day one. Ship it in the spine.
+
+### Failure mode 2 — the comfort backslide
+
+Lofty goals, then a slide once things get comfortable.
+
+This inverts the usual design. Every productivity app is built to detect **struggle**. This one has to detect **coasting** — because a green, frictionless week is not a success signal here, it's the leading indicator of a backslide.
+
+**The Calm Belt.** Windless water where a ship goes nowhere. When several days pass with no resistance logged and nothing hard attempted, the app says so:
+
+> *Six days. No resistance logged, nothing hard attempted. Not a storm — a dead calm. This is the water you drift in.*
+
+The danger was never the storm. It's the windless week.
+
+### Failure mode 3 — the return
+
+A week off is a week off. The thing that decides whether it costs a week or a year is **how fast you come back** — and no habit app on earth tracks returning, because they're all built around never having left.
+
+**The Return is a first-class event.** Coming back after a gap gets logged, counted, and weighted more heavily than an ordinary day. Your comeback time becomes a tracked number that gets shorter. Sabaody, then two years, then Sabaody again — the comeback *is* the arc.
+
+This also settles the Hardness model's job: it exists to make the return cheap. Zeroed streaks make the return feel pointless, which is precisely how one missed week becomes three.
+
+### Failure mode 4 — unfinished projects
+
+Distinct from consistency and needing its own machinery. Consistency is about showing up daily; finishing is about closing a loop that stays open for weeks. The same fix does not work on both.
+
+The real cause is almost never a decision to quit. It's **silent drift** — you never choose to stop, you just stop, and the project stays technically open forever. So the mechanic has to convert drift into a decision.
+
+**An island has an ending.** In One Piece you arrive, there's a conflict, it resolves, you leave. The Log Pose does not recalibrate until the island is done.
+
+- **A hard WIP limit.** One active island per pillar. You physically cannot start a new project while one is open.
+- **Finish or abandon — no third option.** Want to start something new? Either finish the open one or explicitly **abandon** it. Abandoning is a real, logged event with a reason, not a silent fade. It is always allowed and never shamed — but it must be *chosen*.
+- **Open islands are always visible,** with days-at-sea on each. Most people who don't finish things have no idea how many open loops they're carrying. Showing the count is itself most of the intervention.
+- **Bounty pays for finishing, not starting.** Starting is worth almost nothing. Completion is worth a lot. This deliberately inverts the dopamine of the shiny new project — and it's canon: the bounty raise and the newspaper article come *after* the arc resolves, never during.
+
+> **The meta-risk, said plainly:** this app is a project. It is exactly the kind of ambitious, exciting project that becomes number thirteen on the unfinished list — and the theming makes it *more* dangerous, not less, because there's no end to how much of it there is to build.
+>
+> That's the real reason v0 is four screens and the rule is *use it for three weeks before writing more code.* Not craftsmanship — self-defense. **Write down what "done" means for v0 before starting it**, and treat that line as the finish line. If Haki can't be finished, it has no business telling you to finish anything else.
+
+---
+
+## Dreams stay lofty
+
+The instinct after a backslide is to shrink the goal. **Don't.** That's the wrong lesson and it's the opposite of what you love about the source.
+
+The dream stays enormous. The *unit of action* shrinks:
+
+- **Eternal Pose** — the dream. Never revised, never made "realistic," never scaled down for a bad month.
+- **Log Pose** — points at the next island **only**. One milestone. It recalibrates when you arrive.
+
+Lofty goals never caused the backslide. Acting on a lofty goal directly did, because there's no move that touches something that big — which is exactly what Armament Haki is for. Vague and enormous in; one concrete strikeable thing out.
+
+## Inherited Will *(optional — your call)*
+
+> *"People don't die when they are shot. They die when they are forgotten."*
+
+The most One Piece thing possible, and the most personal: a place for the people whose dreams you carry. Who they were, what they wanted, what of it you're carrying forward. It surfaces at Road Poneglyph milestones and at the weekly Setting Sail, not on a schedule.
+
+Chopper carries Hiluluk. Luffy carries Ace. The whole series argues that a dream outlives the person who held it, as long as someone keeps carrying it.
+
+**Hard rule if this gets built: memory is a source, never a stick.** The app must never use a person's memory to push, guilt, or "motivate" — no "they'd be disappointed," no grief on a streak-break screen, nothing that turns loss into a lever. It's there to be drawn from, and only ever on the days you choose to open it.
 
 ---
 
@@ -131,7 +209,10 @@ Journaling apps exist. Habit apps exist. Mood trackers are everywhere. Three thi
 
 1. **Will as a depleting resource**, with an exhaustion warning that tells you to back off. Every competitor optimizes for more output, forever.
 2. **Hardness instead of streaks.** Streaks are shame machines — one miss zeroes ninety days and you delete the app. Hardness dips and recovers. Mechanically faithful to Armament Haki *and* it removes the worst failure mode in the category.
-3. **Foresight** — warnings fired *before* the slip, from your own history. Not AI magic, just correlation over your data surfaced when it can still change something.
+3. **Foresight** — warnings fired *before* the slip. Declared cascades from day one, mined patterns once there's history.
+4. **The Calm Belt** — an alarm for coasting. Everything else in the category only knows how to detect struggle, and congratulates you for the frictionless week that's actually the warning sign.
+5. **The Return as a tracked skill.** Every other app is built around never having left, so none of them can help you on the one day that decides whether a gap costs a week or a year.
+6. **Finish-or-abandon.** A WIP limit that converts silent drift into a logged decision, and a progression score that pays for completion rather than for starting.
 
 ---
 
@@ -143,16 +224,20 @@ Journaling apps exist. Habit apps exist. Mood trackers are everywhere. Three thi
 4. **Local-first and encrypted.** Works with no internet, exports to plain Markdown and JSON. Non-negotiable for a mental-health journal.
 5. **Two speeds.** Usable in thirty seconds a day. Rewarding at twenty minutes. Never punishing for choosing the thirty seconds.
 6. **It's for one person.** Ship ugly, ship fast, change it constantly. Don't build a single setting you'd only need if you had users.
+7. **A green week is not automatically a good week.** Never congratulate frictionlessness. The app's job is to notice the dead calm, not to hand out a gold star for it.
+8. **Memory is a source, never a stick.** Nothing in this app may use a person's memory to push, guilt, or motivate. It is drawn from on the days you choose to open it, and it never appears on a failure screen.
 
 ---
 
 ## Build order
 
-The ordering matters more than the feature list. The temptation is to build Foresight first because it's the exciting part. It's last, because it's worthless without a year of you in the database.
+The ordering matters more than the feature list. The temptation is to build the whole Haki system first because it's the exciting part — and that temptation is the same one that leaves projects unfinished.
+
+**Definition of done for v0, written before a line of code:** you can open the app, log a Daily Read in under thirty seconds, write a journal entry, see your Will Reserve, and get a Den Den Mushi warning the morning after a bad night's sleep. That's the finish line. Nothing else counts, nothing else gets built, and v0 is *done* when those five things work — not when it feels impressive.
 
 | | Stage | Scope |
 |---|---|---|
-| **v0** | The Spine | Daily Read + The Log + Will Reserve on a home screen. Kanji navigation, the dark palette, and the Den Den Mushi nudge sound ship here — identity is cheap and it's what makes you open the thing. Elaborate effects do not. Then **use it for three weeks before writing another line of code.** You can't design the rest until you have three weeks of your own data in it — not a delay, the requirement. |
+| **v0** | The Spine | Daily Read + The Log + Will Reserve + **sleep as a declared keystone with the training cascade wired to it.** Kanji nav, dark palette, Den Den Mushi nudge — identity is cheap and it's what makes you open the thing. Elaborate effects are not. Then **use it for three weeks before writing another line of code.** |
 | **v1** | Armament | Hardening habits, the Break List with urge logging, the Gears timer. |
 | **v2** | Conqueror's | The Flag, Log Pose, Road Poneglyphs, the Setting Sail weekly ritual — the thing that converts six days of logging into a decision. |
 | **v3** | Observation | Correlations, Inner Weather chart, the Foresight rules engine. Deliberately last; it needs history to say anything true. |
@@ -176,6 +261,10 @@ Build Haki mode as the real UI from day one. Plain mode is a **label map plus an
 
 ---
 
-## Open question
+## Answered
 
-**What's actually breaking right now?** The most useful design input available: what's the one thing you'd want this app to have caught last month? Build v0 aimed at that, and the rest of the spec writes itself.
+*What's actually breaking right now?* — **A sleep slip cascading into a lost week of training; backsliding once things get comfortable; and projects that stay open instead of getting finished.**
+
+v0 is aimed directly at the first one, because it's the one with a known mechanism and it can be caught on day one. The Calm Belt lands in v1 with the habit engine. Finish-or-abandon lands in v2 with Log Pose, where it belongs.
+
+Everything in this document should be read against those three. If a feature doesn't help with a cascade, a drift, or a finish, it's v5.
