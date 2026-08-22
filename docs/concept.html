@@ -207,6 +207,40 @@ h4{font-size:1.0625rem;font-weight:600;margin:0 0 .35rem;letter-spacing:-.01em}
 .q h4{margin-bottom:.3rem;font-size:1.125rem;font-weight:700}
 .q p{margin:0;font-size:.9375rem;color:var(--ink-dim)}
 
+/* ---------- locked decisions ---------- */
+.locked{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:2rem}
+@media(max-width:720px){.locked{grid-template-columns:1fr}}
+.lock{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:3px;padding:1.375rem;
+  border-left:3px solid var(--violet);
+}
+.lock .k{
+  font-family:var(--mono);font-size:.625rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-faint);display:block;margin-bottom:.5rem;
+}
+.lock .v2{font-family:var(--display);font-size:1.25rem;font-weight:700;letter-spacing:-.02em;display:block;margin-bottom:.5rem}
+.lock p{font-size:.875rem;color:var(--ink-dim);margin:0}
+
+/* ---------- table ---------- */
+.tw{overflow-x:auto;margin-top:1.75rem;border:1px solid var(--line);border-radius:3px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.9375rem}
+th,td{text-align:left;padding:.8rem 1rem;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:none}
+th{
+  font-family:var(--mono);font-size:.625rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:500;background:var(--surface-2);
+}
+td:first-child{font-family:var(--display);font-weight:700;white-space:nowrap;letter-spacing:-.01em}
+td:nth-child(2){color:var(--ink-faint);font-style:italic;font-size:.875rem}
+td:last-child{color:var(--ink-dim)}
+tr.gold td:first-child{color:var(--violet)}
+
+.big{
+  font-family:var(--display);font-size:clamp(1.35rem,3vw,2rem);font-weight:400;line-height:1.25;
+  letter-spacing:-.025em;max-width:26ch;margin:0 0 1.25rem;
+}
+.big b{font-weight:800;color:var(--violet)}
+
 footer{
   padding:3rem 0 4rem;border-top:1px solid var(--line-soft);
   font-family:var(--mono);font-size:.75rem;color:var(--ink-faint);letter-spacing:.04em;
@@ -221,9 +255,28 @@ footer{
     <h1>HAKI</h1>
     <p class="lede">Every other app tracks what you <em>did</em>. This one tracks the state of your <em>will</em>.</p>
     <p class="sub">A private journal, habit forge, and mental-health instrument built on one borrowed idea: willpower is not infinite, it depletes, it recovers, and almost nobody measures theirs.</p>
-    <p class="stamp"><span>Concept v0.1</span><span>Built for one user</span><span>Local-first</span></p>
+    <p class="stamp"><span>Concept v0.2</span><span>Phone-first · Expo</span><span>Local-first</span><span>Haki mode default</span></p>
   </div>
 </header>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">Decided</span>
+    <h2>Two things are locked.</h2>
+    <div class="locked">
+      <div class="lock">
+        <span class="k">Platform</span>
+        <span class="v2">Phone-first</span>
+        <p>Expo (React Native) + expo-sqlite + Drizzle, local-first. Desktop later via Expo Web if it's ever wanted. Costs roughly 3× the iteration speed of a web build — worth it, because the notification taxonomy below is only possible with real native channels.</p>
+      </div>
+      <div class="lock">
+        <span class="k">Theme</span>
+        <span class="v2">Haki mode is the app</span>
+        <p>Not a skin on a neutral app — the default, and the real thing. Plain mode is a one-tap toggle for waiting rooms and screenshares: a label map and an effects kill-switch, nothing more. Build one design system with a mute button, never two.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section>
   <div class="wrap two">
@@ -330,6 +383,81 @@ footer{
 </section>
 
 <section>
+  <div class="wrap">
+    <span class="eyebrow">Haki mode — what "lean heavy" actually means</span>
+    <h2>Not labels. Mechanics that could only exist in this app.</h2>
+
+    <h3 style="margin-top:2.5rem">The Den Den Mushi taxonomy</h3>
+    <p class="prose">Canon already contains a complete notification hierarchy. Use it exactly as written — it hands you an escalation channel that <em>means</em> something, which is the hardest thing in the world to build honestly.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Snail</th><th>Canon</th><th>In Haki</th></tr></thead>
+        <tbody>
+          <tr><td>Regular</td><td>Ordinary calls</td><td>Daily Read nudge, habit reminders. The purupuru you already have as a ringtone.</td></tr>
+          <tr><td>Black</td><td>Records without alerting anyone</td><td>Passive logging — sleep, steps, screen time. Never notifies.</td></tr>
+          <tr><td>White</td><td>Counters the Black</td><td>Privacy mode. Nothing is recorded while it's on.</td></tr>
+          <tr><td>Baby</td><td>Tracks the parent snail</td><td>Background sync from a watch or health app.</td></tr>
+          <tr class="gold"><td>Golden</td><td>Buster Call</td><td>Reserved for one thing only: your Sea Prism Log hits a crisis pattern. Fires maybe twice a year — and you will never once ignore it, because it only ever means that.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="two" style="margin-top:3.5rem">
+      <div>
+        <h3>The app loses its power when you do</h3>
+        <p class="big" style="margin-top:1rem">When your Will Reserve runs low, <b>the app's own Haki stops working.</b></p>
+      </div>
+      <div class="prose">
+        <p>The lightning doesn't fire. The armor renders dull and grey. Gear transitions stop animating. Nothing is disabled, nothing scolds you — the interface simply runs out of Haki alongside you.</p>
+        <p>Every other app in this category puts your state in a chart. This one <strong>embodies</strong> it. You'll feel it before you read a number, which is the entire point.</p>
+        <p style="color:var(--ink-faint);font-size:.9375rem"><em>If you build one thing from this document, build this.</em></p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:3.5rem">Armor you can see</h3>
+    <div class="grid">
+      <div class="card">
+        <h4>Hardening</h4>
+        <p>Renders as literal Busoshoku coating. A habit at 20% Hardness is bare skin; at 100% it's full black sheen. Miss a day and a crack shows. Come back and it seals.</p>
+      </div>
+      <div class="card">
+        <h4>Ryuo</h4>
+        <p>The mastery tier. Hold a habit above 90% for thirty days and it starts to flow red. Earned, rare, and obvious across the room.</p>
+      </div>
+      <div class="card">
+        <h4>Conqueror's burst</h4>
+        <p>Black-violet lightning across the whole screen. Fires <em>only</em> on a Road Poneglyph milestone or an Eternal Pose step — maybe four times a year. Weekly, it's worthless. Four times a year, it's electric.</p>
+      </div>
+      <div class="card">
+        <h4>Gear 5</h4>
+        <p>Unlocked by a week where Will Reserve stayed <em>high</em> and output stayed high. Nika's power is joy and freedom — the literal opposite of grinding. So the app's most celebratory state rewards sustainable excellence and never rewards burning yourself down.</p>
+      </div>
+    </div>
+
+    <div class="two" style="margin-top:3.5rem">
+      <div>
+        <h3>The Ship</h3>
+        <p class="big" style="margin-top:1rem">The Merry grew a spirit <b>because it was cared for.</b></p>
+      </div>
+      <div class="prose">
+        <p>Your ship is your body and your space — sleep, food, movement, the state of the room you're sitting in. Care for it and it thrives. Neglect it and it visibly degrades.</p>
+        <p>This is the self-care module, and anyone who's seen the Merry's send-off knows exactly what that mechanic is going to feel like at month six. No wellness app on earth can land that hit. You can, because it's built for one person who already cares.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:3.5rem">And the smaller ones</h3>
+    <div class="grid">
+      <div class="card"><h4>Log Pose</h4><p>A real animated compass on the goals screen. The needle spins and re-locks when you reach an island.</p></div>
+      <div class="card"><h4>Ship's Log</h4><p>Journal entries dated in <em>days at sea</em>, counted from the day you set sail.</p></div>
+      <div class="card"><h4>Inner Weather</h4><p>Your mood history rendered as an actual Grand Line weather map.</p></div>
+      <div class="card"><h4>Devil Fruit</h4><p>Name your defining strength <em>and</em> what it costs you. Every power in One Piece has a price — naming yours is real self-knowledge. <em>"Hyper-focus. Can't swim in unstructured days."</em></p></div>
+      <div class="card"><h4>Voice of All Things</h4><p>The gratitude prompt, finally phrased like something you'd want to answer: "What spoke to you today?"</p></div>
+      <div class="card"><h4>Wanted poster</h4><p>A real generated image at bounty thresholds — 30M, 100M, 300M, 500M, 1.5B.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
   <div class="wrap two">
     <div>
       <span class="eyebrow">Honest assessment</span>
@@ -392,7 +520,7 @@ footer{
       </div>
       <div class="stage">
         <div class="v">v4<small>Reward</small></div>
-        <div><h4>The fun</h4><p>Bounty, wanted posters, gear transitions, Haki lightning. Pure delight, zero utility, do not build it early.</p></div>
+        <div><h4>The fun</h4><p>Bounty, wanted posters, gear transitions, Conqueror's lightning, the Ship, Gear 5. Pure delight, zero utility — and the reason you are still using this in a year. Late, but not optional.</p></div>
       </div>
     </div>
     <p class="prose" style="margin-top:2rem;color:var(--ink-dim);font-size:.9375rem"><em>Anything not on this list is v5.</em></p>
@@ -403,12 +531,12 @@ footer{
   <div class="wrap two">
     <div>
       <span class="eyebrow">Stack</span>
-      <h2>What I'd build it on.</h2>
+      <h2>How it gets built.</h2>
     </div>
     <div class="prose">
-      <p><strong>Expo (React Native) + SQLite + Drizzle, local-first.</strong> Entries stored as Markdown in the database, exportable to real files.</p>
-      <p>The reasoning is boring but decisive: this app lives on a phone. Check-ins and journaling happen in bed, on a walk, in a parked car. And iOS still can't do reliable notifications or home-screen widgets from a PWA — a habit app without a widget and a nudge is a habit app you stop opening in week three. One codebase gets you a desktop build later through Expo Web if you want one.</p>
-      <p><strong>The honest alternative:</strong> a Vite + React PWA with SQLite in the browser is roughly three times faster to build and iterate on. If what you actually want is the <em>journaling</em> half far more than the <em>nudging</em> half, that's the better call and I'd say so.</p>
+      <p><strong>Expo (React Native) + expo-sqlite + Drizzle, local-first.</strong> Entries stored as Markdown in the database, exportable to real files.</p>
+      <p>Check-ins and journaling happen in bed, on a walk, in a parked car — so it's a phone app, and a habit app without a widget and a nudge is one you stop opening in week three. The Den Den Mushi taxonomy is only possible with real native notification channels, which settles it.</p>
+      <p><strong>Theming architecture:</strong> build Haki mode as the real UI from day one. Plain mode is one <code>strings.plain.ts</code> and one <code>effectsEnabled</code> flag. Don't build two design systems — build one with a mute button.</p>
     </div>
   </div>
 </section>
@@ -416,17 +544,15 @@ footer{
 <section>
   <div class="wrap">
     <span class="eyebrow">Over to you</span>
-    <h2>Three questions before any code.</h2>
+    <h2>One question left.</h2>
     <div style="max-width:70ch">
-      <div class="q"><span class="mark">1</span><div><h4>Phone-first or desktop-first?</h4><p>This one decision changes the stack, the build order, and roughly half the interaction design. Where do you actually picture yourself opening it?</p></div></div>
-      <div class="q"><span class="mark">2</span><div><h4>How hard do we lean on the theme?</h4><p>Full commitment — kanji, Den Den Mushi notifications, wanted posters — or a clean, quiet app that only whispers it, so you can open it in a waiting room without explaining yourself?</p></div></div>
-      <div class="q"><span class="mark">3</span><div><h4>What's actually breaking right now?</h4><p>The most useful design input available: what's the one thing you'd want this app to have caught last month? Build for that, and the rest of the spec writes itself.</p></div></div>
+      <div class="q"><span class="mark">?</span><div><h4>What's actually breaking right now?</h4><p>The most useful design input available, and the only thing still missing. What's the one thing you'd want this app to have caught last month — the slip you didn't see coming, the week that got away, the thing you keep meaning to start? Point v0 at that specific failure and the rest of the spec writes itself.</p></div></div>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="wrap">HAKI · CONCEPT v0.1 · A passion project for an audience of one</div>
+  <div class="wrap">HAKI · CONCEPT v0.2 · A passion project for an audience of one</div>
 </footer>
 
 <script>

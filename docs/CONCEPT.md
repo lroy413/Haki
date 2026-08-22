@@ -1,8 +1,15 @@
-# Haki — Concept v0.1
+# Haki — Concept v0.2
 
 > Every other app tracks what you **did**. This one tracks the state of your **will**.
 
 A private journal, habit forge, and mental-health instrument built for an audience of one.
+
+## Decisions locked
+
+| | |
+|---|---|
+| **Platform** | Phone-first. Expo (React Native) + expo-sqlite + Drizzle, local-first. Desktop via Expo Web later if wanted. |
+| **Theme** | **Haki mode is the default and is the real app.** Plain mode exists as a one-tap toggle for waiting rooms and screenshares — a label map and effects-off, nothing more. |
 
 ---
 
@@ -72,6 +79,52 @@ The app has exactly three rooms. One is what comes in, one is what goes out, one
 
 ---
 
+## Haki Mode — what "lean heavy" actually means
+
+Not labels. Mechanics and sensory design that could only exist in this app.
+
+### The Den Den Mushi notification taxonomy
+
+Canon already has a notification hierarchy; use it exactly as written. This is the single best piece of theming available, because it gives you an escalation channel that *means* something.
+
+| Snail | Canon | In Haki |
+|---|---|---|
+| **Regular** | Ordinary calls | Daily Read nudge, habit reminders. The purupuru you already have as a ringer. |
+| **Black** | Records without alerting anyone | Passive logging — health data, screen time, sleep. Never notifies. |
+| **White** | Counters the Black | Privacy mode / lock. Nothing is recorded while it's on. |
+| **Baby** | Tracks the parent snail | Background sync from your watch or health app. |
+| **Golden** | **Buster Call** | Reserved for exactly one thing: your Sea Prism Log hits a crisis pattern. Fires maybe twice a year. You will never ignore it, because it only ever means one thing. |
+
+### The app loses its power when you do
+
+The best idea in this document. When Will Reserve drops low, **the app's own Haki effects stop working.** The lightning doesn't fire. The armor renders dull and grey. Gear transitions don't animate. Nothing is disabled and nothing scolds you — the interface just visibly runs out of Haki alongside you.
+
+Every other app describes your state in a chart. This one *embodies* it. You'll feel it before you read a number.
+
+### Armor you can see
+
+- **Hardening** renders as literal Busoshoku coating. A habit at 20% Hardness is bare skin; at 100% it's full black sheen. Miss a day and a visible crack appears; return and it seals.
+- **Ryuo** is the mastery tier — a habit held above 90% for 30+ days starts to flow red. Earned, rare, obvious at a glance.
+- **Conqueror's burst** — black-violet lightning across the whole screen. Fires *only* on a Road Poneglyph milestone or an Eternal Pose step. Maybe four times a year. If it fires weekly it's worthless; at four times a year it's electric.
+- **Gear 5** — unlocked by a week where Will Reserve stayed **high** and output stayed high. Nika's power is joy and freedom, the literal opposite of grinding — so the app's most celebratory state is the reward for *sustainable* excellence, never for burning yourself down. This is the anti-hustle mechanic and it's thematically perfect.
+
+### The Ship
+
+The Going Merry developed a Klabautermann because it was loved and cared for. **Your ship is your body and your space** — sleep, food, movement, the state of your room.
+
+Care for it and it thrives. Neglect it and it visibly degrades. Anyone who's seen the Merry's send-off knows exactly what that mechanic means, and no wellness app on earth can land that emotional hit. This is the self-care module.
+
+### Smaller ones
+
+- **Log Pose** — a real animated compass on the goals screen. The needle spins and re-locks when you reach an island.
+- **Ship's Log** — journal entries dated in *days at sea* from the day you set sail.
+- **Inner Weather** — your mood history rendered as an actual Grand Line weather map.
+- **Devil Fruit** — name your defining strength *and* what it costs you. Every power in One Piece has a price; naming yours is real self-knowledge. *"Hyper-focus — can't swim in unstructured days."*
+- **Voice of All Things** — the gratitude prompt: "What spoke to you today?"
+- **Wanted poster** — a real generated image at bounty thresholds (30M → 100M → 300M → 500M → 1.5B).
+
+---
+
 ## What's actually novel
 
 Journaling apps exist. Habit apps exist. Mood trackers are everywhere. Three things here don't exist together anywhere — these three *are* the app, everything else is table stakes:
@@ -99,11 +152,11 @@ The ordering matters more than the feature list. The temptation is to build Fore
 
 | | Stage | Scope |
 |---|---|---|
-| **v0** | The Spine | Daily Read + The Log + Will Reserve on a home screen. Nothing else. Then **use it for three weeks before writing another line of code.** You can't design the rest until you have three weeks of your own data in it — not a delay, the requirement. |
+| **v0** | The Spine | Daily Read + The Log + Will Reserve on a home screen. Kanji navigation, the dark palette, and the Den Den Mushi nudge sound ship here — identity is cheap and it's what makes you open the thing. Elaborate effects do not. Then **use it for three weeks before writing another line of code.** You can't design the rest until you have three weeks of your own data in it — not a delay, the requirement. |
 | **v1** | Armament | Hardening habits, the Break List with urge logging, the Gears timer. |
 | **v2** | Conqueror's | The Flag, Log Pose, Road Poneglyphs, the Setting Sail weekly ritual — the thing that converts six days of logging into a decision. |
 | **v3** | Observation | Correlations, Inner Weather chart, the Foresight rules engine. Deliberately last; it needs history to say anything true. |
-| **v4** | Reward | Bounty, wanted posters, gear transitions, Haki lightning. Pure delight, zero utility, do not build early. |
+| **v4** | Reward | Bounty, wanted posters, gear transitions, Conqueror's lightning, the Ship, Gear 5. Pure delight, zero utility — and the reason you'll still be using this in a year. Late, but not optional. |
 
 *Anything not on this list is v5.*
 
@@ -111,16 +164,18 @@ The ordering matters more than the feature list. The temptation is to build Fore
 
 ## Stack
 
-**Recommendation: Expo (React Native) + SQLite + Drizzle, local-first.** Entries stored as Markdown in the database, exportable to real files.
+**Expo (React Native) + expo-sqlite + Drizzle, local-first.** Entries stored as Markdown in the database, exportable to real files.
 
-The reasoning is boring but decisive: this app lives on a phone. Check-ins and journaling happen in bed, on a walk, in a parked car. iOS still can't do reliable notifications or home-screen widgets from a PWA, and a habit app without a widget and a nudge is one you stop opening in week three. One codebase gets a desktop build later via Expo Web.
+This app lives on a phone — check-ins and journaling happen in bed, on a walk, in a parked car. iOS can't do reliable notifications or home-screen widgets from a PWA, and a habit app without a widget and a nudge is one you stop opening in week three. The Den Den Mushi taxonomy above is only possible with real native notification channels. Desktop later via Expo Web if it's ever wanted.
 
-**Honest alternative:** a Vite + React PWA with SQLite in the browser is ~3× faster to build and iterate on. If what you actually want is the *journaling* half far more than the *nudging* half, that's the better call.
+Known cost of this choice: roughly 3× slower to iterate than a web build, and you need a device/build loop. Worth it here.
+
+### Theming architecture
+
+Build Haki mode as the real UI from day one. Plain mode is a **label map plus an effects kill-switch** — one `strings.plain.ts`, one `effectsEnabled` flag. Do not build two design systems; build one, with a mute button.
 
 ---
 
-## Open questions
+## Open question
 
-1. **Phone-first or desktop-first?** Changes the stack, the build order, and roughly half the interaction design.
-2. **How hard do we lean on the theme?** Full commitment (kanji, Den Den Mushi notifications, wanted posters) or a clean app that only whispers it, openable in a waiting room without explaining yourself?
-3. **What's actually breaking right now?** The most useful design input available: what's the one thing you'd want this app to have caught last month?
+**What's actually breaking right now?** The most useful design input available: what's the one thing you'd want this app to have caught last month? Build v0 aimed at that, and the rest of the spec writes itself.

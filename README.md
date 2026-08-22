@@ -9,6 +9,9 @@ It depletes, it recovers, and almost nobody measures theirs.
 
 **Status:** concept. No code yet.
 
+**Locked:** phone-first (Expo + expo-sqlite + Drizzle, local-first). Haki mode is the default UI;
+Plain mode is a label map + effects kill-switch for waiting rooms.
+
 - [`docs/CONCEPT.md`](docs/CONCEPT.md) — the concept doc
 - [`docs/concept.html`](docs/concept.html) — the same thing, as a designed page
 
