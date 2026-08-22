@@ -1,11 +1,51 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+import {
+  BricolageGrotesque_600SemiBold,
+  BricolageGrotesque_700Bold,
+  BricolageGrotesque_800ExtraBold,
+} from '@expo-google-fonts/bricolage-grotesque';
+import {
+  Newsreader_400Regular,
+  Newsreader_400Regular_Italic,
+  Newsreader_500Medium,
+} from '@expo-google-fonts/newsreader';
+import {
+  IBMPlexMono_500Medium,
+  IBMPlexMono_600SemiBold,
+} from '@expo-google-fonts/ibm-plex-mono';
 import { StoreProvider } from '../src/db/client';
 import { HakiProvider } from '../src/state/HakiProvider';
-import { color } from '../src/theme/tokens';
+import { color, font } from '../src/theme/tokens';
+
+// Hold the splash until the faces are ready. Type is most of this app's
+// identity; a flash of the system font on every cold start reads as cheap.
+void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    BricolageGrotesque_600SemiBold,
+    BricolageGrotesque_700Bold,
+    BricolageGrotesque_800ExtraBold,
+    Newsreader_400Regular,
+    Newsreader_400Regular_Italic,
+    Newsreader_500Medium,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+  });
+
+  useEffect(() => {
+    // A font that fails to load is not worth a blank screen — fall back to the
+    // system face and let the app open.
+    if (fontsLoaded || fontError) void SplashScreen.hideAsync();
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <SafeAreaProvider>
       <StoreProvider>
@@ -14,8 +54,9 @@ export default function RootLayout() {
           <Stack
             screenOptions={{
               headerStyle: { backgroundColor: color.bg },
+              headerShadowVisible: false,
               headerTintColor: color.ink,
-              headerTitleStyle: { fontWeight: '700' },
+              headerTitleStyle: { fontFamily: font.displayBold, fontSize: 20 },
               contentStyle: { backgroundColor: color.bg },
             }}
           >

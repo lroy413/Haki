@@ -2,12 +2,7 @@ import { useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../db/client';
 import { exportBackup, importBackup } from '../db/backup';
-import {
-  countRows,
-  entriesToMarkdown,
-  parseBackup,
-  serializeBackup,
-} from '../domain/backup';
+import { countRows, entriesToMarkdown, parseBackup, serializeBackup } from '../domain/backup';
 import { todayKey } from '../domain/date';
 import { transfer } from '../files/transfer';
 import { useHaki } from '../state/HakiProvider';
@@ -133,12 +128,28 @@ export function BackupCard() {
       </Text>
 
       <View style={styles.row}>
-        <Action label="Export data" hint=".json · re-importable" onPress={exportJson} busy={busy} primary />
-        <Action label="Export journal" hint=".md · readable" onPress={exportMarkdown} busy={busy} />
+        <Action
+          label="Export data"
+          hint=".json · re-importable"
+          onPress={exportJson}
+          busy={busy}
+          primary
+        />
+        <Action
+          label="Export journal"
+          hint=".md · readable"
+          onPress={exportMarkdown}
+          busy={busy}
+        />
       </View>
 
       <View style={styles.row}>
-        <Action label="Import" hint="merges, never deletes" onPress={confirmImport} busy={busy} />
+        <Action
+          label="Import"
+          hint="merges, never deletes"
+          onPress={confirmImport}
+          busy={busy}
+        />
         {transfer.canCopy ? (
           <Action label="Copy" hint="if saving fails" onPress={copyJson} busy={busy} />
         ) : null}
@@ -207,8 +218,8 @@ const styles = StyleSheet.create({
   },
   actionPrimary: { backgroundColor: color.violet, borderColor: color.violet },
   actionBusy: { opacity: 0.5 },
-  actionLabel: { ...type.body, color: color.ink, fontWeight: '600' },
-  actionLabelPrimary: { color: '#0A0B12', fontWeight: '700' },
+  actionLabel: { ...type.body, color: color.ink },
+  actionLabelPrimary: { color: '#0A0B12' },
   actionHint: { ...type.small, fontSize: 11, color: color.inkFaint },
   actionHintPrimary: { color: '#0A0B12', opacity: 0.7 },
 

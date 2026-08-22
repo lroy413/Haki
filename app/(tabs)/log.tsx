@@ -6,7 +6,7 @@ import { listEntries } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea } from '../../src/domain/date';
-import { color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/tokens';
 
 export default function LogScreen() {
   const router = useRouter();
@@ -61,7 +61,7 @@ export default function LogScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  list: { padding: space.lg, gap: space.sm, paddingBottom: 96 },
+  list: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE + 72 },
   empty: { ...type.body, color: color.inkDim, textAlign: 'center', marginTop: space.xxxl },
 
   row: {
@@ -80,11 +80,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: space.lg,
     right: space.lg,
-    bottom: space.lg,
+    // Stacked above the floating tab bar rather than under it.
+    bottom: TAB_BAR_CLEARANCE,
     backgroundColor: color.violet,
     borderRadius: radius.md,
     paddingVertical: space.lg,
     alignItems: 'center',
   },
-  fabText: { ...type.heading, color: '#0A0B12', fontWeight: '800' },
+  fabText: { ...type.heading, color: '#0A0B12' },
 });

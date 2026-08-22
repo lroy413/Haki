@@ -4,7 +4,12 @@ import { allSessions, getRead, recentSleep } from '../db/repo';
 import { assessCascade, type CascadeVerdict } from '../domain/cascade';
 import { trainingStatus, type TrainingStatus } from '../domain/training';
 import { daysAtSea, todayKey } from '../domain/date';
-import { computeReserve, effectIntensity, type DailyRead, type Reserve } from '../domain/willReserve';
+import {
+  computeReserve,
+  effectIntensity,
+  type DailyRead,
+  type Reserve,
+} from '../domain/willReserve';
 import { strings, type Strings } from '../theme/strings';
 import { syncKeystoneWarning } from '../notifications/denDenMushi';
 

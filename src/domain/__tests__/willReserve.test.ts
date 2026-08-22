@@ -83,7 +83,11 @@ describe('computeReserve', () => {
   const target = 7.5;
 
   it('is unknown before the first Daily Read of the day', () => {
-    const reserve = computeReserve({ read: null, recentSleepHours: [8], sleepTargetHours: target });
+    const reserve = computeReserve({
+      read: null,
+      recentSleepHours: [8],
+      sleepTargetHours: target,
+    });
     expect(reserve.value).toBeNull();
     expect(reserve.state).toBe('unknown');
   });

@@ -93,6 +93,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0B12',
     gap: 8,
   },
-  errorTitle: { color: '#E9E7F3', fontSize: 16, fontWeight: '600', textAlign: 'center' },
+  errorTitle: { color: '#E9E7F3', fontSize: 16, textAlign: 'center' },
   errorBody: { color: '#9E9BB7', fontSize: 13, textAlign: 'center' },
 });

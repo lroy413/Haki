@@ -2,7 +2,7 @@
 
 A private journaling, habit, and mental-health app for an audience of one.
 
-> Every other app tracks what you *did*. This one tracks the state of your *will*.
+> Every other app tracks what you _did_. This one tracks the state of your _will_.
 
 Built on the idea borrowed from One Piece's Haki system: willpower isn't infinite.
 It depletes, it recovers, and almost nobody measures theirs.
@@ -17,13 +17,13 @@ It depletes, it recovers, and almost nobody measures theirs.
 
 **Definition of done, written before a line of code:**
 
-| | Done |
-|---|---|
-| Open the app | ✅ |
-| Log a Daily Read in under 30 seconds | ✅ four dials, one tap each |
-| Write a journal entry | ✅ Markdown, autosaving |
-| See your Will Reserve | ✅ |
-| Get a Den Den Mushi warning the morning after a bad night's sleep | ✅ |
+|                                                                   | Done                        |
+| ----------------------------------------------------------------- | --------------------------- |
+| Open the app                                                      | ✅                          |
+| Log a Daily Read in under 30 seconds                              | ✅ four dials, one tap each |
+| Write a journal entry                                             | ✅ Markdown, autosaving     |
+| See your Will Reserve                                             | ✅                          |
+| Get a Den Den Mushi warning the morning after a bad night's sleep | ✅                          |
 
 Plus two additions past the line, both on request: **Inherited Will**, and
 **Training** — the downstream end of the cascade, so the thing sleep was
@@ -45,7 +45,7 @@ back, and a repeat import reported `0 added, 4 already here`.
 
 **Not yet run on iOS Safari or a physical device.** The browser test was
 headless Chromium. Safari is the one that matters for you and it has not been
-checked — see *iOS requirements* below.
+checked — see _iOS requirements_ below.
 
 ---
 
@@ -147,7 +147,7 @@ Node. Every piece of real logic in v0 is verifiable without a simulator.
 
 **Keystone & Cascade** (`src/domain/cascade.ts`) — sleep is declared as a
 keystone with training wired downstream. One bad night is a watch; two
-consecutive is a breach and fires a notification. A gap in logging *ends* the
+consecutive is a breach and fires a notification. A gap in logging _ends_ the
 run rather than being counted across — a two-night streak either side of an
 unlogged night is not a two-night streak, and the loudest warning in the app
 should never fire on invented data.
@@ -164,7 +164,7 @@ back, and it cannot be zeroed. A gap of three days or more makes the next
 session a **Return** — logged, named, and given its own screen, because coming
 back is the skill that decides whether a gap costs a week or a year.
 
-Note the ordering in `app/session.tsx`: the gap is computed *before* the insert.
+Note the ordering in `app/session.tsx`: the gap is computed _before_ the insert.
 Write first and the new session becomes its own "previous session", so every
 Return would read as a gap of zero.
 

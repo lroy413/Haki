@@ -14,7 +14,7 @@ import { BackupCard } from '../../src/components/BackupCard';
 import { useStore } from '../../src/db/client';
 import { setKeystone, setPlainMode, setTraining } from '../../src/db/settings';
 import { useHaki } from '../../src/state/HakiProvider';
-import { color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/tokens';
 
 export default function SettingsScreen() {
   const { db, settings, refreshSettings } = useStore();
@@ -134,7 +134,12 @@ export default function SettingsScreen() {
             The target is a line to read against, never a verdict. Nothing here can be failed.
           </Text>
 
-          <Field label="Sessions per week" value={weeklyTarget} onChangeText={setWeeklyTarget} numeric />
+          <Field
+            label="Sessions per week"
+            value={weeklyTarget}
+            onChangeText={setWeeklyTarget}
+            numeric
+          />
           <Field
             label="A gap this long makes coming back a Return"
             value={gapDays}
@@ -191,7 +196,7 @@ function Field({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg, paddingBottom: space.xxxl },
+  content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
 
   card: {
     backgroundColor: color.surface,
@@ -227,7 +232,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: space.xs,
   },
-  saveText: { ...type.body, color: '#0A0B12', fontWeight: '700' },
+  saveText: { ...type.body, color: '#0A0B12' },
   pressed: { opacity: 0.75 },
 
   footer: { ...type.small, color: color.inkFaint, textAlign: 'center' },

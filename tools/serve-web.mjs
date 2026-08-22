@@ -36,7 +36,10 @@ const TYPES = {
 
 async function resolve(urlPath) {
   // Strip any traversal before touching the filesystem.
-  const safe = normalize(decodeURIComponent(urlPath.split('?')[0])).replace(/^(\.\.[/\\])+/, '');
+  const safe = normalize(decodeURIComponent(urlPath.split('?')[0])).replace(
+    /^(\.\.[/\\])+/,
+    '',
+  );
   const direct = join(root, safe);
   try {
     const info = await stat(direct);

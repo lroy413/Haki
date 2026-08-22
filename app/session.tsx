@@ -16,7 +16,7 @@ import { allSessions, logSession } from '../src/db/repo';
 import { useHaki } from '../src/state/HakiProvider';
 import { gapClosedBy, returnMessage } from '../src/domain/training';
 import { todayKey } from '../src/domain/date';
-import { color, radius, space, type } from '../src/theme/tokens';
+import { color, font, radius, space, type } from '../src/theme/tokens';
 
 const QUICK_KINDS = ['Push', 'Pull', 'Legs', 'Full body', 'Run', 'Conditioning'];
 
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   },
   chipOn: { borderColor: color.crimson, backgroundColor: color.crimsonSoft },
   chipText: { ...type.small, color: color.inkDim },
-  chipTextOn: { color: color.crimson, fontWeight: '600' },
+  chipTextOn: { color: color.crimson },
 
   save: {
     backgroundColor: color.crimson,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveDisabled: { backgroundColor: color.surface2 },
-  saveText: { ...type.heading, color: '#0A0B12', fontWeight: '800' },
+  saveText: { ...type.heading, color: '#0A0B12' },
   pressed: { opacity: 0.75 },
 
   returnScreen: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     padding: space.xl,
     gap: space.lg,
   },
-  returnKanji: { fontSize: 72, color: color.violet, fontWeight: '800' },
+  returnKanji: { fontFamily: font.display, fontSize: 72, color: color.violet },
   returnTitle: { ...type.display, color: color.ink },
   returnBody: {
     ...type.body,

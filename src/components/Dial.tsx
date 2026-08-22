@@ -20,14 +20,18 @@ type Props = {
  * at 11pm — which is exactly when it matters most. That budget is why this is a
  * row of taps rather than a slider.
  */
-export function Dial({ label, value, onChange, inverted = false, accent = color.violet }: Props) {
+export function Dial({
+  label,
+  value,
+  onChange,
+  inverted = false,
+  accent = color.violet,
+}: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.hint, { color: accent }]}>
-          {inverted ? 'low is better' : ''}
-        </Text>
+        <Text style={[styles.hint, { color: accent }]}>{inverted ? 'low is better' : ''}</Text>
       </View>
       <View style={styles.row}>
         {STEPS.map((step) => {
@@ -76,5 +80,5 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   stepText: { ...type.body, color: color.inkDim, fontVariant: ['tabular-nums'] },
-  stepTextSelected: { color: '#0A0B12', fontWeight: '700' },
+  stepTextSelected: { color: '#0A0B12' },
 });

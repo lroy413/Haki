@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { color, radius, space, type } from '../theme/tokens';
+import { color, font, radius, space, type } from '../theme/tokens';
 import { reserveColor } from '../theme/tokens';
 import type { Reserve } from '../domain/willReserve';
 
@@ -84,7 +84,12 @@ const styles = StyleSheet.create({
   },
   label: { ...type.label, color: color.inkFaint },
   readout: { flexDirection: 'row', alignItems: 'baseline', gap: space.md },
-  value: { fontSize: 64, fontWeight: '800', letterSpacing: -3, fontVariant: ['tabular-nums'] },
+  value: {
+    fontFamily: font.display,
+    fontSize: 64,
+    letterSpacing: -3,
+    fontVariant: ['tabular-nums'],
+  },
   state: { ...type.heading, color: color.inkDim },
   unknown: { ...type.body, color: color.inkDim, paddingVertical: space.md },
   track: {

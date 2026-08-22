@@ -132,7 +132,10 @@ export default function EntryScreen() {
         accessibilityLabel="Entry body"
       />
 
-      <Pressable onPress={done} style={({ pressed }) => [styles.done, pressed && styles.pressed]}>
+      <Pressable
+        onPress={done}
+        style={({ pressed }) => [styles.done, pressed && styles.pressed]}
+      >
         <Text style={styles.doneText}>Done</Text>
       </Pressable>
     </KeyboardAvoidingView>
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
     color: color.ink,
     padding: space.lg,
   },
-  delete: { ...type.small, color: color.crimson, fontWeight: '600' },
+  delete: { ...type.small, color: color.crimson },
   done: {
     margin: space.lg,
     backgroundColor: color.surface,

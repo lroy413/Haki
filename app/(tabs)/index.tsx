@@ -3,7 +3,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useHaki } from '../../src/state/HakiProvider';
-import { color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, color, font, radius, space, type } from '../../src/theme/tokens';
 
 export default function Home() {
   const router = useRouter();
@@ -22,7 +22,9 @@ export default function Home() {
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor={color.inkDim} />}
+      refreshControl={
+        <RefreshControl refreshing={false} onRefresh={refresh} tintColor={color.inkDim} />
+      }
     >
       <Text style={styles.days}>{t.daysAtSea(day)}</Text>
 
@@ -34,12 +36,7 @@ export default function Home() {
       />
 
       {cascade.message ? (
-        <View
-          style={[
-            styles.warning,
-            breach ? styles.warningBreach : styles.warningWatch,
-          ]}
-        >
+        <View style={[styles.warning, breach ? styles.warningBreach : styles.warningWatch]}>
           <Text style={[styles.warningLabel, { color: breach ? color.crimson : color.warn }]}>
             {breach ? 'Keystone slipping' : 'Keystone'}
           </Text>
@@ -51,24 +48,21 @@ export default function Home() {
         onPress={() => router.push('/training')}
         style={({ pressed }) => [styles.strip, pressed && styles.ctaPressed]}
       >
-          <View>
-            <Text style={styles.stripLabel}>{t.trainingTitle}</Text>
-            <Text style={styles.stripValue}>
-              {training.daysSinceLast === null
-                ? t.trainingNever
-                : training.daysSinceLast === 0
-                  ? t.trainingToday
-                  : `${training.daysSinceLast} days since last`}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.stripCount,
-              { color: training.inGap ? color.warn : color.crimson },
-            ]}
-          >
-            {training.sessionsThisWeek}/{training.weeklyTarget}
+        <View>
+          <Text style={styles.stripLabel}>{t.trainingTitle}</Text>
+          <Text style={styles.stripValue}>
+            {training.daysSinceLast === null
+              ? t.trainingNever
+              : training.daysSinceLast === 0
+                ? t.trainingToday
+                : `${training.daysSinceLast} days since last`}
           </Text>
+        </View>
+        <Text
+          style={[styles.stripCount, { color: training.inGap ? color.warn : color.crimson }]}
+        >
+          {training.sessionsThisWeek}/{training.weeklyTarget}
+        </Text>
       </Pressable>
 
       <Pressable
@@ -91,7 +85,7 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg },
+  content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
   days: { ...type.label, color: color.inkFaint },
 
   warning: { borderWidth: 1, borderRadius: radius.md, padding: space.lg, gap: space.xs },
@@ -108,7 +102,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   ctaPressed: { opacity: 0.75 },
-  ctaText: { ...type.heading, color: '#0A0B12', fontWeight: '800' },
+  ctaText: { ...type.heading, color: '#0A0B12' },
   ctaHint: { ...type.small, color: '#0A0B12', opacity: 0.7 },
 
   secondary: {
@@ -133,5 +127,5 @@ const styles = StyleSheet.create({
   },
   stripLabel: { ...type.label, color: color.inkFaint, marginBottom: 2 },
   stripValue: { ...type.body, color: color.ink },
-  stripCount: { fontSize: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  stripCount: { fontFamily: font.display, fontSize: 22, fontVariant: ['tabular-nums'] },
 });
