@@ -112,7 +112,10 @@ export default function SessionScreen() {
             placeholder="Push"
             placeholderTextColor={color.inkFaint}
             style={styles.input}
-            autoFocus
+            // Native only: iOS opens the keyboard for gesture-driven focus,
+            // never for programmatic focus, and an already-focused field
+            // fires no new focus event when tapped.
+            autoFocus={Platform.OS !== 'web'}
             accessibilityLabel={t.trainingKind}
           />
           <View style={styles.quick}>

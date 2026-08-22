@@ -162,7 +162,8 @@ function Input({
         value={value}
         onChangeText={onChangeText}
         multiline={multiline}
-        autoFocus={autoFocus}
+        // Native only — iOS will not open the keyboard for programmatic focus.
+        autoFocus={Platform.OS !== 'web' && autoFocus}
         style={[styles.input, multiline && styles.inputMultiline]}
         placeholderTextColor={color.inkFaint}
         accessibilityLabel={label}

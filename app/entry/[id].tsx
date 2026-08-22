@@ -21,6 +21,17 @@ const AUTOSAVE_MS = 800;
  *
  * Autosaves while you type, because an entry lost to a backgrounded app is an
  * entry you will not write twice.
+ *
+ * Two iOS-Safari rules shape how focus works here, and breaking either one
+ * leaves you tapping a field that will not open the keyboard:
+ *
+ * 1. iOS only opens the keyboard for focus caused by a real user gesture.
+ *    `autoFocus` focuses the field programmatically, so the field ends up
+ *    focused with no keyboard — and because it is *already* focused, tapping
+ *    it fires no new focus event and the keyboard never arrives. So autoFocus
+ *    is native-only; on web the first tap does the focusing.
+ * 2. A read-only field never opens the keyboard. The input is therefore always
+ *    editable, and the row is created on demand instead of gating typing.
  */
 export default function EntryScreen() {
   const router = useRouter();
@@ -28,20 +39,14 @@ export default function EntryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [body, setBody] = useState('');
-  const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const rowId = useRef<number | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      if (id === 'new') {
-        const created = await createEntry(db, '');
-        if (cancelled) return;
-        rowId.current = created;
-        setReady(true);
-        return;
-      }
+      if (id === 'new') return; // the row is created on first save
 
       const parsed = Number(id);
       if (!Number.isFinite(parsed)) {
@@ -56,7 +61,6 @@ export default function EntryScreen() {
       }
       rowId.current = row.id;
       setBody(row.body);
-      setReady(true);
     })();
 
     return () => {
@@ -64,24 +68,52 @@ export default function EntryScreen() {
     };
   }, [db, id, router]);
 
-  // Flush any pending autosave on unmount so backing out never drops a keystroke.
   useEffect(() => {
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
   }, []);
 
+  /**
+   * The row this entry writes to, created on demand.
+   *
+   * Creating lazily means an empty entry you back out of never leaves a blank
+   * row behind, and typing is never blocked waiting on the database.
+   */
+  async function ensureRow(): Promise<number | null> {
+    if (rowId.current != null) return rowId.current;
+    try {
+      const created = await createEntry(db, '');
+      rowId.current = created;
+      setError(null);
+      return created;
+    } catch {
+      setError('Could not save — your text is still here, try Done again.');
+      return null;
+    }
+  }
+
   function onChange(next: string) {
     setBody(next);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      if (rowId.current != null) void updateEntry(db, rowId.current, next);
+      void (async () => {
+        const rid = await ensureRow();
+        if (rid != null) await updateEntry(db, rid, next);
+      })();
     }, AUTOSAVE_MS);
   }
 
-  async function remove() {
+  function remove() {
     const currentId = rowId.current;
-    if (currentId == null) return;
+    if (timer.current) clearTimeout(timer.current);
+
+    // Nothing was ever written — just leave.
+    if (currentId == null) {
+      router.back();
+      return;
+    }
+
     Alert.alert('Delete this entry?', 'This cannot be undone.', [
       { text: 'Keep', style: 'cancel' },
       {
@@ -89,7 +121,6 @@ export default function EntryScreen() {
         style: 'destructive',
         onPress: () => {
           void (async () => {
-            if (timer.current) clearTimeout(timer.current);
             await deleteEntry(db, currentId);
             router.back();
           })();
@@ -100,7 +131,16 @@ export default function EntryScreen() {
 
   async function done() {
     if (timer.current) clearTimeout(timer.current);
-    if (rowId.current != null) await updateEntry(db, rowId.current, body);
+
+    // An entry you opened and left blank is not worth a row.
+    if (rowId.current == null && !body.trim()) {
+      router.back();
+      return;
+    }
+
+    const rid = await ensureRow();
+    if (rid == null) return; // error is on screen; do not lose the text
+    await updateEntry(db, rid, body);
     router.back();
   }
 
@@ -112,7 +152,7 @@ export default function EntryScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable onPress={remove} hitSlop={10}>
+            <Pressable onPress={remove} hitSlop={10} style={styles.deleteHit}>
               <Text style={styles.delete}>Delete</Text>
             </Pressable>
           ),
@@ -124,13 +164,15 @@ export default function EntryScreen() {
         value={body}
         onChangeText={onChange}
         multiline
-        autoFocus={id === 'new'}
-        editable={ready}
+        // Native only — see the note at the top of this file.
+        autoFocus={Platform.OS !== 'web' && id === 'new'}
         placeholder="Markdown. Whatever it is."
         placeholderTextColor={color.inkFaint}
         textAlignVertical="top"
         accessibilityLabel="Entry body"
       />
+
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <Pressable
         onPress={done}
@@ -147,12 +189,20 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     ...type.body,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 26,
     color: color.ink,
     padding: space.lg,
   },
+  // Without the inset the label sits flush against the screen edge and clips.
+  deleteHit: { paddingHorizontal: space.md, paddingVertical: space.xs },
   delete: { ...type.small, color: color.crimson },
+  error: {
+    ...type.small,
+    color: color.warn,
+    paddingHorizontal: space.lg,
+    paddingBottom: space.sm,
+  },
   done: {
     margin: space.lg,
     backgroundColor: color.surface,
