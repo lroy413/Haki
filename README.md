@@ -34,7 +34,7 @@ That's the finish line. Everything else is v1+ and deliberately absent.
 
 ### Verified
 
-`npm test` 72 passing · `npm run typecheck` clean · `npx expo-doctor` 21/21 ·
+`npm test` 96 passing · `npm run typecheck` clean · `npx expo-doctor` 21/21 ·
 web and native both bundle · **driven end-to-end in a real browser**: Daily
 Read saved, Reserve computed, keystone warning fired on 5h sleep, training
 session logged, data survived a reload, zero console errors.
