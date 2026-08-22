@@ -6,7 +6,7 @@ import { useHaki } from '../../src/state/HakiProvider';
 import { color, radius, space, type } from '../../src/theme/tokens';
 
 export default function Home() {
-  const { reserve, cascade, intensity, day, t, read, refresh } = useHaki();
+  const { reserve, cascade, intensity, day, t, read, training, refresh } = useHaki();
 
   // Coming back from the Daily Read modal should show the new number at once.
   useFocusEffect(
@@ -45,6 +45,29 @@ export default function Home() {
           <Text style={styles.warningBody}>{cascade.message}</Text>
         </View>
       ) : null}
+
+      <Link href="/training" asChild>
+        <Pressable style={({ pressed }) => [styles.strip, pressed && styles.ctaPressed]}>
+          <View>
+            <Text style={styles.stripLabel}>{t.trainingTitle}</Text>
+            <Text style={styles.stripValue}>
+              {training.daysSinceLast === null
+                ? t.trainingNever
+                : training.daysSinceLast === 0
+                  ? t.trainingToday
+                  : `${training.daysSinceLast} days since last`}
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.stripCount,
+              { color: training.inGap ? color.warn : color.crimson },
+            ]}
+          >
+            {training.sessionsThisWeek}/{training.weeklyTarget}
+          </Text>
+        </Pressable>
+      </Link>
 
       <Link href="/read" asChild>
         <Pressable style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}>
@@ -93,4 +116,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryText: { ...type.heading, color: color.ink },
+
+  strip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.md,
+    padding: space.lg,
+  },
+  stripLabel: { ...type.label, color: color.inkFaint, marginBottom: 2 },
+  stripValue: { ...type.body, color: color.ink },
+  stripCount: { fontSize: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
 });

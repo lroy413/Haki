@@ -3,14 +3,17 @@ import type { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
 import type { SleepNight } from '../domain/cascade';
+import type { Session } from '../domain/training';
 import {
   carried,
   dailyRead,
   entry,
   setting,
   sleepLog,
+  trainingSession,
   type CarriedRow,
   type EntryRow,
+  type TrainingSessionRow,
 } from './schema';
 
 export type Db = ExpoSQLiteDatabase<Record<string, never>>;
@@ -67,6 +70,57 @@ export async function recentSleep(
     .from(sleepLog)
     .where(and(gte(sleepLog.day, since), lte(sleepLog.day, from)))
     .orderBy(desc(sleepLog.day));
+}
+
+/* ---------------------------------------------------------------- training */
+
+/**
+ * Every session, most recent first.
+ *
+ * Deliberately unbounded: the consistency window and gap detection both need
+ * the full history to be correct, and a personal training log is a few
+ * thousand rows after a decade. Paginate the *display*, never this.
+ */
+export async function allSessions(db: Db): Promise<Session[]> {
+  const rows = await db
+    .select({
+      day: trainingSession.day,
+      kind: trainingSession.kind,
+      minutes: trainingSession.minutes,
+      intensity: trainingSession.intensity,
+      note: trainingSession.note,
+    })
+    .from(trainingSession)
+    .orderBy(desc(trainingSession.day));
+  return rows;
+}
+
+export async function recentSessions(db: Db, limit = 30): Promise<TrainingSessionRow[]> {
+  return db
+    .select()
+    .from(trainingSession)
+    .orderBy(desc(trainingSession.day), desc(trainingSession.createdAt))
+    .limit(limit);
+}
+
+export async function logSession(
+  db: Db,
+  session: Omit<Session, 'day'> & { day?: DayKey },
+  closedGap = 0,
+): Promise<void> {
+  await db.insert(trainingSession).values({
+    day: session.day ?? todayKey(),
+    kind: session.kind,
+    minutes: session.minutes,
+    intensity: session.intensity,
+    note: session.note,
+    closedGap,
+    createdAt: now(),
+  });
+}
+
+export async function deleteSession(db: Db, id: number): Promise<void> {
+  await db.delete(trainingSession).where(eq(trainingSession.id, id));
 }
 
 /* ------------------------------------------------------------------ the log */

@@ -11,6 +11,7 @@ export type Strings = {
   appName: string;
   tabHome: string;
   tabLog: string;
+  tabTraining: string;
   tabCarried: string;
   tabSettings: string;
 
@@ -33,6 +34,19 @@ export type Strings = {
   carriedDream: string;
   carriedWhatICarry: string;
 
+  trainingTitle: string;
+  trainingLog: string;
+  trainingEmpty: string;
+  trainingThisWeek: string;
+  trainingConsistency: string;
+  trainingSinceLast: string;
+  trainingNever: string;
+  trainingToday: string;
+  trainingKind: string;
+  trainingMinutes: string;
+  trainingIntensity: string;
+  trainingNote: string;
+
   keystoneTitle: string;
   keystoneBlurb: string;
   downstreamLabel: string;
@@ -46,6 +60,7 @@ const haki: Strings = {
   appName: 'Haki',
   tabHome: '覇気',
   tabLog: '見聞色',
+  tabTraining: '武装色',
   tabCarried: '継承',
   tabSettings: '設定',
 
@@ -69,6 +84,19 @@ const haki: Strings = {
   carriedDream: 'What they wanted',
   carriedWhatICarry: "What of it you're carrying",
 
+  trainingTitle: 'Armament',
+  trainingLog: 'Log a session',
+  trainingEmpty: 'Nothing logged yet.',
+  trainingThisWeek: 'This week',
+  trainingConsistency: 'Hardness',
+  trainingSinceLast: 'Days since last',
+  trainingNever: 'No sessions yet',
+  trainingToday: 'Trained today',
+  trainingKind: 'What did you do',
+  trainingMinutes: 'Minutes',
+  trainingIntensity: 'How hard it actually was',
+  trainingNote: 'Notes',
+
   keystoneTitle: 'Keystone',
   keystoneBlurb:
     'When this slips, everything below it slips too. The warning fires on the first bad night, not after the week is gone.',
@@ -84,6 +112,7 @@ const plain: Strings = {
   appName: 'Journal',
   tabHome: 'Today',
   tabLog: 'Log',
+  tabTraining: 'Training',
   tabCarried: 'People',
   tabSettings: 'Settings',
 
@@ -94,6 +123,9 @@ const plain: Strings = {
 
   logTitle: 'Journal',
   carriedTitle: 'People I carry',
+  trainingTitle: 'Training',
+  trainingConsistency: 'Consistency',
+
   keystoneTitle: 'Keystone habit',
 
   daysAtSea: (n) => `Day ${n}`,

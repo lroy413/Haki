@@ -73,6 +73,22 @@ const MIGRATIONS: { version: number; up: string }[] = [
       );
     `,
   },
+  {
+    version: 2,
+    up: `
+      CREATE TABLE IF NOT EXISTS training_session (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        day         TEXT    NOT NULL,
+        kind        TEXT    NOT NULL,
+        minutes     INTEGER,
+        intensity   INTEGER,
+        note        TEXT,
+        closed_gap  INTEGER NOT NULL DEFAULT 0,
+        created_at  INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS training_session_day_idx ON training_session (day);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

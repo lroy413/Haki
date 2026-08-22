@@ -24,6 +24,10 @@ export default function RootLayout() {
               name="read"
               options={{ presentation: 'modal', title: 'Daily Read' }}
             />
+            <Stack.Screen
+              name="session"
+              options={{ presentation: 'modal', title: 'Log a session' }}
+            />
             <Stack.Screen name="entry/[id]" options={{ title: '' }} />
           </Stack>
         </HakiProvider>

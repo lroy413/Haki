@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 /**
  * One row per day. Four dials, thirty seconds.
@@ -56,6 +56,28 @@ export const habit = sqliteTable('habit', {
 });
 
 /**
+ * Training sessions. The downstream end of the keystone cascade.
+ *
+ * Several a day is legitimate, so this is not unique on `day` the way the
+ * Daily Read is — a morning lift and an evening run are two sessions.
+ */
+export const trainingSession = sqliteTable(
+  'training_session',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    day: text('day').notNull(),
+    kind: text('kind').notNull(),
+    minutes: integer('minutes'),
+    intensity: integer('intensity'),
+    note: text('note'),
+    /** The gap in days this session closed, if it landed as a Return. */
+    closedGap: integer('closed_gap').notNull().default(0),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('training_session_day_idx').on(t.day)],
+);
+
+/**
  * Inherited Will — the people whose dreams you carry.
  *
  * A record, not a mechanic. Nothing reads this table to nag, score, or
@@ -86,3 +108,4 @@ export type SleepRow = typeof sleepLog.$inferSelect;
 export type EntryRow = typeof entry.$inferSelect;
 export type HabitRow = typeof habit.$inferSelect;
 export type CarriedRow = typeof carried.$inferSelect;
+export type TrainingSessionRow = typeof trainingSession.$inferSelect;

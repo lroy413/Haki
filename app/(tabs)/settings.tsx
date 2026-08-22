@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useStore } from '../../src/db/client';
-import { setKeystone, setPlainMode } from '../../src/db/settings';
+import { setKeystone, setPlainMode, setTraining } from '../../src/db/settings';
 import { useHaki } from '../../src/state/HakiProvider';
 import { color, radius, space, type } from '../../src/theme/tokens';
 
@@ -23,6 +23,8 @@ export default function SettingsScreen() {
   const [target, setTarget] = useState(String(settings.keystone.targetHours));
   const [escalate, setEscalate] = useState(String(settings.keystone.escalateAfterNights));
   const [downstream, setDownstream] = useState(settings.keystone.downstreamNames.join(', '));
+  const [weeklyTarget, setWeeklyTarget] = useState(String(settings.training.weeklyTarget));
+  const [gapDays, setGapDays] = useState(String(settings.training.gapDaysForReturn));
 
   async function saveKeystone() {
     const parsedTarget = Number.parseFloat(target.replace(',', '.'));
@@ -42,6 +44,24 @@ export default function SettingsScreen() {
         .split(',')
         .map((n) => n.trim())
         .filter(Boolean),
+    });
+    await refreshSettings();
+    await refresh();
+  }
+
+  async function saveTraining() {
+    const parsedTarget = Number.parseInt(weeklyTarget, 10);
+    const parsedGap = Number.parseInt(gapDays, 10);
+
+    await setTraining(db, {
+      weeklyTarget:
+        Number.isFinite(parsedTarget) && parsedTarget > 0
+          ? parsedTarget
+          : settings.training.weeklyTarget,
+      gapDaysForReturn:
+        Number.isFinite(parsedGap) && parsedGap > 0
+          ? parsedGap
+          : settings.training.gapDaysForReturn,
     });
     await refreshSettings();
     await refresh();
@@ -104,6 +124,28 @@ export default function SettingsScreen() {
             style={({ pressed }) => [styles.save, pressed && styles.pressed]}
           >
             <Text style={styles.saveText}>Save keystone</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t.trainingTitle}</Text>
+          <Text style={styles.blurb}>
+            The target is a line to read against, never a verdict. Nothing here can be failed.
+          </Text>
+
+          <Field label="Sessions per week" value={weeklyTarget} onChangeText={setWeeklyTarget} numeric />
+          <Field
+            label="A gap this long makes coming back a Return"
+            value={gapDays}
+            onChangeText={setGapDays}
+            numeric
+          />
+
+          <Pressable
+            onPress={saveTraining}
+            style={({ pressed }) => [styles.save, pressed && styles.pressed]}
+          >
+            <Text style={styles.saveText}>Save training</Text>
           </Pressable>
         </View>
 

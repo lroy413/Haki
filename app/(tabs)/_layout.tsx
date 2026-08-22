@@ -4,11 +4,11 @@ import { useHaki } from '../../src/state/HakiProvider';
 import { color, space } from '../../src/theme/tokens';
 
 /**
- * Four tabs, all of them real.
+ * Five tabs, all of them real.
  *
- * Armament (武装色) and Conqueror's (覇王色) are deliberately absent until v1
- * and v2 build something to put in them. Empty placeholder tabs are the
- * classic unfinished-project smell, and this app of all apps cannot afford it.
+ * Conqueror's (覇王色) is deliberately absent until v2 builds something to put
+ * in it. Empty placeholder tabs are the classic unfinished-project smell, and
+ * this app of all apps cannot afford it.
  */
 export default function TabsLayout() {
   const { t, plainMode } = useHaki();
@@ -42,6 +42,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="log"
         options={{ title: t.tabLog, headerTitle: t.logTitle, tabBarIcon: icon(t.tabLog) }}
+      />
+      <Tabs.Screen
+        name="training"
+        options={{
+          title: t.tabTraining,
+          headerTitle: t.trainingTitle,
+          tabBarIcon: icon(t.tabTraining),
+        }}
       />
       <Tabs.Screen
         name="carried"
