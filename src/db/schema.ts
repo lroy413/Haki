@@ -78,6 +78,26 @@ export const trainingSession = sqliteTable(
 );
 
 /**
+ * Tasks — the load you are carrying.
+ *
+ * `committedFor` is the day a task was pulled into, or null while it sits in
+ * the backlog. `minutes` is always present: an estimate is what makes the day
+ * plannable, and a task without one cannot be weighed against capacity.
+ */
+export const task = sqliteTable(
+  'task',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    title: text('title').notNull(),
+    minutes: integer('minutes').notNull().default(15),
+    committedFor: text('committed_for'),
+    doneAt: integer('done_at'),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('task_committed_idx').on(t.committedFor)],
+);
+
+/**
  * Inherited Will — the people whose dreams you carry.
  *
  * A record, not a mechanic. Nothing reads this table to nag, score, or
@@ -109,3 +129,4 @@ export type EntryRow = typeof entry.$inferSelect;
 export type HabitRow = typeof habit.$inferSelect;
 export type CarriedRow = typeof carried.$inferSelect;
 export type TrainingSessionRow = typeof trainingSession.$inferSelect;
+export type TaskRow = typeof task.$inferSelect;

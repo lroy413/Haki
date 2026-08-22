@@ -1,6 +1,7 @@
 import { todayKey, type DayKey } from '../domain/date';
 import { DEFAULT_KEYSTONE, type KeystoneConfig } from '../domain/cascade';
 import { DEFAULT_TRAINING, type TrainingConfig } from '../domain/training';
+import { DEFAULT_CAPACITY_MINUTES } from '../domain/tasks';
 import { readSetting, writeSetting, type Db } from './repo';
 
 /**
@@ -15,6 +16,8 @@ export type Settings = {
   plainMode: boolean;
   keystone: KeystoneConfig;
   training: TrainingConfig;
+  /** Minutes of intentional work a day can really hold. */
+  capacityMinutes: number;
 };
 
 const KEYS = {
@@ -22,14 +25,16 @@ const KEYS = {
   plainMode: 'ui.plainMode',
   keystone: 'keystone.config',
   training: 'training.config',
+  capacity: 'tasks.capacityMinutes',
 } as const;
 
 export async function loadSettings(db: Db): Promise<Settings> {
-  const [setSail, plain, keystoneRaw, trainingRaw] = await Promise.all([
+  const [setSail, plain, keystoneRaw, trainingRaw, capacityRaw] = await Promise.all([
     readSetting(db, KEYS.setSailAt),
     readSetting(db, KEYS.plainMode),
     readSetting(db, KEYS.keystone),
     readSetting(db, KEYS.training),
+    readSetting(db, KEYS.capacity),
   ]);
 
   // First launch is day one.
@@ -44,6 +49,7 @@ export async function loadSettings(db: Db): Promise<Settings> {
     plainMode: plain === 'true',
     keystone: parseKeystone(keystoneRaw),
     training: parseTraining(trainingRaw),
+    capacityMinutes: numberOr(Number(capacityRaw), DEFAULT_CAPACITY_MINUTES),
   };
 }
 
@@ -95,4 +101,8 @@ export async function setKeystone(db: Db, config: KeystoneConfig): Promise<void>
 
 export async function setTraining(db: Db, config: TrainingConfig): Promise<void> {
   await writeSetting(db, KEYS.training, JSON.stringify(config));
+}
+
+export async function setCapacityMinutes(db: Db, minutes: number): Promise<void> {
+  await writeSetting(db, KEYS.capacity, String(minutes));
 }

@@ -4,15 +4,18 @@ import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
 import type { SleepNight } from '../domain/cascade';
 import type { Session } from '../domain/training';
+import type { Task } from '../domain/tasks';
 import {
   carried,
   dailyRead,
   entry,
   setting,
   sleepLog,
+  task,
   trainingSession,
   type CarriedRow,
   type EntryRow,
+  type TaskRow,
   type TrainingSessionRow,
 } from './schema';
 
@@ -70,6 +73,69 @@ export async function recentSleep(
     .from(sleepLog)
     .where(and(gte(sleepLog.day, since), lte(sleepLog.day, from)))
     .orderBy(desc(sleepLog.day));
+}
+
+/* ------------------------------------------------------------------- tasks */
+
+/**
+ * Every task, done ones included.
+ *
+ * The load calculation needs the finished ones too — the time they took still
+ * came out of today.
+ */
+export async function allTasks(db: Db): Promise<Task[]> {
+  const rows = await db.select().from(task).orderBy(task.createdAt);
+  return rows.map(toTask);
+}
+
+function toTask(row: TaskRow): Task {
+  return {
+    id: row.id,
+    title: row.title,
+    minutes: row.minutes,
+    committedFor: row.committedFor,
+    doneAt: row.doneAt,
+    createdAt: row.createdAt,
+  };
+}
+
+export async function addTask(
+  db: Db,
+  title: string,
+  minutes: number,
+  committedFor: DayKey | null = null,
+): Promise<void> {
+  await db.insert(task).values({
+    title: title.trim(),
+    minutes,
+    committedFor,
+    createdAt: now(),
+  });
+}
+
+/** Pull into a day, or push back to the backlog with null. */
+export async function commitTask(db: Db, id: number, day: DayKey | null): Promise<void> {
+  await db.update(task).set({ committedFor: day }).where(eq(task.id, id));
+}
+
+/** Toggle rather than one-way: finishing something by mistake must be undoable. */
+export async function setTaskDone(db: Db, id: number, done: boolean): Promise<void> {
+  await db
+    .update(task)
+    .set({ doneAt: done ? now() : null })
+    .where(eq(task.id, id));
+}
+
+export async function updateTask(
+  db: Db,
+  id: number,
+  patch: { title?: string; minutes?: number },
+): Promise<void> {
+  await db.update(task).set(patch).where(eq(task.id, id));
+}
+
+export async function deleteTask(db: Db, id: number): Promise<void> {
+  await db.delete(task).where(eq(task.id, id));
 }
 
 /* ---------------------------------------------------------------- training */

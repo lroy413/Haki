@@ -1,13 +1,19 @@
 import { useCallback } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { NextStrike } from '../../src/components/NextStrike';
+import { QuoteLine } from '../../src/components/QuoteLine';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
+import { useStore } from '../../src/db/client';
+import { setTaskDone } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
 import { TAB_BAR_CLEARANCE, color, font, radius, space, type } from '../../src/theme/tokens';
 
 export default function Home() {
   const router = useRouter();
-  const { reserve, cascade, intensity, day, t, read, training, refresh } = useHaki();
+  const { db } = useStore();
+  const { reserve, cascade, intensity, day, t, read, training, next, quote, refresh } =
+    useHaki();
 
   // Coming back from the Daily Read modal should show the new number at once.
   useFocusEffect(
@@ -28,6 +34,8 @@ export default function Home() {
     >
       <Text style={styles.days}>{t.daysAtSea(day)}</Text>
 
+      <QuoteLine quote={quote} />
+
       <ReserveGauge
         reserve={reserve}
         intensity={intensity}
@@ -43,6 +51,18 @@ export default function Home() {
           <Text style={styles.warningBody}>{cascade.message}</Text>
         </View>
       ) : null}
+
+      <NextStrike
+        task={next}
+        emptyLabel={t.nextStrikeEmpty}
+        onOpenList={() => router.push('/training')}
+        onDone={(task) => {
+          void (async () => {
+            await setTaskDone(db, task.id, true);
+            await refresh();
+          })();
+        }}
+      />
 
       <Pressable
         onPress={() => router.push('/training')}

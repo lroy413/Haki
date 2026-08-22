@@ -9,7 +9,7 @@ import {
 } from '../domain/backup';
 import { LATEST_VERSION } from './bootstrap';
 import type { Db } from './repo';
-import { carried, dailyRead, entry, setting, sleepLog, trainingSession } from './schema';
+import { carried, dailyRead, entry, setting, sleepLog, task, trainingSession } from './schema';
 
 /**
  * Reading every table out, and merging one back in.
@@ -21,12 +21,13 @@ import { carried, dailyRead, entry, setting, sleepLog, trainingSession } from '.
  */
 
 export async function readAllTables(db: Db): Promise<BackupTables> {
-  const [reads, sleeps, entries, sessions, people, settings] = await Promise.all([
+  const [reads, sleeps, entries, sessions, people, tasks, settings] = await Promise.all([
     db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
     db.select().from(sleepLog).orderBy(desc(sleepLog.day)),
     db.select().from(entry).orderBy(desc(entry.createdAt)),
     db.select().from(trainingSession).orderBy(desc(trainingSession.day)),
     db.select().from(carried).orderBy(desc(carried.createdAt)),
+    db.select().from(task).orderBy(desc(task.createdAt)),
     db.select().from(setting),
   ]);
 
@@ -68,6 +69,13 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       whatICarry: r.whatICarry,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
+    })),
+    task: tasks.map((r) => ({
+      title: r.title,
+      minutes: r.minutes,
+      committedFor: r.committedFor,
+      doneAt: r.doneAt,
+      createdAt: r.createdAt,
     })),
     setting: settings.map((r) => ({ key: r.key, value: r.value })),
   };
@@ -136,6 +144,9 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
           break;
         case 'carried':
           await tx.insert(carried).values(plan.insert as never);
+          break;
+        case 'task':
+          await tx.insert(task).values(plan.insert as never);
           break;
         case 'setting':
           await tx.insert(setting).values(plan.insert as never);

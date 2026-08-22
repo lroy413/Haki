@@ -10,6 +10,7 @@ import {
   parseBackup,
   planMerge,
   serializeBackup,
+  TABLE_NAMES,
   type BackupTables,
   type EntryBackup,
 } from '../backup';
@@ -60,6 +61,15 @@ describe('round trip', () => {
           whatICarry: null,
           createdAt: 3000,
           updatedAt: 3000,
+        },
+      ],
+      task: [
+        {
+          title: 'Call the dentist',
+          minutes: 10,
+          committedFor: '2026-08-22',
+          doneAt: null,
+          createdAt: 4000,
         },
       ],
       setting: [{ key: 'ui.plainMode', value: 'false' }],
@@ -225,6 +235,50 @@ describe('natural keys', () => {
 
   it('keys settings by key so an import updates rather than duplicates', () => {
     expect(KEYS.setting({ key: 'ui.plainMode', value: 'true' })).toBe('ui.plainMode');
+  });
+});
+
+describe('key hygiene', () => {
+  it('builds keys from printable characters only', () => {
+    // A stray control byte once landed in the carried separator. It still
+    // worked as a separator, which is exactly why nothing caught it.
+    const rows = {
+      dailyRead: read('2026-08-22'),
+      sleepLog: { day: '2026-08-22', hours: 7, createdAt: 1, updatedAt: 1 },
+      entry: entry(1),
+      trainingSession: {
+        day: '2026-08-22',
+        kind: 'Legs',
+        minutes: null,
+        intensity: null,
+        note: null,
+        closedGap: 0,
+        createdAt: 1,
+      },
+      carried: {
+        name: 'Someone',
+        relationship: null,
+        theirDream: null,
+        whatICarry: null,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+      task: {
+        title: 'Something',
+        minutes: 15,
+        committedFor: null,
+        doneAt: null,
+        createdAt: 1,
+      },
+      setting: { key: 'ui.plainMode', value: 'false' },
+    };
+
+    for (const table of TABLE_NAMES) {
+      const key = (KEYS[table] as (row: unknown) => string)(rows[table]);
+      expect(key.length).toBeGreaterThan(0);
+      // eslint-disable-next-line no-control-regex
+      expect(/[\x00-\x08\x0e-\x1f]/.test(key)).toBe(false);
+    }
   });
 });
 

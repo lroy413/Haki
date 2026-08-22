@@ -43,6 +43,14 @@ export type Strings = {
   carriedDream: string;
   carriedWhatICarry: string;
 
+  todayLoad: string;
+  taskPlaceholder: string;
+  addToToday: string;
+  addToLater: string;
+  backlogLabel: string;
+  backlogEmpty: string;
+  nextStrikeEmpty: string;
+
   trainingTitle: string;
   trainingLog: string;
   trainingEmpty: string;
@@ -70,7 +78,7 @@ const haki: Strings = {
   tabs: {
     home: { glyph: '覇気', label: 'Home' },
     log: { glyph: '見聞色', label: 'Log' },
-    training: { glyph: '武装色', label: 'Training' },
+    training: { glyph: '武装色', label: 'Do' },
     carried: { glyph: '継承', label: 'Carried' },
     settings: { glyph: '設定', label: 'Settings' },
   },
@@ -94,6 +102,14 @@ const haki: Strings = {
   carriedRelationship: 'Who they were to you',
   carriedDream: 'What they wanted',
   carriedWhatICarry: "What of it you're carrying",
+
+  todayLoad: "Today's load",
+  taskPlaceholder: 'One thing. What is it?',
+  addToToday: 'Carry today',
+  addToLater: 'Later',
+  backlogLabel: 'Waiting',
+  backlogEmpty: 'Nothing waiting.',
+  nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
 
   trainingTitle: 'Armament',
   trainingLog: 'Log a session',
@@ -138,6 +154,7 @@ const plain: Strings = {
   carriedTitle: 'People I carry',
   trainingTitle: 'Training',
   trainingConsistency: 'Consistency',
+  todayLoad: "Today's list",
 
   keystoneTitle: 'Keystone habit',
 
