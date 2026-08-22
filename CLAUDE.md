@@ -29,11 +29,11 @@ looking polished.** A feature that works but looks unfinished is not done.
 
 Three faces, carried over from the concept doc. They are the identity:
 
-| Role | Face | Used for |
-|---|---|---|
-| Display | Bricolage Grotesque | the wordmark, headings, big numbers |
-| Body | Newsreader | prose, journal text, anything read rather than scanned |
-| Utility | IBM Plex Mono | labels, dates, stats, tab words |
+| Role    | Face                | Used for                                               |
+| ------- | ------------------- | ------------------------------------------------------ |
+| Display | Bricolage Grotesque | the wordmark, headings, big numbers                    |
+| Body    | Newsreader          | prose, journal text, anything read rather than scanned |
+| Utility | IBM Plex Mono       | labels, dates, stats, tab words                        |
 
 **Never set `fontWeight`.** Each weight is a separate loaded family
 (`font.display`, `font.displayBold`, …). Pairing one with `fontWeight` makes
@@ -48,7 +48,7 @@ flash of the system font on a cold start.
 
 The tab bar floats: `src/components/GlassTabBar.tsx`, blurred and translucent,
 inset from the edges. Anything scrollable must leave `TAB_BAR_CLEARANCE` at the
-bottom or its last item ends up underneath. Floating buttons stack *above* the
+bottom or its last item ends up underneath. Floating buttons stack _above_ the
 bar, never behind it.
 
 ## Architecture
@@ -57,7 +57,7 @@ bar, never behind it.
   what lets the real logic be tested on plain Node with no simulator. Keep it
   that way — if something needs a React Native import, it does not belong here.
 - `src/db/` — Drizzle schema, hand-rolled DDL versioned by `PRAGMA
-  user_version` in `bootstrap.ts`. **Append migrations, never edit a shipped
+user_version` in `bootstrap.ts`. **Append migrations, never edit a shipped
   one**; it has already run on a device holding real journal entries.
 - `src/files/` — one implementation per platform, both `satisfies Transfer`.
 

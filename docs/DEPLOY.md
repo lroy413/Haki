@@ -7,7 +7,7 @@ One-time setup, then it's merge-and-it's-live.
 ## Step 1 — create `main` (one time, ~30 seconds)
 
 Right now the repo has exactly one branch, `claude/haki-app-brainstorm-m6z8d7`,
-and it is the default. There is nothing to merge *into*, which is the piece
+and it is the default. There is nothing to merge _into_, which is the piece
 missing from the merge-and-deploy flow.
 
 On GitHub: **Settings → General → Default branch → the ✏️ pencil → rename to
@@ -39,7 +39,7 @@ automatically; every PR gets its own preview URL.
 > `public/_redirects` are committed for them. Build command `npm run build:web`,
 > publish directory `dist`.
 >
-> **GitHub Pages will not work.** See *Why the headers matter* below.
+> **GitHub Pages will not work.** See _Why the headers matter_ below.
 
 ---
 
@@ -106,9 +106,9 @@ one, journal entry and training session both came back, second import reported
 
 ## Day-to-day after setup
 
-| You want | What happens |
-|---|---|
-| A change | Claude pushes a branch and opens a PR into `main` |
+| You want    | What happens                                                                     |
+| ----------- | -------------------------------------------------------------------------------- |
+| A change    | Claude pushes a branch and opens a PR into `main`                                |
 | To check it | CI runs typecheck, tests, and both bundles on the PR; Vercel posts a preview URL |
-| To ship it | Merge the PR. `main` redeploys in about a minute. |
-| To undo it | Vercel → Deployments → the previous one → **Promote to Production** |
+| To ship it  | Merge the PR. `main` redeploys in about a minute.                                |
+| To undo it  | Vercel → Deployments → the previous one → **Promote to Production**              |
