@@ -1,0 +1,519 @@
+<title>Haki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#FAF9FD;
+  --surface:#FFFFFF;
+  --surface-2:#F3F1F9;
+  --line:#E3E0EE;
+  --line-soft:#EEECF6;
+  --ink:#16131F;
+  --ink-dim:#5B5772;
+  --ink-faint:#8B88A2;
+  --violet:#7B2CD4;
+  --violet-soft:#F1E7FD;
+  --cyan:#0B7F76;
+  --cyan-soft:#DFF3F0;
+  --crimson:#C22F35;
+  --crimson-soft:#FBE8E9;
+  --bolt:123,44,212;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Newsreader",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A0B12;
+    --surface:#12141F;
+    --surface-2:#191C29;
+    --line:#282C3D;
+    --line-soft:#1B1E2C;
+    --ink:#E9E7F3;
+    --ink-dim:#9E9BB7;
+    --ink-faint:#6C6A86;
+    --violet:#B14CFF;
+    --violet-soft:#241338;
+    --cyan:#45D9CB;
+    --cyan-soft:#0E2A29;
+    --crimson:#F0575D;
+    --crimson-soft:#2E1518;
+    --bolt:177,76,255;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A0B12;
+  --surface:#12141F;
+  --surface-2:#191C29;
+  --line:#282C3D;
+  --line-soft:#1B1E2C;
+  --ink:#E9E7F3;
+  --ink-dim:#9E9BB7;
+  --ink-faint:#6C6A86;
+  --violet:#B14CFF;
+  --violet-soft:#241338;
+  --cyan:#45D9CB;
+  --cyan-soft:#0E2A29;
+  --crimson:#F0575D;
+  --crimson-soft:#2E1518;
+  --bolt:177,76,255;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:1.0625rem;
+  line-height:1.62;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 1.5rem}
+.prose{max-width:66ch}
+p{margin:0 0 1.05rem}
+a{color:var(--violet)}
+strong{font-weight:500;color:var(--ink)}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.06;letter-spacing:-.02em}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:clamp(4rem,11vw,7.5rem) 0 clamp(3rem,7vw,5rem);overflow:hidden}
+#bolts{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.hero .wrap{position:relative;z-index:1}
+.kanji{
+  font-family:var(--display);font-size:.8125rem;letter-spacing:.42em;text-transform:uppercase;
+  color:var(--violet);font-weight:600;margin:0 0 1.75rem;
+}
+h1{
+  font-size:clamp(4.5rem,17vw,11rem);font-weight:800;letter-spacing:-.055em;
+  margin:0 0 1.5rem;line-height:.84;
+}
+.lede{
+  font-size:clamp(1.3rem,2.7vw,1.85rem);line-height:1.38;color:var(--ink);
+  max-width:24ch;font-weight:300;margin:0 0 1.5rem;
+}
+.lede em{font-style:italic;color:var(--violet)}
+.sub{color:var(--ink-dim);max-width:56ch;font-size:1.0625rem}
+.stamp{
+  font-family:var(--mono);font-size:.75rem;color:var(--ink-faint);
+  letter-spacing:.06em;margin-top:2.5rem;display:flex;gap:1.25rem;flex-wrap:wrap;
+}
+
+/* ---------- sections ---------- */
+section{padding:clamp(3.5rem,7vw,5.5rem) 0;border-top:1px solid var(--line-soft)}
+.eyebrow{
+  font-family:var(--mono);font-size:.6875rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-faint);margin:0 0 1.25rem;display:block;
+}
+h2{font-size:clamp(1.9rem,4vw,2.9rem);font-weight:700;margin:0 0 1.5rem;letter-spacing:-.035em}
+h3{font-size:1.3rem;font-weight:700;margin:0 0 .5rem;letter-spacing:-.02em}
+h4{font-size:1.0625rem;font-weight:600;margin:0 0 .35rem;letter-spacing:-.01em}
+
+/* ---------- thesis ---------- */
+.thesis{
+  font-family:var(--display);font-size:clamp(1.5rem,3.6vw,2.4rem);font-weight:400;
+  line-height:1.22;letter-spacing:-.03em;max-width:22ch;margin:0 0 2rem;
+}
+.thesis b{font-weight:800;color:var(--violet)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,4vw,3.5rem);align-items:start}
+@media(max-width:800px){.two{grid-template-columns:1fr}}
+
+/* ---------- haki triad ---------- */
+.triad{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:2.5rem}
+@media(max-width:900px){.triad{grid-template-columns:1fr}}
+.lens{
+  background:var(--surface);border:1px solid var(--line);border-radius:3px;
+  padding:1.75rem 1.5rem 1.5rem;display:flex;flex-direction:column;gap:1.25rem;
+  border-top:3px solid var(--c);
+}
+.lens-head .jp{
+  font-family:var(--display);font-size:1.5rem;font-weight:600;color:var(--c);
+  display:block;line-height:1;margin-bottom:.6rem;
+}
+.lens-head .rom{
+  font-family:var(--mono);font-size:.6875rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-faint);display:block;margin-bottom:.75rem;
+}
+.lens-head h3{font-size:1.75rem;font-weight:800;letter-spacing:-.03em;margin-bottom:.6rem}
+.canon{
+  font-size:.9375rem;font-style:italic;color:var(--ink-dim);line-height:1.5;
+  padding-left:.875rem;border-left:2px solid var(--line);margin:0;
+}
+.mods{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1rem}
+.mods li{font-size:.9375rem;line-height:1.5;color:var(--ink-dim)}
+.mods b{
+  display:block;font-family:var(--display);font-weight:700;font-size:1rem;
+  color:var(--ink);letter-spacing:-.01em;margin-bottom:.1rem;
+}
+.mods .tag{
+  font-family:var(--mono);font-size:.625rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--c);border:1px solid var(--c);border-radius:2px;padding:.1rem .3rem;
+  margin-left:.4rem;vertical-align:2px;font-weight:500;
+}
+
+/* ---------- callout ---------- */
+.callout{
+  background:var(--violet-soft);border:1px solid var(--violet);border-radius:3px;
+  padding:1.5rem 1.625rem;margin:2rem 0;
+}
+.callout h4{color:var(--violet);font-family:var(--mono);font-size:.6875rem;
+  letter-spacing:.18em;text-transform:uppercase;font-weight:600;margin-bottom:.75rem}
+.callout p:last-child{margin-bottom:0}
+
+/* ---------- generic card grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:1rem;margin-top:2rem}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:1.375rem 1.375rem 1.25rem;
+}
+.card p{font-size:.9375rem;color:var(--ink-dim);margin:0}
+.card p+p{margin-top:.6rem}
+
+/* ---------- numbered principles ---------- */
+.rules{list-style:none;padding:0;margin:2rem 0 0;display:grid;gap:.25rem}
+.rules li{
+  display:grid;grid-template-columns:2.5rem 1fr;gap:1rem;align-items:baseline;
+  padding:1rem 0;border-top:1px solid var(--line-soft);
+}
+.rules li:first-child{border-top:none}
+.rules .n{font-family:var(--mono);font-size:.75rem;color:var(--violet);font-weight:600;font-variant-numeric:tabular-nums}
+.rules b{font-family:var(--display);font-weight:700;font-size:1.0625rem;display:block;margin-bottom:.15rem;letter-spacing:-.015em}
+.rules span.t{font-size:.9375rem;color:var(--ink-dim);line-height:1.55}
+
+/* ---------- roadmap ---------- */
+.road{margin-top:2.5rem;display:grid;gap:0}
+.stage{
+  display:grid;grid-template-columns:6.5rem 1fr;gap:1.5rem;
+  padding:1.5rem 0;border-top:1px solid var(--line);align-items:start;
+}
+@media(max-width:640px){.stage{grid-template-columns:1fr;gap:.5rem}}
+.stage .v{
+  font-family:var(--display);font-size:1.5rem;font-weight:800;letter-spacing:-.03em;
+  color:var(--violet);line-height:1;
+}
+.stage .v small{display:block;font-family:var(--mono);font-size:.625rem;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-top:.4rem}
+.stage p{margin:0;font-size:.9375rem;color:var(--ink-dim)}
+.stage h4{margin-bottom:.4rem}
+
+/* ---------- questions ---------- */
+.q{
+  border-top:1px solid var(--line);padding:1.5rem 0;display:grid;
+  grid-template-columns:1.75rem 1fr;gap:1rem;align-items:baseline;
+}
+.q .mark{font-family:var(--display);font-size:1.5rem;font-weight:800;color:var(--violet);line-height:1}
+.q h4{margin-bottom:.3rem;font-size:1.125rem;font-weight:700}
+.q p{margin:0;font-size:.9375rem;color:var(--ink-dim)}
+
+footer{
+  padding:3rem 0 4rem;border-top:1px solid var(--line-soft);
+  font-family:var(--mono);font-size:.75rem;color:var(--ink-faint);letter-spacing:.04em;
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="hero">
+  <canvas id="bolts" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <p class="kanji">覇 気 &nbsp;·&nbsp; Haki</p>
+    <h1>HAKI</h1>
+    <p class="lede">Every other app tracks what you <em>did</em>. This one tracks the state of your <em>will</em>.</p>
+    <p class="sub">A private journal, habit forge, and mental-health instrument built on one borrowed idea: willpower is not infinite, it depletes, it recovers, and almost nobody measures theirs.</p>
+    <p class="stamp"><span>Concept v0.1</span><span>Built for one user</span><span>Local-first</span></p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap two">
+    <div>
+      <span class="eyebrow">The one idea worth stealing</span>
+      <p class="thesis">In One Piece, Haki isn't a power you <b>have</b>. It's a capacity you develop — and it <b>runs out</b>.</p>
+    </div>
+    <div class="prose">
+      <p>Luffy gases out. That's the detail every productivity app gets wrong: they model willpower as unlimited and treat you as lazy when it isn't. Streaks reset to zero. Checkboxes stay unchecked and stare at you.</p>
+      <p><strong>Haki models will as a resource with a level, a burn rate, and a recovery curve.</strong> The whole app exists to teach you yours — what fills it, what drains it, and what you reliably do when it's low.</p>
+      <p>That single reframe is what makes this a mental-health app rather than another habit tracker with a coat of paint on it. Everything below follows from it.</p>
+      <div class="callout">
+        <h4>The rule for the theme</h4>
+        <p>Every One Piece term has to earn its place by mapping to a real mechanic. If a name is just a reskinned "streak," cut the name. Scaffolding, not costume.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">Structure — the three Haki are the three lenses</span>
+    <h2>Sense. Act. Will.</h2>
+    <p class="prose">The app has exactly three rooms, and they map cleanly onto the canon. One is what comes in, one is what goes out, one is what it's all for. Nothing gets built that doesn't live in one of them.</p>
+
+    <div class="triad">
+
+      <article class="lens" style="--c:var(--cyan)">
+        <div class="lens-head">
+          <span class="jp">見聞色</span>
+          <span class="rom">Kenbunshoku</span>
+          <h3>Observation</h3>
+          <p class="canon">Perceive presence, emotion, intent. At the highest level — see slightly into the future.</p>
+        </div>
+        <ul class="mods">
+          <li><b>The Log</b>Journaling, properly. Markdown, tags, backlinks, voice notes with transcription. Evernote-grade capture, no Evernote bloat.</li>
+          <li><b>Daily Read</b>Four dials — Energy, Mood, Clarity, Tension. Thirty seconds. This is the heartbeat of the whole app.</li>
+          <li><b>Inner Weather</b>Grand Line weather turns with no warning; so does your head. You're not "good" or "bad" — you're squall, clearing by afternoon.</li>
+          <li><b>Sea Prism Log</b>Kairoseki nullifies power. Track your kryptonite: the people, hours, rooms, and thought-loops that take your will away.</li>
+          <li><b>Foresight<span class="tag">Killer</span></b>Advanced Observation sees seconds ahead. Having watched you for months, this sees <em>days</em> ahead — and warns you before the slip, not after.</li>
+        </ul>
+      </article>
+
+      <article class="lens" style="--c:var(--crimson)">
+        <div class="lens-head">
+          <span class="jp">武装色</span>
+          <span class="rom">Busoshoku</span>
+          <h3>Armament</h3>
+          <p class="canon">Harden yourself into armor. Also: the only way to strike something you otherwise cannot touch.</p>
+        </div>
+        <ul class="mods">
+          <li><b>Hardening<span class="tag">Killer</span></b>Habits to build — with <em>no streak counter</em>. Each habit has a Hardness %. Missing Tuesday cracks the armor; showing up Wednesday starts closing it.</li>
+          <li><b>The Break List</b>Habits to quit, tracked by <em>urge</em>, not just failure. Log the craving the moment it lands. Resisting one is a recorded win — most apps only let you record the loss.</li>
+          <li><b>Strike the Intangible</b>Armament's defining trick. Vague goal in ("be less anxious"), one concrete strikeable action out. Nothing vague is allowed to sit in this app.</li>
+          <li><b>Gears</b>Focus sessions with honest costs. Gear 2: 25-minute sprint. Gear 3: 90-minute deep work. Gear 4: maximum intensity — and then the app locks you out for the day.</li>
+        </ul>
+      </article>
+
+      <article class="lens" style="--c:var(--violet)">
+        <div class="lens-head">
+          <span class="jp">覇王色</span>
+          <span class="rom">Haoshoku</span>
+          <h3>Conqueror's</h3>
+          <p class="canon">One in a million. Cannot be trained, only refined. It isn't effort — it's knowing exactly who you are.</p>
+        </div>
+        <ul class="mods">
+          <li><b>The Flag</b>Pirates raise a flag to declare what they stand for. Three to five values, in your words. Everything else in the app can be checked against it.</li>
+          <li><b>Road Poneglyphs</b>Four long-horizon pillars. In canon, four of them triangulate the location of Laugh Tale. Here, progress across all four triangulates on yours.</li>
+          <li><b>Log Pose</b>A Log Pose points to the next island only, then recalibrates on arrival. That's how goals should work. One next milestone per pillar — never a forty-item list.</li>
+          <li><b>Eternal Pose</b>The one goal that never recalibrates. Your single non-negotiable.</li>
+          <li><b>Setting Sail</b>The Sunday ritual: read the week, check the Flag, name the next island. Everything else in the app is data collection <em>for this</em>.</li>
+        </ul>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">Connective tissue — what ties the three rooms together</span>
+    <h2>The parts that only work because the other parts exist.</h2>
+    <div class="grid">
+      <div class="card">
+        <h4>Will Reserve</h4>
+        <p>The number on the home screen, derived from your Daily Read, your sleep, and what you spent today. Explicitly <strong>not</strong> a score to maximize — a fuel gauge to read.</p>
+      </div>
+      <div class="card">
+        <h4>Haki Exhaustion</h4>
+        <p>If the Reserve stays low for days while your output stays high, the app says so out loud: <em>"You've been running on empty for six days. That isn't discipline, it's debt."</em></p>
+        <p>No other productivity app will ever tell you to stop. This one should.</p>
+      </div>
+      <div class="card">
+        <h4>Bounty</h4>
+        <p>Progression that rises for things that are hard <em>for you</em> — not for volume. Brushing your teeth is zero. Making the call you've dodged for three weeks is a lot.</p>
+        <p>The framing: the world is starting to notice you're dangerous to the person you used to be. Wanted posters at thresholds.</p>
+      </div>
+      <div class="card">
+        <h4>Encounters</h4>
+        <p>A light log of who you saw and how it went — because loneliness is the largest untracked variable in most people's mental health, and it will show up in your correlations immediately.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap two">
+    <div>
+      <span class="eyebrow">Honest assessment</span>
+      <h2>Three things here don't exist anywhere else.</h2>
+      <p class="prose">Journaling apps exist. Habit apps exist. Mood trackers are everywhere. Being straight with you about what's actually new — because these three are the app, and everything else is table stakes you can borrow from anyone.</p>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <h4>1 &nbsp;· &nbsp;Will as a depleting resource</h4>
+        <p>With an exhaustion warning that tells you to back off. Every competitor optimizes for more output, forever.</p>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <h4>2 &nbsp;· &nbsp;Hardness instead of streaks</h4>
+        <p>Streaks are shame machines — one miss zeroes ninety days and you delete the app. Hardness dips and recovers. It's mechanically faithful to Armament Haki <em>and</em> it removes the single worst failure mode in the category.</p>
+      </div>
+      <div class="card">
+        <h4>3 &nbsp;· &nbsp;Foresight</h4>
+        <p>Warnings fired <em>before</em> the slip, from your own history. Not AI magic — just correlation over your data, surfaced when it can still change something.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">Non-negotiables</span>
+    <h2>Design rules I'd hold you to.</h2>
+    <ol class="rules">
+      <li><span class="n">01</span><span><b>No shame mechanics.</b><span class="t">No red. No "you failed." No zeroed streaks. A miss is data, and the app's tone never changes when you have a bad week.</span></span></li>
+      <li><span class="n">02</span><span><b>Capture under ten seconds.</b><span class="t">If logging takes longer than that, it won't happen at 11pm, which is exactly when it matters. One-tap widget for mood. Long-press for a voice note.</span></span></li>
+      <li><span class="n">03</span><span><b>The app should want you to leave.</b><span class="t">No feed. No infinite scroll. Time-in-app is a cost, not a metric.</span></span></li>
+      <li><span class="n">04</span><span><b>Local-first and encrypted.</b><span class="t">This is your interior life. It lives on your device, works with no internet, and exports to plain Markdown and JSON. Non-negotiable for a mental-health journal.</span></span></li>
+      <li><span class="n">05</span><span><b>Two speeds.</b><span class="t">Usable in thirty seconds a day. Rewarding at twenty minutes. Never punishing for choosing the thirty seconds.</span></span></li>
+      <li><span class="n">06</span><span><b>It's for one person.</b><span class="t">Ship ugly, ship fast, change it constantly. Don't build a single setting you'd only need if you had users.</span></span></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">Build order — this one is a real sequence</span>
+    <h2>Ship the spine, then live in it.</h2>
+    <p class="prose">The ordering matters more than the feature list. The temptation is to build Foresight first because it's the exciting part. It's last, because it's worthless without a year of you in the database.</p>
+    <div class="road">
+      <div class="stage">
+        <div class="v">v0<small>A weekend</small></div>
+        <div><h4>The Spine</h4><p>Daily Read (four dials) + The Log (Markdown entries with tags) + Will Reserve on a home screen. Nothing else. Then <strong>use it for three weeks before writing another line of code.</strong> You can't design the rest of this app until you've got three weeks of your own data sitting in it — that isn't a delay, it's the requirement.</p></div>
+      </div>
+      <div class="stage">
+        <div class="v">v1<small>Armament</small></div>
+        <div><h4>Make it do something</h4><p>Hardening habits with the Hardness model, the Break List with urge logging, the Gears timer.</p></div>
+      </div>
+      <div class="stage">
+        <div class="v">v2<small>Conqueror's</small></div>
+        <div><h4>Point it somewhere</h4><p>The Flag, Log Pose, Road Poneglyphs, and the Setting Sail weekly ritual — the thing that converts six days of logging into an actual decision.</p></div>
+      </div>
+      <div class="stage">
+        <div class="v">v3<small>Observation</small></div>
+        <div><h4>Let it see</h4><p>Correlations, the Inner Weather chart, the Foresight rules engine. Deliberately last. It needs history to say anything true.</p></div>
+      </div>
+      <div class="stage">
+        <div class="v">v4<small>Reward</small></div>
+        <div><h4>The fun</h4><p>Bounty, wanted posters, gear transitions, Haki lightning. Pure delight, zero utility, do not build it early.</p></div>
+      </div>
+    </div>
+    <p class="prose" style="margin-top:2rem;color:var(--ink-dim);font-size:.9375rem"><em>Anything not on this list is v5.</em></p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap two">
+    <div>
+      <span class="eyebrow">Stack</span>
+      <h2>What I'd build it on.</h2>
+    </div>
+    <div class="prose">
+      <p><strong>Expo (React Native) + SQLite + Drizzle, local-first.</strong> Entries stored as Markdown in the database, exportable to real files.</p>
+      <p>The reasoning is boring but decisive: this app lives on a phone. Check-ins and journaling happen in bed, on a walk, in a parked car. And iOS still can't do reliable notifications or home-screen widgets from a PWA — a habit app without a widget and a nudge is a habit app you stop opening in week three. One codebase gets you a desktop build later through Expo Web if you want one.</p>
+      <p><strong>The honest alternative:</strong> a Vite + React PWA with SQLite in the browser is roughly three times faster to build and iterate on. If what you actually want is the <em>journaling</em> half far more than the <em>nudging</em> half, that's the better call and I'd say so.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">Over to you</span>
+    <h2>Three questions before any code.</h2>
+    <div style="max-width:70ch">
+      <div class="q"><span class="mark">1</span><div><h4>Phone-first or desktop-first?</h4><p>This one decision changes the stack, the build order, and roughly half the interaction design. Where do you actually picture yourself opening it?</p></div></div>
+      <div class="q"><span class="mark">2</span><div><h4>How hard do we lean on the theme?</h4><p>Full commitment — kanji, Den Den Mushi notifications, wanted posters — or a clean, quiet app that only whispers it, so you can open it in a waiting room without explaining yourself?</p></div></div>
+      <div class="q"><span class="mark">3</span><div><h4>What's actually breaking right now?</h4><p>The most useful design input available: what's the one thing you'd want this app to have caught last month? Build for that, and the rest of the spec writes itself.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">HAKI · CONCEPT v0.1 · A passion project for an audience of one</div>
+</footer>
+
+<script>
+(function(){
+  var c = document.getElementById('bolts');
+  if(!c) return;
+  var ctx = c.getContext('2d');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var bolts = [], dpr = 1, W = 0, H = 0;
+
+  function accent(){
+    var v = getComputedStyle(document.documentElement).getPropertyValue('--bolt').trim();
+    return v || '123,44,212';
+  }
+  function size(){
+    var r = c.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = r.width; H = r.height;
+    c.width = Math.max(1, Math.round(W * dpr));
+    c.height = Math.max(1, Math.round(H * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function segment(x1, y1, x2, y2, jag, out){
+    var dx = x2 - x1, dy = y2 - y1;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    var steps = Math.max(3, Math.round(len / 26));
+    var nx = -dy / len, ny = dx / len;
+    out.push([x1, y1]);
+    for(var i = 1; i < steps; i++){
+      var t = i / steps;
+      var off = (Math.random() - 0.5) * jag * Math.sin(t * Math.PI);
+      out.push([x1 + dx * t + nx * off, y1 + dy * t + ny * off]);
+    }
+    out.push([x2, y2]);
+  }
+
+  function spawn(){
+    var x = W * (0.05 + Math.random() * 0.9);
+    var y = -20;
+    var ex = x + (Math.random() - 0.5) * W * 0.35;
+    var ey = H * (0.45 + Math.random() * 0.6);
+    var pts = [];
+    segment(x, y, ex, ey, 34, pts);
+    var branches = [];
+    var n = 1 + Math.floor(Math.random() * 2);
+    for(var i = 0; i < n; i++){
+      var at = pts[Math.floor(pts.length * (0.3 + Math.random() * 0.45))];
+      var bp = [];
+      segment(at[0], at[1], at[0] + (Math.random() - 0.5) * 190, at[1] + 60 + Math.random() * 130, 20, bp);
+      branches.push(bp);
+    }
+    bolts.push({ pts: pts, branches: branches, born: performance.now(), life: 620 + Math.random() * 320 });
+  }
+
+  function stroke(pts, alpha, width, rgb){
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for(var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.strokeStyle = 'rgba(' + rgb + ',' + alpha + ')';
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  var next = 0;
+  function frame(now){
+    ctx.clearRect(0, 0, W, H);
+    var rgb = accent();
+    if(now > next){ spawn(); next = now + 2600 + Math.random() * 3400; }
+    for(var i = bolts.length - 1; i >= 0; i--){
+      var b = bolts[i];
+      var age = (now - b.born) / b.life;
+      if(age >= 1){ bolts.splice(i, 1); continue; }
+      var a = Math.sin((1 - age) * Math.PI * 0.5);
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = 'rgba(' + rgb + ',' + (a * 0.5) + ')';
+      stroke(b.pts, a * 0.42, 1.6, rgb);
+      for(var j = 0; j < b.branches.length; j++) stroke(b.branches[j], a * 0.2, 1, rgb);
+      ctx.shadowBlur = 0;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  size();
+  window.addEventListener('resize', size);
+  if(!reduced){ next = performance.now() + 900; requestAnimationFrame(frame); }
+})();
+</script>
