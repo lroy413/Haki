@@ -24,7 +24,18 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "name": "Haki",
+      "shortName": "Haki",
+      "themeColor": "#0A0B12",
+      "backgroundColor": "#0A0B12",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "scope": "/",
+      "description": "Track the state of your will."
     },
     "plugins": [
       "expo-router",

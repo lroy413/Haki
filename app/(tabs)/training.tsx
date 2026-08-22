@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Link, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useStore } from '../../src/db/client';
 import { recentSessions } from '../../src/db/repo';
 import type { TrainingSessionRow } from '../../src/db/schema';
@@ -17,6 +17,7 @@ import { color, radius, space, type } from '../../src/theme/tokens';
  * missed month.
  */
 export default function TrainingScreen() {
+  const router = useRouter();
   const { db } = useStore();
   const { t, training, refresh } = useHaki();
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
@@ -100,11 +101,12 @@ export default function TrainingScreen() {
         )}
       />
 
-      <Link href="/session" asChild>
-        <Pressable style={({ pressed }) => [styles.fab, pressed && styles.pressed]}>
-          <Text style={styles.fabText}>{t.trainingLog}</Text>
-        </Pressable>
-      </Link>
+      <Pressable
+        onPress={() => router.push('/session')}
+        style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+      >
+        <Text style={styles.fabText}>{t.trainingLog}</Text>
+      </Pressable>
     </View>
   );
 }

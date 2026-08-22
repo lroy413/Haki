@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Link, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useHaki } from '../../src/state/HakiProvider';
 import { color, radius, space, type } from '../../src/theme/tokens';
 
 export default function Home() {
+  const router = useRouter();
   const { reserve, cascade, intensity, day, t, read, training, refresh } = useHaki();
 
   // Coming back from the Daily Read modal should show the new number at once.
@@ -46,8 +47,10 @@ export default function Home() {
         </View>
       ) : null}
 
-      <Link href="/training" asChild>
-        <Pressable style={({ pressed }) => [styles.strip, pressed && styles.ctaPressed]}>
+      <Pressable
+        onPress={() => router.push('/training')}
+        style={({ pressed }) => [styles.strip, pressed && styles.ctaPressed]}
+      >
           <View>
             <Text style={styles.stripLabel}>{t.trainingTitle}</Text>
             <Text style={styles.stripValue}>
@@ -66,21 +69,22 @@ export default function Home() {
           >
             {training.sessionsThisWeek}/{training.weeklyTarget}
           </Text>
-        </Pressable>
-      </Link>
+      </Pressable>
 
-      <Link href="/read" asChild>
-        <Pressable style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}>
-          <Text style={styles.ctaText}>{read ? t.dailyReadDone : t.dailyReadCta}</Text>
-          <Text style={styles.ctaHint}>{read ? 'Tap to change' : '30 seconds'}</Text>
-        </Pressable>
-      </Link>
+      <Pressable
+        onPress={() => router.push('/read')}
+        style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+      >
+        <Text style={styles.ctaText}>{read ? t.dailyReadDone : t.dailyReadCta}</Text>
+        <Text style={styles.ctaHint}>{read ? 'Tap to change' : '30 seconds'}</Text>
+      </Pressable>
 
-      <Link href="/entry/new" asChild>
-        <Pressable style={({ pressed }) => [styles.secondary, pressed && styles.ctaPressed]}>
-          <Text style={styles.secondaryText}>{t.newEntry}</Text>
-        </Pressable>
-      </Link>
+      <Pressable
+        onPress={() => router.push('/entry/new')}
+        style={({ pressed }) => [styles.secondary, pressed && styles.ctaPressed]}
+      >
+        <Text style={styles.secondaryText}>{t.newEntry}</Text>
+      </Pressable>
     </ScrollView>
   );
 }

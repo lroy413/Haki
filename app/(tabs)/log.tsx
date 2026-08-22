@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Link, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useStore } from '../../src/db/client';
 import { listEntries } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
@@ -9,6 +9,7 @@ import { daysAtSea } from '../../src/domain/date';
 import { color, radius, space, type } from '../../src/theme/tokens';
 
 export default function LogScreen() {
+  const router = useRouter();
   const { db, settings } = useStore();
   const { t } = useHaki();
   const [entries, setEntries] = useState<EntryRow[]>([]);
@@ -34,24 +35,26 @@ export default function LogScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.empty}>{t.logEmpty}</Text>}
         renderItem={({ item }) => (
-          <Link href={`/entry/${item.id}`} asChild>
-            <Pressable style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
-              <Text style={styles.rowDay}>
-                {t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · {item.day}
-              </Text>
-              <Text style={styles.rowBody} numberOfLines={2}>
-                {item.body.trim() || 'Empty entry'}
-              </Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            onPress={() => router.push(`/entry/${item.id}`)}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          >
+            <Text style={styles.rowDay}>
+              {t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · {item.day}
+            </Text>
+            <Text style={styles.rowBody} numberOfLines={2}>
+              {item.body.trim() || 'Empty entry'}
+            </Text>
+          </Pressable>
         )}
       />
 
-      <Link href="/entry/new" asChild>
-        <Pressable style={({ pressed }) => [styles.fab, pressed && styles.pressed]}>
-          <Text style={styles.fabText}>{t.newEntry}</Text>
-        </Pressable>
-      </Link>
+      <Pressable
+        onPress={() => router.push('/entry/new')}
+        style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+      >
+        <Text style={styles.fabText}>{t.newEntry}</Text>
+      </Pressable>
     </View>
   );
 }

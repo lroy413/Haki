@@ -1,5 +1,4 @@
 import { Tabs } from 'expo-router';
-import { Text, type ColorValue } from 'react-native';
 import { useHaki } from '../../src/state/HakiProvider';
 import { color, space } from '../../src/theme/tokens';
 
@@ -12,10 +11,6 @@ import { color, space } from '../../src/theme/tokens';
  */
 export default function TabsLayout() {
   const { t, plainMode } = useHaki();
-
-  const icon = (glyph: string) => ({ color: tint }: { color: ColorValue }) => (
-    <Text style={{ color: tint, fontSize: plainMode ? 11 : 15, fontWeight: '700' }}>{glyph}</Text>
-  );
 
   return (
     <Tabs
@@ -32,23 +27,24 @@ export default function TabsLayout() {
         },
         tabBarActiveTintColor: color.violet,
         tabBarInactiveTintColor: color.inkFaint,
-        tabBarLabelStyle: { fontSize: 10, letterSpacing: 0.5 },
+        // The kanji IS the label — no icon, or it renders twice.
+        tabBarLabelStyle: { fontSize: plainMode ? 11 : 15, fontWeight: '700', letterSpacing: 0.5 },
+        tabBarIconStyle: { display: 'none' },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{ title: t.tabHome, headerTitle: t.appName, tabBarIcon: icon(t.tabHome) }}
+        options={{ title: t.tabHome, headerTitle: t.appName }}
       />
       <Tabs.Screen
         name="log"
-        options={{ title: t.tabLog, headerTitle: t.logTitle, tabBarIcon: icon(t.tabLog) }}
+        options={{ title: t.tabLog, headerTitle: t.logTitle }}
       />
       <Tabs.Screen
         name="training"
         options={{
           title: t.tabTraining,
           headerTitle: t.trainingTitle,
-          tabBarIcon: icon(t.tabTraining),
         }}
       />
       <Tabs.Screen
@@ -56,12 +52,11 @@ export default function TabsLayout() {
         options={{
           title: t.tabCarried,
           headerTitle: t.carriedTitle,
-          tabBarIcon: icon(t.tabCarried),
         }}
       />
       <Tabs.Screen
         name="settings"
-        options={{ title: t.tabSettings, headerTitle: t.tabSettings, tabBarIcon: icon(t.tabSettings) }}
+        options={{ title: t.tabSettings, headerTitle: t.tabSettings }}
       />
     </Tabs>
   );

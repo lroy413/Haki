@@ -1,0 +1,12 @@
+# Netlify / Cloudflare Pages.
+#
+# expo-sqlite's web build drives its worker over SharedArrayBuffer, which the
+# browser only exposes to a cross-origin-isolated page. Without these two
+# headers the database never opens and the app boots to an error.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+# Never let a stale worker pin an old build.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate

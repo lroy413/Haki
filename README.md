@@ -32,24 +32,58 @@ That's the finish line. Everything else is v1+ and deliberately absent.
 
 ### Verified
 
-`npm run typecheck` clean · `npm test` 72 passing · `npx expo export` bundles · `npx expo-doctor` 21/21.
+`npm test` 72 passing · `npm run typecheck` clean · `npx expo-doctor` 21/21 ·
+web and native both bundle · **driven end-to-end in a real browser**: Daily
+Read saved, Reserve computed, keystone warning fired on 5h sleep, training
+session logged, data survived a reload, zero console errors.
 
-**Not yet run on a device.** The domain logic is tested and the app compiles and
-bundles end-to-end, but no one has held it in their hand. First real check is
-`npx expo start`.
+**Not yet run on iOS Safari or a physical device.** The browser test was
+headless Chromium. Safari is the one that matters for you and it has not been
+checked — see *iOS requirements* below.
 
 ---
 
 ## Running it
 
+Haki ships two targets from one codebase. **Start on web**; go native when
+you want widgets and the Den Den Mushi.
+
+### Web (PWA) — no laptop needed after deploy
+
 ```bash
 npm install
-npx expo start
+npm run build:web     # exports to dist/ and injects the PWA head
+npm run serve:web     # local preview at :8080
 ```
 
-Then scan the QR with Expo Go, or `npx expo run:android` / `run:ios` for a dev build.
+Deploy `dist/` anywhere that can set custom headers — `vercel.json` and
+`public/_headers` (Netlify / Cloudflare Pages) are both committed. Then open
+the URL on your phone and **Share → Add to Home Screen**.
 
-Notifications need a dev build to fire properly — Expo Go's support is limited.
+> **Hosting requirement, not optional.** `expo-sqlite`'s web build drives its
+> worker over `SharedArrayBuffer`, which browsers only expose to a
+> cross-origin-isolated page. Without `Cross-Origin-Opener-Policy: same-origin`
+> and `Cross-Origin-Embedder-Policy: require-corp` the database never opens and
+> the app boots to an error. **This rules out GitHub Pages**, which cannot set
+> custom headers. `npm run serve:web` sets them locally; plain `npx serve dist`
+> will not work.
+
+### iOS requirements
+
+Persistence uses OPFS, which needs a reasonably current Safari — **iOS 17+** is
+the safe floor. On first launch, if the app shows the database error screen
+instead of the home screen, that is what went wrong.
+
+### Native
+
+```bash
+npx expo start                       # Expo Go, needs this machine running
+npx expo run:ios                     # dev build, needs Xcode
+```
+
+Notifications only fire properly in a dev build; Expo Go's support is limited.
+The keystone warning always renders on the home screen regardless, so nothing
+depends on a notification arriving.
 
 `.npmrc` pins `legacy-peer-deps=true`. Expo SDK 57 pins React 19.2.3 while a
 transitive `react-dom` wants 19.2.8; without it a fresh `npm install` fails.
@@ -69,6 +103,17 @@ app/                      expo-router routes
   read.tsx                Daily Read (modal)
   session.tsx             log a training session (modal)
   entry/[id].tsx          entry editor
+
+public/                   copied verbatim into the web build
+  manifest.json           PWA manifest
+  sw.js                   service worker (runtime caching, offline shell)
+  _headers, _redirects    Netlify / Cloudflare Pages config
+  pwa-*.png               PWA + iOS icons
+
+tools/
+  make_icons.py           regenerates every icon from one glyph
+  pwa-head.mjs            injects the PWA head into the exported index.html
+  serve-web.mjs           local preview WITH the isolation headers
 
 src/
   domain/                 pure logic, no React Native imports — this is the part that matters
@@ -147,4 +192,11 @@ rest until three weeks of your own data are sitting in it.
   `PRAGMA user_version` rather than the drizzle-kit pipeline, which needs a Babel
   plugin and a Metro config change to load generated `.sql` at runtime. Append to
   `MIGRATIONS` in `src/db/bootstrap.ts`; never edit a shipped entry.
-- **Export.** Entries are Markdown in SQLite. A real export button is v1.
+- **Export.** Entries are Markdown in SQLite. A real export button is v1 — and
+  it matters more now, because moving from the PWA to the native app means
+  moving between two separate databases. Build it before the migration.
+- **`+html.tsx` does not work here.** Expo Router only honours it when
+  `web.output` is `"static"`, and Haki exports as `"single"` because static
+  export pre-renders routes that all need a browser-only database. The head is
+  injected by `tools/pwa-head.mjs` instead, chained into `npm run build:web`.
+  Running `expo export` on its own produces a non-installable page.
