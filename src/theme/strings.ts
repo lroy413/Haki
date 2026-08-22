@@ -7,13 +7,22 @@
  * second one behind this flag.
  */
 
+/**
+ * A tab carries both scripts: the kanji sits above, the English word below it.
+ * `glyph` is empty in plain mode, which collapses the tab to the English word
+ * alone rather than needing a second layout.
+ */
+export type Tab = { glyph: string; label: string };
+
 export type Strings = {
   appName: string;
-  tabHome: string;
-  tabLog: string;
-  tabTraining: string;
-  tabCarried: string;
-  tabSettings: string;
+  tabs: {
+    home: Tab;
+    log: Tab;
+    training: Tab;
+    carried: Tab;
+    settings: Tab;
+  };
 
   homeTitle: string;
   reserveLabel: string;
@@ -58,11 +67,13 @@ export type Strings = {
 
 const haki: Strings = {
   appName: 'Haki',
-  tabHome: '覇気',
-  tabLog: '見聞色',
-  tabTraining: '武装色',
-  tabCarried: '継承',
-  tabSettings: '設定',
+  tabs: {
+    home: { glyph: '覇気', label: 'Home' },
+    log: { glyph: '見聞色', label: 'Log' },
+    training: { glyph: '武装色', label: 'Training' },
+    carried: { glyph: '継承', label: 'Carried' },
+    settings: { glyph: '設定', label: 'Settings' },
+  },
 
   homeTitle: 'Will Reserve',
   reserveLabel: 'Reserve',
@@ -110,11 +121,13 @@ const haki: Strings = {
 const plain: Strings = {
   ...haki,
   appName: 'Journal',
-  tabHome: 'Today',
-  tabLog: 'Log',
-  tabTraining: 'Training',
-  tabCarried: 'People',
-  tabSettings: 'Settings',
+  tabs: {
+    home: { glyph: '', label: 'Today' },
+    log: { glyph: '', label: 'Log' },
+    training: { glyph: '', label: 'Training' },
+    carried: { glyph: '', label: 'People' },
+    settings: { glyph: '', label: 'Settings' },
+  },
 
   homeTitle: 'Energy',
   reserveLabel: 'Level',
