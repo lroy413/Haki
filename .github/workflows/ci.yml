@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# A newer push to the same branch makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # .npmrc pins legacy-peer-deps; Expo SDK 57 holds React at 19.2.3 while a
+      # transitive react-dom asks for 19.2.8.
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # Catches what typecheck cannot: unresolved imports, bad Metro config,
+      # anything that only shows up when the bundle is actually built.
+      - name: Build web
+        run: npm run build:web
+
+      - name: Build native bundle
+        run: npx expo export --platform ios --output-dir /tmp/native-check

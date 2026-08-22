@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { BackupCard } from '../../src/components/BackupCard';
 import { useStore } from '../../src/db/client';
 import { setKeystone, setPlainMode, setTraining } from '../../src/db/settings';
 import { useHaki } from '../../src/state/HakiProvider';
@@ -148,6 +149,8 @@ export default function SettingsScreen() {
             <Text style={styles.saveText}>Save training</Text>
           </Pressable>
         </View>
+
+        <BackupCard />
 
         <Text style={styles.footer}>
           Everything lives on this device. Nothing is uploaded anywhere.

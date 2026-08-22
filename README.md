@@ -9,6 +9,7 @@ It depletes, it recovers, and almost nobody measures theirs.
 
 - [`docs/CONCEPT.md`](docs/CONCEPT.md) — the concept doc: failure modes, mechanics, build order
 - [`docs/concept.html`](docs/concept.html) — the same thing as a designed page
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — **start here** to get it on your phone
 
 ---
 
@@ -26,7 +27,8 @@ It depletes, it recovers, and almost nobody measures theirs.
 
 Plus two additions past the line, both on request: **Inherited Will**, and
 **Training** — the downstream end of the cascade, so the thing sleep was
-already declared to carry is now actually tracked.
+already declared to carry is now actually tracked. Plus **export/import**,
+which the PWA-then-native plan makes load-bearing rather than optional.
 
 That's the finish line. Everything else is v1+ and deliberately absent.
 
@@ -36,6 +38,10 @@ That's the finish line. Everything else is v1+ and deliberately absent.
 web and native both bundle · **driven end-to-end in a real browser**: Daily
 Read saved, Reserve computed, keystone warning fired on 5h sleep, training
 session logged, data survived a reload, zero console errors.
+
+**Migration verified across two browser profiles** — exported from one, imported
+into a genuinely empty second one, journal entry and training session both came
+back, and a repeat import reported `0 added, 4 already here`.
 
 **Not yet run on iOS Safari or a physical device.** The browser test was
 headless Chromium. Safari is the one that matters for you and it has not been
@@ -120,12 +126,14 @@ src/
     willReserve.ts        the gauge
     cascade.ts            keystone → downstream detection
     training.ts           sessions, rolling hardness, gaps and Returns
+    backup.ts             export format, validation, merge planning
     date.ts               local-timezone day keys
   db/
     schema.ts             Drizzle schema
     bootstrap.ts          versioned DDL via PRAGMA user_version
     repo.ts               typed queries
     settings.ts           typed key/value accessors
+  files/                  saving and picking files — one impl per platform
   state/HakiProvider.tsx  today's read + reserve + cascade + training + intensity
   theme/                  tokens, and the one label map behind plain mode
   notifications/          Den Den Mushi channels
@@ -135,7 +143,7 @@ src/
 `src/domain` is deliberately free of React Native imports so it tests on plain
 Node. Every piece of real logic in v0 is verifiable without a simulator.
 
-### The four mechanics that are actually implemented
+### The five mechanics that are actually implemented
 
 **Keystone & Cascade** (`src/domain/cascade.ts`) — sleep is declared as a
 keystone with training wired downstream. One bad night is a watch; two
@@ -159,6 +167,14 @@ back is the skill that decides whether a gap costs a week or a year.
 Note the ordering in `app/session.tsx`: the gap is computed *before* the insert.
 Write first and the new session becomes its own "previous session", so every
 Return would read as a gap of zero.
+
+**Backup** (`src/domain/backup.ts`) — export and import, because the PWA and the
+native app are two separate databases and data does not cross on its own.
+Import **merges and never deletes**, and every table dedupes on a natural key so
+importing twice is a no-op. A malformed file is rejected at the envelope; a
+single corrupt row is dropped and counted rather than costing you the other two
+thousand. Row `id`s are never exported — they are autoincrement values that mean
+nothing in another database.
 
 **The app loses its power when you do** (`effectIntensity`) — the reserve drives
 a 0–1 intensity that fades the glow and flattens the gauge. It only ever touches
@@ -192,9 +208,6 @@ rest until three weeks of your own data are sitting in it.
   `PRAGMA user_version` rather than the drizzle-kit pipeline, which needs a Babel
   plugin and a Metro config change to load generated `.sql` at runtime. Append to
   `MIGRATIONS` in `src/db/bootstrap.ts`; never edit a shipped entry.
-- **Export.** Entries are Markdown in SQLite. A real export button is v1 — and
-  it matters more now, because moving from the PWA to the native app means
-  moving between two separate databases. Build it before the migration.
 - **`+html.tsx` does not work here.** Expo Router only honours it when
   `web.output` is `"static"`, and Haki exports as `"single"` because static
   export pre-renders routes that all need a browser-only database. The head is

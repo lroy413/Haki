@@ -45,7 +45,8 @@
         {
           "color": "#B14CFF"
         }
-      ]
+      ],
+      "expo-sharing"
     ]
   }
 }
