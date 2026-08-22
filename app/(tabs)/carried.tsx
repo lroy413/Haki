@@ -14,7 +14,7 @@ import { useStore } from '../../src/db/client';
 import { listCarried, upsertCarried } from '../../src/db/repo';
 import type { CarriedRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
-import { color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/tokens';
 
 /**
  * Inherited Will.
@@ -104,7 +104,12 @@ export default function CarriedScreen() {
               value={relationship}
               onChangeText={setRelationship}
             />
-            <Input label={t.carriedDream} value={theirDream} onChangeText={setTheirDream} multiline />
+            <Input
+              label={t.carriedDream}
+              value={theirDream}
+              onChangeText={setTheirDream}
+              multiline
+            />
             <Input
               label={t.carriedWhatICarry}
               value={whatICarry}
@@ -168,7 +173,7 @@ function Input({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg, paddingBottom: space.xxxl },
+  content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
   blurb: { ...type.small, color: color.inkDim, lineHeight: 20 },
   empty: { ...type.body, color: color.inkFaint, textAlign: 'center', marginVertical: space.xl },
 
@@ -218,7 +223,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryDisabled: { backgroundColor: color.surface2 },
-  primaryText: { ...type.body, color: '#0A0B12', fontWeight: '700' },
+  primaryText: { ...type.body, color: '#0A0B12' },
 
   add: {
     borderWidth: 1,

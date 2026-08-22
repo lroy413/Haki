@@ -46,7 +46,9 @@
           "color": "#B14CFF"
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font",
+      "expo-splash-screen"
     ]
   }
 }

@@ -70,9 +70,19 @@ export default function DailyReadScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Dial label={t.dials.energy} value={energy} onChange={setEnergy} accent={color.violet} />
+        <Dial
+          label={t.dials.energy}
+          value={energy}
+          onChange={setEnergy}
+          accent={color.violet}
+        />
         <Dial label={t.dials.mood} value={mood} onChange={setMood} accent={color.violet} />
-        <Dial label={t.dials.clarity} value={clarity} onChange={setClarity} accent={color.cyan} />
+        <Dial
+          label={t.dials.clarity}
+          value={clarity}
+          onChange={setClarity}
+          accent={color.cyan}
+        />
         <Dial
           label={t.dials.tension}
           value={tension}
@@ -137,6 +147,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveDisabled: { backgroundColor: color.surface2 },
-  saveText: { ...type.heading, color: '#0A0B12', fontWeight: '800' },
+  saveText: { ...type.heading, color: '#0A0B12' },
   pressed: { opacity: 0.75 },
 });

@@ -6,7 +6,7 @@ import { recentSessions } from '../../src/db/repo';
 import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { returnMessage } from '../../src/domain/training';
-import { color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, color, font, radius, space, type } from '../../src/theme/tokens';
 
 /**
  * 武装色 — Armament. The first real inhabitant of this tab.
@@ -54,19 +54,17 @@ export default function TrainingScreen() {
               />
               <Stat
                 label={t.trainingConsistency}
-                value={training.consistency === null ? '—' : `${training.consistency}%`}
+                value={training.consistency === null ? null : `${training.consistency}%`}
                 tone={color.violet}
               />
               <Stat
                 label={t.trainingSinceLast}
-                value={since === null ? '—' : String(since)}
+                value={since === null ? null : String(since)}
                 tone={training.inGap ? color.warn : color.cyan}
               />
             </View>
 
-            {since === 0 ? (
-              <Text style={styles.today}>{t.trainingToday}</Text>
-            ) : null}
+            {since === 0 ? <Text style={styles.today}>{t.trainingToday}</Text> : null}
 
             {training.inGap && since !== null ? (
               <View style={styles.gap}>
@@ -111,18 +109,26 @@ export default function TrainingScreen() {
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: string; tone: string }) {
+function Stat({ label, value, tone }: { label: string; value: string | null; tone: string }) {
   return (
     <View style={styles.stat}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={[styles.statValue, { color: tone }]}>{value}</Text>
+      <Text style={styles.statLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      {value === null ? (
+        // An em-dash in the display face reads as a filled bar at this weight,
+        // which looks like data rather than the absence of it.
+        <Text style={styles.statEmpty}>Not yet</Text>
+      ) : (
+        <Text style={[styles.statValue, { color: tone }]}>{value}</Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  list: { padding: space.lg, gap: space.sm, paddingBottom: 96 },
+  list: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE + 72 },
   header: { gap: space.lg, marginBottom: space.sm },
 
   stats: { flexDirection: 'row', gap: space.sm },
@@ -136,7 +142,13 @@ const styles = StyleSheet.create({
     gap: space.xs,
   },
   statLabel: { ...type.label, color: color.inkFaint, fontSize: 9 },
-  statValue: { fontSize: 26, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
+  statEmpty: { ...type.small, fontSize: 15, color: color.inkFaint, lineHeight: 30 },
+  statValue: {
+    fontFamily: font.display,
+    fontSize: 26,
+    letterSpacing: -1,
+    fontVariant: ['tabular-nums'],
+  },
 
   today: { ...type.small, color: color.cyan, textAlign: 'center' },
 
@@ -172,12 +184,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: space.lg,
     right: space.lg,
-    bottom: space.lg,
+    // Stacked above the floating tab bar rather than under it.
+    bottom: TAB_BAR_CLEARANCE,
     backgroundColor: color.crimson,
     borderRadius: radius.md,
     paddingVertical: space.lg,
     alignItems: 'center',
   },
-  fabText: { ...type.heading, color: '#0A0B12', fontWeight: '800' },
+  fabText: { ...type.heading, color: '#0A0B12' },
   pressed: { opacity: 0.75 },
 });

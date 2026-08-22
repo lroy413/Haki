@@ -100,7 +100,7 @@ const haki: Strings = {
   trainingEmpty: 'Nothing logged yet.',
   trainingThisWeek: 'This week',
   trainingConsistency: 'Hardness',
-  trainingSinceLast: 'Days since last',
+  trainingSinceLast: 'Days off',
   trainingNever: 'No sessions yet',
   trainingToday: 'Trained today',
   trainingKind: 'What did you do',

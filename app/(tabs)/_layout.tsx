@@ -1,20 +1,13 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet, Text, View, type ColorValue } from 'react-native';
+import { GlassTabBar } from '../../src/components/GlassTabBar';
 import { useHaki } from '../../src/state/HakiProvider';
-import type { Tab } from '../../src/theme/strings';
-import { color, space } from '../../src/theme/tokens';
+import { color, font } from '../../src/theme/tokens';
 
 /**
- * Five tabs, each carrying the kanji above and the English word below.
+ * Five tabs, rendered by the floating glass bar in `GlassTabBar`.
  *
- * Both lines live in the *label* slot rather than using the icon slot for the
- * glyph. The icon container is narrower than a tab, which wrapped the
- * three-character names (見聞色, 武装色) onto a second line straight through the
- * English underneath. It also renders a placeholder when handed no icon, which
- * is what plain mode needs to avoid.
- *
- * Plain mode ships an empty glyph, so the tab collapses to the English word
- * alone with no second layout.
+ * The header is transparent and the scene runs underneath it, so the dark
+ * ground is continuous from the status bar to the home indicator.
  *
  * Conqueror's (覇王色) is deliberately absent until v2 builds something to put
  * in it. Empty placeholder tabs are the classic unfinished-project smell, and
@@ -23,53 +16,34 @@ import { color, space } from '../../src/theme/tokens';
 export default function TabsLayout() {
   const { t } = useHaki();
 
-  const options = (tab: Tab, headerTitle: string) => ({
-    title: tab.label,
-    headerTitle,
-    tabBarLabel: ({ color: tint }: { color: ColorValue }) => (
-      <View style={styles.tab}>
-        {tab.glyph ? (
-          <Text numberOfLines={1} style={[styles.glyph, { color: tint }]}>
-            {tab.glyph}
-          </Text>
-        ) : null}
-        <Text numberOfLines={1} style={[styles.label, { color: tint }]}>
-          {tab.label}
-        </Text>
-      </View>
-    ),
-  });
-
   return (
     <Tabs
+      tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
         headerStyle: { backgroundColor: color.bg },
+        headerShadowVisible: false,
         headerTintColor: color.ink,
-        headerTitleStyle: { fontWeight: '700' },
+        headerTitleStyle: { fontFamily: font.displayBold, fontSize: 20, letterSpacing: -0.4 },
         sceneStyle: { backgroundColor: color.bg },
-        tabBarStyle: {
-          backgroundColor: color.surface,
-          borderTopColor: color.line,
-          paddingTop: space.sm,
-        },
-        tabBarActiveTintColor: color.violet,
-        tabBarInactiveTintColor: color.inkFaint,
-        // The label carries everything; an empty icon slot would still reserve
-        // space and, given no icon, render a placeholder glyph.
-        tabBarIconStyle: { display: 'none' },
       }}
     >
-      <Tabs.Screen name="index" options={options(t.tabs.home, t.appName)} />
-      <Tabs.Screen name="log" options={options(t.tabs.log, t.logTitle)} />
-      <Tabs.Screen name="training" options={options(t.tabs.training, t.trainingTitle)} />
-      <Tabs.Screen name="carried" options={options(t.tabs.carried, t.carriedTitle)} />
-      <Tabs.Screen name="settings" options={options(t.tabs.settings, t.tabs.settings.label)} />
+      <Tabs.Screen
+        name="index"
+        options={{ title: t.tabs.home.label, headerTitle: t.appName }}
+      />
+      <Tabs.Screen name="log" options={{ title: t.tabs.log.label, headerTitle: t.logTitle }} />
+      <Tabs.Screen
+        name="training"
+        options={{ title: t.tabs.training.label, headerTitle: t.trainingTitle }}
+      />
+      <Tabs.Screen
+        name="carried"
+        options={{ title: t.tabs.carried.label, headerTitle: t.carriedTitle }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{ title: t.tabs.settings.label, headerTitle: t.tabs.settings.label }}
+      />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tab: { alignItems: 'center', justifyContent: 'center', width: '100%', gap: 1 },
-  glyph: { fontSize: 14, lineHeight: 18, fontWeight: '700' },
-  label: { fontSize: 10, lineHeight: 13, letterSpacing: 0.2, fontWeight: '600' },
-});
