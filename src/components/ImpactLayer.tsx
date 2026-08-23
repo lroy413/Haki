@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 import { onImpact } from '../impact';
 import { useHaki } from '../state/HakiProvider';
+import { darkest } from '../theme/palettes';
 import { Fist } from './instruments/Fist';
 import { Lightning } from './Lightning';
 import { ScratchField } from './ScratchField';
@@ -85,7 +86,7 @@ export function ImpactLayer() {
   // The darkest colour this palette owns, whichever frame is up: on paper that
   // is the ink, on the dark palettes it is the ground itself. The lightning is
   // black in both, and does not invert with everything else.
-  const black = palette.lightSurface ? palette.ink : palette.bg;
+  const black = darkest(palette);
 
   return (
     <View pointerEvents="none" style={[styles.layer, { backgroundColor: ground }]}>

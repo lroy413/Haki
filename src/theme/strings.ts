@@ -20,7 +20,7 @@ export type Strings = {
     home: Tab;
     log: Tab;
     training: Tab;
-    carried: Tab;
+    conquerors: Tab;
     settings: Tab;
   };
 
@@ -38,6 +38,34 @@ export type Strings = {
   courseTitle: string;
   coursePlaceholder: string;
   stillnessTitle: string;
+
+  logPoseTitle: string;
+  logPoseBlurb: string;
+  dreamLabel: string;
+  dreamEmpty: string;
+  dreamPlaceholder: string;
+  dreamSetCta: string;
+  dreamNamedOn: (day: string) => string;
+  roadLabel: string;
+  roadAdd: string;
+  roadTitleField: string;
+  roadWhyField: string;
+  roadWhyLabel: string;
+  roadRetire: string;
+  roadUnretire: string;
+  roadRetired: string;
+  islandLabel: string;
+  islandAdd: string;
+  islandPlaceholder: string;
+  islandReached: string;
+  islandPass: string;
+  islandPassReason: string;
+  islandPassConfirm: string;
+  islandReopen: string;
+  islandHistory: string;
+  strikeIt: string;
+  strikePlaceholder: string;
+  strikeAdded: string;
 
   carriedTitle: string;
   carriedBlurb: string;
@@ -86,7 +114,10 @@ const haki: Strings = {
     home: { glyph: '覇気', label: 'Home' },
     log: { glyph: '日誌', label: 'Logbook' },
     training: { glyph: '武装色', label: 'Do' },
-    carried: { glyph: '継承', label: 'Carried' },
+    // 覇王色 — the third lens, and the one with no meter. The tab word is
+    // Journey rather than Log Pose because Logbook is two tabs away and two
+    // labels starting with "Log" is a coin flip every time you reach for one.
+    conquerors: { glyph: '覇王色', label: 'Journey' },
     settings: { glyph: '設定', label: 'Settings' },
   },
 
@@ -104,6 +135,35 @@ const haki: Strings = {
   courseTitle: 'Course',
   coursePlaceholder: 'What today is for.',
   stillnessTitle: 'Stillness',
+
+  logPoseTitle: 'Log Pose',
+  logPoseBlurb:
+    'One dream, the things it needs, and the next island under each. Nothing here is scored — a journey has no denominator.',
+  dreamLabel: 'The Dream',
+  dreamEmpty: 'Not named yet.',
+  dreamPlaceholder: 'The enormous one. Never scaled down for a bad month.',
+  dreamSetCta: 'Name the dream',
+  dreamNamedOn: (day) => `Named ${day}`,
+  roadLabel: 'Road Poneglyphs',
+  roadAdd: 'Add a Road Poneglyph',
+  roadTitleField: 'What has to happen',
+  roadWhyField: 'Why the dream needs it',
+  roadWhyLabel: 'Why',
+  roadRetire: 'Retire this pillar',
+  roadUnretire: 'Bring it back',
+  roadRetired: 'Retired',
+  islandLabel: 'Poneglyph',
+  islandAdd: 'Name the next island',
+  islandPlaceholder: 'One concrete thing. Weeks, not years.',
+  islandReached: 'Reached',
+  islandPass: 'Sail past',
+  islandPassReason: 'Why you are sailing past',
+  islandPassConfirm: 'Sail past it',
+  islandReopen: 'Put back to sea',
+  islandHistory: 'Astern',
+  strikeIt: 'Strike it',
+  strikePlaceholder: 'One thing today that moves this.',
+  strikeAdded: 'On today.',
 
   carriedTitle: 'Inherited Will',
   carriedBlurb:
@@ -158,7 +218,7 @@ const plain: Strings = {
     home: { glyph: '', label: 'Today' },
     log: { glyph: '', label: 'Log' },
     training: { glyph: '', label: 'Training' },
-    carried: { glyph: '', label: 'People' },
+    conquerors: { glyph: '', label: 'Goals' },
     settings: { glyph: '', label: 'Settings' },
   },
 
@@ -170,6 +230,29 @@ const plain: Strings = {
   logTitle: 'Journal',
   courseTitle: 'Intention',
   stillnessTitle: 'Meditation',
+  logPoseTitle: 'Goals',
+  logPoseBlurb:
+    'One big goal, the things it needs, and the next step under each. Nothing here is scored.',
+  dreamLabel: 'The big one',
+  dreamPlaceholder: 'The one everything else is for.',
+  dreamSetCta: 'Name it',
+  roadLabel: 'Main goals',
+  roadAdd: 'Add a main goal',
+  roadWhyField: 'Why the big one needs it',
+  roadRetire: 'Retire this goal',
+  roadUnretire: 'Bring it back',
+  islandLabel: 'Milestone',
+  islandAdd: 'Set the next step',
+  islandPlaceholder: 'One concrete thing. Weeks, not years.',
+  islandReached: 'Done',
+  islandPass: 'Set aside',
+  islandPassReason: 'Why you are setting it aside',
+  islandPassConfirm: 'Set it aside',
+  islandReopen: 'Reopen it',
+  islandHistory: 'Done and set aside',
+  strikeIt: 'Add a task',
+  strikePlaceholder: 'One thing today that moves this.',
+
   carriedTitle: 'People I carry',
   trainingTitle: 'Training',
   // The tab is already called Training in plain mode, so the section inside it

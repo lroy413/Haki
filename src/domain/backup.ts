@@ -103,6 +103,30 @@ export type CourseBackup = {
   updatedAt: number;
 };
 
+export type RoadPoneglyphBackup = {
+  title: string;
+  why: string | null;
+  createdAt: number;
+  updatedAt: number;
+  retiredAt: number | null;
+};
+
+/**
+ * Linked to its Road Poneglyph by the parent's `createdAt`, not its row id.
+ * Ids are not carried across a backup at all — see the note at the top of this
+ * file — so a child keyed on one would arrive pointing at nothing.
+ */
+export type PoneglyphBackup = {
+  roadCreatedAt: number;
+  title: string;
+  state: string;
+  openedOn: string;
+  closedOn: string | null;
+  reason: string | null;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type BackupTables = {
   dailyRead: DailyReadBackup[];
   sleepLog: SleepBackup[];
@@ -111,6 +135,8 @@ export type BackupTables = {
   gearSession: GearSessionBackup[];
   sitSession: SitSessionBackup[];
   course: CourseBackup[];
+  roadPoneglyph: RoadPoneglyphBackup[];
+  poneglyph: PoneglyphBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
   setting: SettingBackup[];
@@ -132,6 +158,8 @@ export const EMPTY_TABLES: BackupTables = {
   gearSession: [],
   sitSession: [],
   course: [],
+  roadPoneglyph: [],
+  poneglyph: [],
   carried: [],
   task: [],
   setting: [],
@@ -207,6 +235,21 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     num(r.completed) &&
     num(r.createdAt),
   course: (r) => str(r.day) && str(r.heading) && num(r.createdAt) && num(r.updatedAt),
+  roadPoneglyph: (r) =>
+    str(r.title) &&
+    nullableStr(r.why) &&
+    num(r.createdAt) &&
+    num(r.updatedAt) &&
+    nullableNum(r.retiredAt),
+  poneglyph: (r) =>
+    num(r.roadCreatedAt) &&
+    str(r.title) &&
+    str(r.state) &&
+    str(r.openedOn) &&
+    nullableStr(r.closedOn) &&
+    nullableStr(r.reason) &&
+    num(r.createdAt) &&
+    num(r.updatedAt),
   carried: (r) =>
     str(r.name) &&
     nullableStr(r.relationship) &&
@@ -308,6 +351,8 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   sitSession: (r) => String(r.startedAt),
   // One heading per day by definition, exactly like a Daily Read.
   course: (r) => r.day,
+  roadPoneglyph: (r) => String(r.createdAt),
+  poneglyph: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),
   setting: (r) => r.key,

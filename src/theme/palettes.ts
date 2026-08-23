@@ -196,3 +196,27 @@ export const PALETTES: Record<HardeningLevel, Palette> = {
 export function paletteFor(level: HardeningLevel): Palette {
   return PALETTES[level];
 }
+
+/**
+ * The darkest colour a palette paints large areas with.
+ *
+ * On paper that is the ink; on the three dark palettes it is the ground. Black
+ * lightning is drawn in it — impact frame, ambient weather and Conqueror's
+ * burst all want the same thing and all three used to work it out by hand.
+ *
+ * Not, strictly, the darkest hex in the palette: `onAccent` is darker still on
+ * levels 1 and 2, and is deliberately not a candidate. It exists to be read on
+ * top of a bright violet button and nowhere else, so borrowing it as a ground
+ * would be a category error that happens to look fine today.
+ *
+ * It exists because the obvious name is a trap. `ink` reads as "the dark one"
+ * and is near-black on exactly one of the four palettes; from level 1 up it is
+ * near-*white*, because it is the text colour and the text is light on a dark
+ * ground. Washing a full-screen effect in `palette.ink` flashed the whole
+ * display white on every palette the app actually spends its day in, and
+ * nothing about the name suggested it would. One expression, one place, and a
+ * test that holds it to what it claims.
+ */
+export function darkest(p: Palette): string {
+  return p.lightSurface ? p.ink : p.bg;
+}

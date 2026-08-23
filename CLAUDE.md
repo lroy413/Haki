@@ -142,11 +142,11 @@ user_version` in `bootstrap.ts`. **Append migrations, never edit a shipped
 Each act belongs to exactly one, and getting this wrong is easy — it has been
 got wrong once already, by measuring 武装色 from workouts alone.
 
-| Lens               | Reads                           | Fed by                        | Lives in                |
-| ------------------ | ------------------------------- | ----------------------------- | ----------------------- |
-| 見聞色 Observation | your own state                  | the Daily Read, Stillness     | `domain/observation.ts` |
-| 武装色 Armament    | what you did on purpose         | struck tasks, gears, training | `domain/armament.ts`    |
-| 覇王色 Conqueror's | the will that affects the world | —                             | unbuilt                 |
+| Lens               | Reads                           | Fed by                          | Lives in                |
+| ------------------ | ------------------------------- | ------------------------------- | ----------------------- |
+| 見聞色 Observation | your own state                  | the Daily Read, Stillness       | `domain/observation.ts` |
+| 武装色 Armament    | what you did on purpose         | struck tasks, gears, training   | `domain/armament.ts`    |
+| 覇王色 Conqueror's | the will that affects the world | the dream, its pillars, islands | `domain/logpose.ts`     |
 
 Two rules fall out of that:
 
@@ -161,6 +161,50 @@ Two rules fall out of that:
 
 Hardening is not one of the lenses. It reads the whole day across all of them —
 see `domain/hardening.ts`.
+
+## The Log Pose
+
+覇王色 is **the lens with no meter**, and that is a decision rather than an
+omission. Observation reports a state and Armament reports a hardness;
+Conqueror's cannot be trained, only refined — it is knowing exactly who you are
+— so a number that rose as you knew yourself better would be a lie about what
+the thing is. What the screen gives back is a _bearing_.
+
+Three sizes, and the relationship between them is the whole design: **one
+Dream**, never scaled down for a bad month; **four to seven Road Poneglyphs**,
+the big things it actually requires (four triangulates, seven is the ceiling);
+**one Poneglyph at a time** under each, weeks wide and concrete.
+
+- **A journey has no denominator.** No percentage, no bar, no "3 of 8" — nobody
+  sailing knows how many islands are left, so any total would be invented.
+  Progress is reported as what is astern, counted, with nothing beside it. Same
+  rule hardening holds, arrived at from the other end.
+- **One island at a time per pillar.** The WIP limit is the treatment for the
+  failure mode the feature exists to treat: things go unfinished because the
+  loop never closed and nothing made you say so. Enforced in `openPoneglyph` as
+  well as in the UI — a limit that only holds while the screen is open is not a
+  limit.
+- **Finish or sail past, no third option**, and the asymmetry between them is
+  the only place this app deliberately makes something harder. Reaching is one
+  tap; sailing past costs one written line. A decision you cannot be bothered
+  to write down is drift wearing a different coat.
+- **The record is kinder than the event.** The event has to be a real choice
+  with a reason attached, but a list of things labelled ABANDONED sits in this
+  app for years and is a monument to being someone who quits. Stored as
+  `passed`, displayed as "Sailed past".
+- **The burst is rare by construction.** `fireConquerors()` has exactly one
+  caller — an island reached — and stays rare because an island is weeks of
+  work. If it ever starts firing weekly, the thing to fix is what is calling
+  it, not the effect.
+
+## `palette.ink` is not the dark one
+
+It is the **text** colour: near-black on paper and near-white on all three
+hardened palettes. Anything wanting "the darkest thing here" — black lightning,
+a full-screen wash — must call `darkest(palette)` from `src/theme/palettes.ts`,
+which is `lightSurface ? ink : bg` and is tested against every palette. Reading
+`palette.ink` for it flashed the whole display white on the three palettes the
+app spends its day in, and nothing in the name suggested it would.
 
 ## Tone
 

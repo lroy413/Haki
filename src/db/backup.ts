@@ -15,6 +15,8 @@ import {
   dailyRead,
   entry,
   gearSession,
+  poneglyph,
+  roadPoneglyph,
   setting,
   sitSession,
   sleepLog,
@@ -32,19 +34,33 @@ import {
  */
 
 export async function readAllTables(db: Db): Promise<BackupTables> {
-  const [reads, sleeps, entries, sessions, gears, sits, courses, people, tasks, settings] =
-    await Promise.all([
-      db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
-      db.select().from(sleepLog).orderBy(desc(sleepLog.day)),
-      db.select().from(entry).orderBy(desc(entry.createdAt)),
-      db.select().from(trainingSession).orderBy(desc(trainingSession.day)),
-      db.select().from(gearSession).orderBy(desc(gearSession.startedAt)),
-      db.select().from(sitSession).orderBy(desc(sitSession.startedAt)),
-      db.select().from(course).orderBy(desc(course.day)),
-      db.select().from(carried).orderBy(desc(carried.createdAt)),
-      db.select().from(task).orderBy(desc(task.createdAt)),
-      db.select().from(setting),
-    ]);
+  const [
+    reads,
+    sleeps,
+    entries,
+    sessions,
+    gears,
+    sits,
+    courses,
+    roads,
+    glyphs,
+    people,
+    tasks,
+    settings,
+  ] = await Promise.all([
+    db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
+    db.select().from(sleepLog).orderBy(desc(sleepLog.day)),
+    db.select().from(entry).orderBy(desc(entry.createdAt)),
+    db.select().from(trainingSession).orderBy(desc(trainingSession.day)),
+    db.select().from(gearSession).orderBy(desc(gearSession.startedAt)),
+    db.select().from(sitSession).orderBy(desc(sitSession.startedAt)),
+    db.select().from(course).orderBy(desc(course.day)),
+    db.select().from(roadPoneglyph).orderBy(roadPoneglyph.createdAt),
+    db.select().from(poneglyph).orderBy(poneglyph.createdAt),
+    db.select().from(carried).orderBy(desc(carried.createdAt)),
+    db.select().from(task).orderBy(desc(task.createdAt)),
+    db.select().from(setting),
+  ]);
 
   return {
     dailyRead: reads.map((r) => ({
@@ -96,6 +112,23 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     course: courses.map((r) => ({
       day: r.day,
       heading: r.heading,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })),
+    roadPoneglyph: roads.map((r) => ({
+      title: r.title,
+      why: r.why,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      retiredAt: r.retiredAt,
+    })),
+    poneglyph: glyphs.map((r) => ({
+      roadCreatedAt: r.roadCreatedAt,
+      title: r.title,
+      state: r.state,
+      openedOn: r.openedOn,
+      closedOn: r.closedOn,
+      reason: r.reason,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     })),
@@ -213,6 +246,16 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
           break;
         case 'course':
           tx.insert(course)
+            .values(plan.insert as never)
+            .run();
+          break;
+        case 'roadPoneglyph':
+          tx.insert(roadPoneglyph)
+            .values(plan.insert as never)
+            .run();
+          break;
+        case 'poneglyph':
+          tx.insert(poneglyph)
             .values(plan.insert as never)
             .run();
           break;

@@ -9,12 +9,15 @@ import type { GearName, GearSession } from '../domain/gears';
 import type { SitDepth, SitSession } from '../domain/stillness';
 import { normaliseHeading, type Course } from '../domain/course';
 import { appendLine, isWritable } from '../domain/logbook';
+import type { Poneglyph, PoneglyphState, Road } from '../domain/logpose';
 import {
   carried,
   course,
   dailyRead,
   entry,
   gearSession,
+  poneglyph,
+  roadPoneglyph,
   sitSession,
   setting,
   sleepLog,
@@ -528,6 +531,180 @@ export async function upsertCarried(
 
 export async function deleteCarried(db: Db, id: number): Promise<void> {
   await db.delete(carried).where(eq(carried.id, id));
+}
+
+/* ---------------------------------------------------------------- log pose */
+
+/**
+ * The dream lives in `setting` rather than a table of its own.
+ *
+ * There is exactly one, it is a single string, and a table holding one row
+ * forever is a table. Two keys, and it rides the existing backup wiring for
+ * free — `setting` already dedupes on `key`.
+ */
+export const DREAM_KEY = 'logpose.dream';
+export const DREAM_SET_KEY = 'logpose.dreamSetOn';
+
+export async function getDream(db: Db): Promise<{ text: string; setOn: DayKey } | null> {
+  const text = await readSetting(db, DREAM_KEY);
+  if (!text?.trim()) return null;
+  return { text: text.trim(), setOn: (await readSetting(db, DREAM_SET_KEY)) ?? todayKey() };
+}
+
+/**
+ * Name it, or restate it.
+ *
+ * The day it was first named is kept and never moved by a restatement. A dream
+ * is allowed to be said better; the date it started is a fact about the
+ * voyage, and rewriting it would quietly erase how long you have been at this.
+ */
+export async function setDream(db: Db, text: string): Promise<void> {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+  await writeSetting(db, DREAM_KEY, trimmed);
+  if (!(await readSetting(db, DREAM_SET_KEY))) {
+    await writeSetting(db, DREAM_SET_KEY, todayKey());
+  }
+}
+
+function toRoad(row: {
+  id: number;
+  title: string;
+  why: string | null;
+  createdAt: number;
+  retiredAt: number | null;
+}): Road {
+  return {
+    id: row.id,
+    key: row.createdAt,
+    title: row.title,
+    why: row.why,
+    retired: row.retiredAt !== null,
+  };
+}
+
+/** Every Road Poneglyph, retired ones included — the history has to survive. */
+export async function listRoads(db: Db): Promise<Road[]> {
+  const rows = await db.select().from(roadPoneglyph).orderBy(roadPoneglyph.createdAt);
+  return rows.map(toRoad);
+}
+
+export async function addRoad(db: Db, title: string, why: string | null): Promise<void> {
+  const t = now();
+  await db.insert(roadPoneglyph).values({
+    title: title.trim(),
+    why: why?.trim() || null,
+    createdAt: t,
+    updatedAt: t,
+  });
+}
+
+export async function updateRoad(
+  db: Db,
+  id: number,
+  patch: { title?: string; why?: string | null },
+): Promise<void> {
+  await db
+    .update(roadPoneglyph)
+    .set({ ...patch, updatedAt: now() })
+    .where(eq(roadPoneglyph.id, id));
+}
+
+/**
+ * Retire a pillar, or bring it back.
+ *
+ * Never a delete. The islands reached under it stay reached, and a front you
+ * stepped away from in March is part of the record of the year.
+ */
+export async function retireRoad(db: Db, id: number, retired: boolean): Promise<void> {
+  await db
+    .update(roadPoneglyph)
+    .set({ retiredAt: retired ? now() : null, updatedAt: now() })
+    .where(eq(roadPoneglyph.id, id));
+}
+
+export async function listPoneglyphs(db: Db): Promise<Poneglyph[]> {
+  const rows = await db.select().from(poneglyph).orderBy(poneglyph.createdAt);
+  return rows.map((row) => ({
+    id: row.id,
+    roadKey: row.roadCreatedAt,
+    title: row.title,
+    state: row.state as PoneglyphState,
+    openedOn: row.openedOn,
+    closedOn: row.closedOn,
+    reason: row.reason,
+  }));
+}
+
+/**
+ * Open an island under a pillar.
+ *
+ * The WIP limit is enforced here as well as in the UI, because "one at a time"
+ * that only holds while the screen is on the screen is not a limit. A second
+ * open island under the same pillar is refused and says so.
+ */
+export async function openPoneglyph(
+  db: Db,
+  roadKey: number,
+  title: string,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  const existing = await db
+    .select()
+    .from(poneglyph)
+    .where(and(eq(poneglyph.roadCreatedAt, roadKey), eq(poneglyph.state, 'open')))
+    .limit(1);
+  if (existing.length > 0) return;
+
+  const t = now();
+  await db.insert(poneglyph).values({
+    roadCreatedAt: roadKey,
+    title: title.trim(),
+    state: 'open',
+    openedOn: day,
+    createdAt: t,
+    updatedAt: t,
+  });
+}
+
+/**
+ * Close an island — reached, or sailed past with a reason.
+ *
+ * One function for both because they are the same event from the app's side: a
+ * loop closing on purpose. The difference is what gets written down, and that
+ * difference is the whole intervention.
+ */
+export async function closePoneglyph(
+  db: Db,
+  id: number,
+  state: 'reached' | 'passed',
+  reason: string | null = null,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  await db
+    .update(poneglyph)
+    .set({
+      state,
+      closedOn: day,
+      reason: state === 'passed' ? reason?.trim() || null : null,
+      updatedAt: now(),
+    })
+    .where(eq(poneglyph.id, id));
+}
+
+/** Undo a close. Marking something reached by mistake has to be reversible. */
+export async function reopenPoneglyph(db: Db, id: number): Promise<void> {
+  await db
+    .update(poneglyph)
+    .set({ state: 'open', closedOn: null, reason: null, updatedAt: now() })
+    .where(eq(poneglyph.id, id));
+}
+
+export async function renamePoneglyph(db: Db, id: number, title: string): Promise<void> {
+  await db
+    .update(poneglyph)
+    .set({ title: title.trim(), updatedAt: now() })
+    .where(eq(poneglyph.id, id));
 }
 
 /* ---------------------------------------------------------------- settings */

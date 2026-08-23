@@ -142,6 +142,32 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE UNIQUE INDEX IF NOT EXISTS course_day_idx ON course (day);
     `,
   },
+  {
+    version: 6,
+    up: `
+      CREATE TABLE IF NOT EXISTS road_poneglyph (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        title       TEXT    NOT NULL,
+        why         TEXT,
+        created_at  INTEGER NOT NULL,
+        updated_at  INTEGER NOT NULL,
+        retired_at  INTEGER
+      );
+
+      CREATE TABLE IF NOT EXISTS poneglyph (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        road_created_at  INTEGER NOT NULL,
+        title            TEXT    NOT NULL,
+        state            TEXT    NOT NULL DEFAULT 'open',
+        opened_on        TEXT    NOT NULL,
+        closed_on        TEXT,
+        reason           TEXT,
+        created_at       INTEGER NOT NULL,
+        updated_at       INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS poneglyph_road_idx ON poneglyph (road_created_at);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

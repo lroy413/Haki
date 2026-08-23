@@ -74,7 +74,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
     t.tabs.home,
     t.tabs.log,
     t.tabs.training,
-    t.tabs.carried,
+    t.tabs.conquerors,
     t.tabs.settings,
   ];
 

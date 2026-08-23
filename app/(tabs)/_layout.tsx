@@ -19,9 +19,11 @@ import { useHaki } from '../../src/state/HakiProvider';
  *
  * `title` stays: the bar reads it for each tab's accessible name.
  *
- * Conqueror's (覇王色) is deliberately absent until v2 builds something to put
- * in it. Empty placeholder tabs are the classic unfinished-project smell, and
- * this app of all apps cannot afford it.
+ * Conqueror's (覇王色) took the fifth slot once the Log Pose gave it something
+ * to hold. Inherited Will moved *into* it rather than alongside it — the
+ * people whose dreams you carry belong with where you are going, not in a
+ * drawer of their own — which keeps this at five tabs. Six would not fit the
+ * bar, and a tab that is only a list of names was never a tab.
  */
 export default function TabsLayout() {
   const { t, palette } = useHaki();
@@ -37,7 +39,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: t.tabs.home.label }} />
       <Tabs.Screen name="log" options={{ title: t.tabs.log.label }} />
       <Tabs.Screen name="training" options={{ title: t.tabs.training.label }} />
-      <Tabs.Screen name="carried" options={{ title: t.tabs.carried.label }} />
+      <Tabs.Screen name="conquerors" options={{ title: t.tabs.conquerors.label }} />
       <Tabs.Screen name="settings" options={{ title: t.tabs.settings.label }} />
     </Tabs>
   );

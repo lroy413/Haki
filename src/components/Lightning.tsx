@@ -83,7 +83,21 @@ function buildBolts(count: number): string[] {
   return out;
 }
 
-const BOLTS = buildBolts(7);
+/**
+ * Built once per distinct count and kept. Determinism is the point — a field
+ * that re-rolled between two frames of one flash reads as static rather than
+ * as a single strike — and the seed is fixed, so the same count is always the
+ * same field.
+ */
+const FIELDS = new Map<number, string[]>();
+
+function boltsFor(count: number): string[] {
+  const cached = FIELDS.get(count);
+  if (cached) return cached;
+  const built = buildBolts(count);
+  FIELDS.set(count, built);
+  return built;
+}
 
 export function Lightning({
   core,
@@ -91,13 +105,16 @@ export function Lightning({
   /** Scales how far the bolts throw. 1 is the strike everyone gets. */
   reach = 1,
   width = 1,
+  /** How many bolts are thrown. Seven is one strike off a fist. */
+  count = 7,
 }: {
   core: string;
   halo: string;
   reach?: number;
   width?: number;
+  count?: number;
 }) {
-  const bolts = useMemo(() => BOLTS, []);
+  const bolts = useMemo(() => boltsFor(count), [count]);
   return (
     <Svg
       width="100%"

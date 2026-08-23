@@ -180,6 +180,55 @@ export const carried = sqliteTable('carried', {
   updatedAt: integer('updated_at').notNull(),
 });
 
+/**
+ * A Road Poneglyph — one of the big things the dream requires.
+ *
+ * `retiredAt` rather than a delete: stepping away from a front does not
+ * un-sail the islands reached under it, and the history has to survive.
+ */
+export const roadPoneglyph = sqliteTable('road_poneglyph', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  /** Why the dream needs this. Optional — some are self-evident. */
+  why: text('why'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  retiredAt: integer('retired_at'),
+});
+
+/**
+ * A Poneglyph — one island under one Road Poneglyph.
+ *
+ * **Linked by the parent's `created_at`, not its `id`.** Row ids are
+ * deliberately not carried in backups — they are autoincrement values that
+ * mean nothing outside the database that issued them — so a child row keyed on
+ * one could not survive an export and re-import. `createdAt` is the natural
+ * key the rest of this app already dedupes on, it is stable across a rename,
+ * and it round-trips. See `domain/backup.ts`.
+ *
+ * At most one row per road may be `open` at a time. That rule is the WIP limit
+ * and it lives in `domain/logpose.ts`; it is not expressible as a constraint
+ * here, because SQLite cannot make a partial unique index over a value the
+ * app decides.
+ */
+export const poneglyph = sqliteTable(
+  'poneglyph',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    roadCreatedAt: integer('road_created_at').notNull(),
+    title: text('title').notNull(),
+    /** 'open' | 'reached' | 'passed'. See `domain/logpose.ts`. */
+    state: text('state').notNull().default('open'),
+    openedOn: text('opened_on').notNull(),
+    closedOn: text('closed_on'),
+    /** Why you sailed past. Only ever set on a passed island. */
+    reason: text('reason'),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (t) => [index('poneglyph_road_idx').on(t.roadCreatedAt)],
+);
+
 /** Small key/value bag. Typed accessors live in `settings.ts`. */
 export const setting = sqliteTable('setting', {
   key: text('key').primaryKey(),
@@ -196,3 +245,5 @@ export type TaskRow = typeof task.$inferSelect;
 export type GearSessionRow = typeof gearSession.$inferSelect;
 export type SitSessionRow = typeof sitSession.$inferSelect;
 export type CourseRow = typeof course.$inferSelect;
+export type RoadPoneglyphRow = typeof roadPoneglyph.$inferSelect;
+export type PoneglyphRow = typeof poneglyph.$inferSelect;

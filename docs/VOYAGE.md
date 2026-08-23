@@ -305,10 +305,89 @@ stillness in it is a day that got used, and a mental-health app withholding its
 one piece of visual feedback from meditation would be punishing somebody for
 meditating.
 
+## The Log Pose — 覇王色 opens
+
+The owner's ask was for the goal tracker, and the shape came out of one long
+answer to one question. Should there be a hard WIP limit — one active goal at a
+time?
+
+> _"I like the one goal idea, we need to find a middle ground… No, I need 1
+> core dream, but multiple big things need to happen in order to make that
+> happen. To be the pirate king you not only have to be strong enough to beat
+> who's along the way, but also have to find the road poneglyphs to even
+> navigate to the island. Everything all leads to the One Piece but the
+> journey's just as important."_
+
+That is the whole architecture, and it is not the one the concept doc had. The
+doc said four pillars each with a next milestone. The owner said one **dream**
+above the pillars, and the pillars are what the dream _requires_ — which is why
+they are Road Poneglyphs rather than categories. Four is the target, because
+four of them triangulate Laugh Tale; seven is the ceiling, because life
+sometimes genuinely has five fronts and a system that refuses to admit it just
+gets lied to.
+
+**Conqueror's turned out to be the lens with no meter.** Observation reports a
+state, Armament reports a hardness, and the instinct was to give this one a
+figure too. Canon says no: Conqueror's cannot be trained, only refined — it is
+knowing exactly who you are — so a number rising as you knew yourself better
+would be a lie about what the thing is. What the screen gives back is a
+**bearing**, which is also the honest answer to a question this app had already
+answered once: _a journey has no denominator._ Nobody sailing knows how many
+islands are left, so there is no percentage, no bar, no "3 of 8" — only what is
+astern, counted, with nothing beside it. Hardening reached the same rule from
+the other end.
+
+**Finish or sail past.** The fourth failure mode from the concept doc, and the
+only one still unbuilt: projects go unfinished almost never because anyone
+decided to quit, but because the loop never closed and nothing ever made you
+say so. So there is one island under each pillar and no way forward except to
+close it — enforced in `openPoneglyph` as well as in the UI, because a limit
+that only holds while the screen is open is not a limit.
+
+The part that was not in the plan is the **asymmetry**. Reaching is one tap.
+Sailing past is one tap and then a written line, and the button stays dead
+until it is typed — the only place in this app that deliberately makes anything
+harder. Arriving has already cost weeks; a decision you cannot be bothered to
+write down is drift wearing a different coat.
+
+The second unplanned thing was about vocabulary rather than mechanics. The
+_event_ has to be a real, logged abandonment or it is not a decision. The
+_record_ of it sits in this app for years, and a column of things marked
+ABANDONED is a monument to being someone who quits. Stored as `passed`,
+displayed as **"Sailed past"**. You did not fail the island. You went past it,
+on purpose, and kept sailing.
+
+**The burst finally has a caller.** `Lightning.tsx` was written months earlier
+with a note in its header that the second lightning — Conqueror's, in colour,
+thrown further — would be a call site rather than a rewrite. It was: three
+fields turned against each other, black cores with violet rims, on a screen
+that darkens rather than inverts. It has exactly one trigger, an island
+reached, and it stays rare because an island is weeks of work. Four times a
+year it is electric; weekly it would be a screen transition.
+
+Two things the screenshots caught that nothing else would have. The bolts came
+out as grey angular tubing the first time, because `width` is in the drawing's
+own hundred-unit box and gets multiplied twice on the way to a phone — and
+scaling a field past about 1.5 stretches the _geometry_ too, so six segments
+become six long wires. Coverage had to come from more bolts, not bigger ones.
+And the wash was written as `palette.ink`, which is near-black on paper and
+near-**white** on all three hardened palettes, because it is the text colour
+and the text is light on a dark ground. The Conqueror's burst flashed the whole
+display white on every palette the app actually spends its day in. That one is
+now a `darkest()` helper with a test across all four palettes, and a note in
+`CLAUDE.md`, because the name is a trap and three separate effects had been
+working it out by hand.
+
+Inherited Will moved into the tab rather than losing one. The whole argument of
+the source material is that a dream outlives the person who held it as long as
+somebody keeps carrying it — which makes the people you carry part of where you
+are going, not a drawer beside it. Still five tabs, still a record and never a
+mechanic.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Thirteen pull
-requests merged, 430 tests, one principle held everywhere: the app rewards the
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Fourteen pull
+requests merged, 477 tests, one principle held everywhere: the app rewards the
 act and never punishes the absence.
 
 What is actually in it:
@@ -320,24 +399,21 @@ What is actually in it:
 | **Still**           | Stillness at five, ten or fifteen minutes, with a ring that breathes — Observation's counterpart to the Gears, and the only thing here that costs nothing at all.                                                                       |
 | **Record**          | The Logbook, with a second door: one line, folded into today, asking nothing. Inherited Will. Export and import that merges and never deletes.                                                                                          |
 | **The day**         | A course set for today or tomorrow and never marked. Six practices, each showing its offer rather than its absence. Hardening across four palettes, from paper to black, and the Sunny reading it back as a state and never a position. |
-| **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. Seven sounds, sixty quotes, and a mute button over all of it.                  |
+| **The journey**     | The Log Pose. One dream that never scales down, four to seven Road Poneglyphs beneath it, one island at a time under each — finish it or sail past it with a reason, and nothing counted against a total.                               |
+| **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. The Conqueror's burst, fired by exactly one thing. Seven sounds, sixty quotes. |
 
 **Charted next**, roughly in the order they make sense:
 
-1. **Conqueror's** — the unlock, and then the mastery. The owner's framing is
-   the design: rare to have, rarer to master, already possessed and waiting to
-   be found rather than earned from zero. Nothing else on this list needs it,
-   and two things on it are blocked behind it.
-2. **The second lightning** — Conqueror's leaking colour continuously, growing
-   with the will behind it. The component already takes its colours, count and
-   reach as props, so this is a call site once there is a Conqueror's to drive
-   it.
-3. **The Log Pose** — finish-or-abandon, the fourth failure mode from the
-   concept doc and the only one still entirely unbuilt. A WIP limit that turns
-   silent drift into a logged decision.
-4. **The Zoro theme** — the field keeps the violence, the instrument becomes a
+1. **Setting Sail** — the Sunday ritual. Read the week, check the Flag, name
+   the next island. Everything else in this app is data collection _for_ this,
+   and it is the one thing that would make the Log Pose recalibrate on a
+   rhythm rather than only when something closes.
+2. **The Flag** — three to five values in your own words, and the thing a Road
+   Poneglyph can be checked against. Small, and the only piece of Conqueror's
+   from the concept doc still missing.
+3. **The Zoro theme** — the field keeps the violence, the instrument becomes a
    sword. The seam is already cut; this is one file and a picker.
-5. **Native.** The PWA has carried it this far, but iOS cannot do reliable
+4. **Native.** The PWA has carried it this far, but iOS cannot do reliable
    notifications or a home-screen widget, and the Den Den Mushi taxonomy in
    the concept doc needs real notification channels.
 
