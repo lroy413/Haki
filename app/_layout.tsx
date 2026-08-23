@@ -20,6 +20,7 @@ import {
 } from '@expo-google-fonts/ibm-plex-mono';
 import { StoreProvider } from '../src/db/client';
 import { HakiProvider, useHaki } from '../src/state/HakiProvider';
+import { ImpactLayer } from '../src/components/ImpactLayer';
 import { font } from '../src/theme/tokens';
 
 // Hold the splash until the faces are ready. Type is most of this app's
@@ -59,6 +60,9 @@ function Chrome() {
             has to be a deliberate press rather than a stray swipe. */}
         <Stack.Screen name="gear" options={{ headerShown: false, gestureEnabled: false }} />
       </Stack>
+      {/* Above everything, including the tab bar: an impact frame is the whole
+          screen or it is nothing. */}
+      <ImpactLayer />
     </>
   );
 }
