@@ -142,25 +142,37 @@ user_version` in `bootstrap.ts`. **Append migrations, never edit a shipped
 Each act belongs to exactly one, and getting this wrong is easy — it has been
 got wrong once already, by measuring 武装色 from workouts alone.
 
-| Lens               | Reads                           | Fed by                          | Lives in                |
-| ------------------ | ------------------------------- | ------------------------------- | ----------------------- |
-| 見聞色 Observation | your own state                  | the Daily Read, Stillness       | `domain/observation.ts` |
-| 武装色 Armament    | what you did on purpose         | struck tasks, gears, training   | `domain/armament.ts`    |
-| 覇王色 Conqueror's | the will that affects the world | the dream, its pillars, islands | `domain/logpose.ts`     |
+The lenses are the tools, and each is a tab. The owner's framing, given while
+using the thing: Armament is the productivity portion, Observation is the
+mental-health space, Conqueror's is the dreams. **A lens's own measure reads
+what is done under its tool** — not the whole app, and never another tool's
+acts.
 
-Two rules fall out of that:
+| Lens               | The tool                                  | Its measure reads             | Lives in                |
+| ------------------ | ----------------------------------------- | ----------------------------- | ----------------------- |
+| 見聞色 Observation | mental health: journal, sits, the reading | sitting, gated by clarity     | `domain/observation.ts` |
+| 武装色 Armament    | productivity: tasks, workouts, schedule   | struck tasks, sessions        | `domain/armament.ts`    |
+| 覇王色 Conqueror's | the dreams: Log Pose, Inherited Will      | nothing — a bearing, no meter | `domain/logpose.ts`     |
+
+Three rules fall out of that:
 
 - **A workout is one input to Armament, never the measure of it.** The owner
   trains once a day, so a figure built on session count has about two useful
-  values. Hardness reads every act of doing, and counts **days that had any**
-  rather than how much — three tasks is not a better day than one.
+  values. Hardness reads everything done under the tool, and counts **days
+  that had any** rather than how much — three tasks is not a better day than
+  one.
 - **Observation only works in clarity.** Sitting is the practice and clarity is
   what lets you use it, so `observation.ts` reports the two separately and
   names whichever is limiting. "The practice is there, today is loud" is a
   sentence this app should be able to say.
+- **The Gears belong to none of the lenses.** Haki is will and a Devil Fruit is
+  ability; the Gears are the owner's coming ability page, and until it forms
+  they wait on `/gears` (pushed, reached from the practice card) rather than
+  sitting on the Armament tab. Do not put them back.
 
-Hardening is not one of the lenses. It reads the whole day across all of them —
-see `domain/hardening.ts`.
+Hardening is not one of the lenses. It reads the whole day across all of the
+tools — a gear block or a sit still darkens the app — see
+`domain/hardening.ts`.
 
 ## The Log Pose
 

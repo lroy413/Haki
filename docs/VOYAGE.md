@@ -384,6 +384,36 @@ somebody keeps carrying it — which makes the people you carry part of where yo
 are going, not a drawer beside it. Still five tabs, still a record and never a
 mechanic.
 
+## The lenses become the tools
+
+The owner, using the app, handed back its information architecture in one
+message: _"Armament is the time management and life tracking portion… this is
+my productivity portion. The observation page is my mental health space… my
+journaling and meditation live there. The conquerors Haki is what we were
+already building. Those are the labels to the pages and tools."_
+
+So the tabs stopped being features and became the three lenses, in canon's own
+order: 見聞色 Observation is the mental-health space — the reading at the top,
+Stillness as the practice's door, and the journal, which moved off its own tab
+and in. 武装色 Armament is the productivity tool — the list, the workouts, the
+schedule. 覇王色 is the Journey. The home screen keeps a one-line way into the
+journal, because the door that asks nothing should be one tap from where the
+day starts.
+
+Two sharpenings came with it. First, the scope of a lens's measure, corrected
+in both directions inside a week: hardness once read workouts alone (too
+narrow), and a rewrite reached for every act in the app (too wide — the sits
+are Observation's, and a lens that reads everything is not a lens). The rule
+that survives: **whatever is done under a tool hardens that tool's Haki.**
+Armament's figure now reads struck tasks and logged sessions, because that is
+what its tool holds.
+
+Second, the Gears left the Armament page. _"Haki is will, Devil Fruit is
+ability"_ — the Gears are the owner's coming ability page, not a lens, and
+they wait on a pushed screen reached from the practice card until that page's
+vision forms. Nothing about their costs changed, and a gear block still
+darkens the day: hardening reads the whole day, whichever tool it happened in.
+
 ## Where it stands
 
 **Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Fourteen pull
@@ -417,8 +447,12 @@ What is actually in it:
    notifications or a home-screen widget, and the Den Den Mushi taxonomy in
    the concept doc needs real notification channels.
 
-And two debts worth naming: the ship and the fist are hand-plotted and it
-shows — both now carry a **REPLACING THIS DRAWING** contract so a proper
-redraw drops in — and importing a backup of more than about six tasks still
-corrupts subsequent queries on the web, down in expo-sqlite's shared result
-buffer.
+And two debts worth naming. The ship and the fist are hand-plotted and it
+shows — both carry a **REPLACING THIS DRAWING** contract so a proper redraw
+drops in. And the web import ceiling moved rather than vanished: the old
+"about six tasks corrupts everything" turned out to be a payload limit, fixed
+by chunked transactions that yield between batches — twelve hundred rows now
+import in seconds — but a multi-megabyte backup (a year of long entries) can
+still wedge expo-sqlite's channel. Native does not share the limit, and import
+is idempotent, so a partial import is completed by running the same file
+again.

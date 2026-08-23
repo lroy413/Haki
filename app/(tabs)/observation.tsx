@@ -6,43 +6,49 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useStore } from '../../src/db/client';
 import { listEntries, logLine } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea } from '../../src/domain/date';
-import { CAPTURE_PLACEHOLDER, isWritable } from '../../src/domain/logbook';
-import { radius, space, type } from '../../src/theme/tokens';
+import { LogLine } from '../../src/components/LogLine';
+import { stateMessage, stateName } from '../../src/domain/observation';
+import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
 /** How much the floating button takes on top of the bar's own clearance. */
 const FAB_ROOM = 72;
 
 /**
- * The Logbook.
+ * 見聞色 — Observation. The mental-health space.
  *
- * Two doors, and the small one is the point. The button at the bottom opens
- * the editor — a full screen with a cursor in an empty document, which is a
- * demand for a subject and a length and a reason to have opened it. The field
- * at the top asks for none of that: one line, typed where you already are,
- * folded into today's entry. See `domain/logbook.ts`.
+ * The owner's framing, and the tab is organised by it: this is where clarity
+ * is built and read. The reading sits at the top — the practice and the
+ * condition, and which of them is doing the limiting. Stillness is the
+ * practice's door. The journal is the rest of the page, because writing is
+ * how a day gets looked at, and it lives here now rather than on a tab of its
+ * own. (The home screen keeps a quick line in — the door that asks nothing
+ * should be one tap from anywhere the day starts.)
+ *
+ * The journal's two doors survive the move, and the small one is still the
+ * point. The button at the bottom opens the editor — a full screen with a
+ * cursor in an empty document, which is a demand for a subject and a length
+ * and a reason to have opened it. The field above asks for none of that: one
+ * line, typed where you already are, folded into today's entry. See
+ * `domain/logbook.ts`.
  */
-export default function LogScreen() {
+export default function ObservationScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t, palette, refresh } = useHaki();
+  const { t, palette, refresh, observation, acts, plainMode } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
 
   const [entries, setEntries] = useState<EntryRow[]>([]);
-  const [line, setLine] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     const rows = await listEntries(db);
@@ -61,23 +67,6 @@ export default function LogScreen() {
       };
     }, [db]),
   );
-
-  async function capture() {
-    if (!isWritable(line) || saving) return;
-    setSaving(true);
-    try {
-      // Cleared first: the line is already the user's, and a field that sits
-      // full while a write lands reads as a tap that did nothing.
-      const text = line;
-      setLine('');
-      void Haptics.selectionAsync();
-      await logLine(db, text);
-      await load();
-      await refresh();
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <KeyboardAvoidingView
@@ -98,32 +87,43 @@ export default function LogScreen() {
         // render would remount the field and drop the keyboard mid-sentence.
         ListHeaderComponent={
           <View style={styles.head}>
-            <PageHeading title={t.logTitle} />
-            <View style={styles.capture}>
-              <TextInput
-                value={line}
-                onChangeText={setLine}
-                placeholder={CAPTURE_PLACEHOLDER}
-                placeholderTextColor={palette.inkFaint}
-                style={styles.input}
-                returnKeyType="done"
-                onSubmitEditing={() => void capture()}
-                accessibilityLabel={CAPTURE_PLACEHOLDER}
-              />
-              <Pressable
-                onPress={() => void capture()}
-                disabled={!isWritable(line) || saving}
-                accessibilityRole="button"
-                accessibilityLabel="Log this line"
-                style={({ pressed }) => [
-                  styles.log,
-                  !isWritable(line) && styles.logDisabled,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.logText}>{t.logLine}</Text>
-              </Pressable>
+            <PageHeading
+              title={t.observationTitle}
+              trailing={plainMode ? undefined : '見聞色'}
+            />
+
+            {/* The reading: the same card the sit screen leads with, because
+                it is the same fact. Practice and condition, reported
+                separately, naming whichever is the limit. */}
+            <View style={styles.reading}>
+              <View style={styles.readingHead}>
+                <Text style={styles.readingLabel}>{plainMode ? 'Reading' : '見聞色'}</Text>
+                <Text style={styles.readingState}>{stateName(observation.state)}</Text>
+              </View>
+              <Text style={styles.readingBody}>{stateMessage(observation)}</Text>
             </View>
+
+            {/* The practice's door. The line under it is the offer, never the
+                absence — the practice card's rule, held here too. */}
+            <Pressable
+              onPress={() => router.push('/sit')}
+              accessibilityRole="button"
+              accessibilityLabel={t.stillnessTitle}
+              style={({ pressed }) => [styles.still, pressed && styles.pressed]}
+            >
+              <View style={styles.stillText}>
+                <Text style={styles.stillName}>
+                  {plainMode ? t.stillnessTitle : `黙想  ${t.stillnessTitle}`}
+                </Text>
+                <Text style={styles.stillLine}>
+                  {acts.satMinutes > 0 ? `${acts.satMinutes} min today` : '5, 10 or 15 minutes'}
+                </Text>
+              </View>
+              <Text style={styles.stillGo}>Sit</Text>
+            </Pressable>
+
+            <Text style={styles.sectionLabel}>{t.entriesLabel}</Text>
+            <LogLine onLogged={() => void load()} />
           </View>
         }
         ListEmptyComponent={<Text style={styles.empty}>{t.logEmpty}</Text>}
@@ -164,28 +164,42 @@ const makeStyles = (c: Palette) =>
     screen: { flex: 1, backgroundColor: c.bg },
     list: { padding: space.lg, gap: space.sm },
     head: { gap: space.sm, marginBottom: space.sm },
-    capture: { flexDirection: 'row', gap: space.sm },
-    input: {
-      ...type.body,
-      flex: 1,
-      fontSize: 16,
-      color: c.ink,
+
+    reading: {
+      borderWidth: 1,
+      borderColor: c.violet,
+      backgroundColor: c.violetSoft,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+    },
+    readingHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    readingLabel: { ...type.label, color: c.violet },
+    readingState: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    readingBody: { ...type.body, color: c.ink, lineHeight: 22 },
+
+    still: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
       backgroundColor: c.surface,
       borderWidth: 1,
       borderColor: c.line,
       borderTopColor: c.specular,
       borderRadius: radius.md,
-      paddingHorizontal: space.md,
-      height: 48,
+      padding: space.lg,
+      minHeight: 44,
     },
-    log: {
-      justifyContent: 'center',
-      paddingHorizontal: space.lg,
-      backgroundColor: c.cyan,
-      borderRadius: radius.md,
-    },
-    logDisabled: { opacity: 0.4 },
-    logText: { ...type.heading, color: c.onAccent },
+    stillText: { flex: 1, gap: 2 },
+    stillName: { fontFamily: font.displayBold, fontSize: 17, color: c.ink },
+    stillLine: { ...type.mono, fontSize: 11, color: c.inkDim },
+    stillGo: { ...type.heading, fontSize: 15, color: c.violet },
+
+    sectionLabel: { ...type.label, color: c.inkFaint, marginTop: space.sm },
     empty: { ...type.body, color: c.inkDim, textAlign: 'center', marginTop: space.xxxl },
 
     row: {

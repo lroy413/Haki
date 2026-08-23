@@ -81,6 +81,9 @@ function Chrome() {
         {/* A sit keeps its header: unlike a gear it has no cost to abandon,
             so backing out of one needs no ceremony. */}
         <Stack.Screen name="sit" options={{ title: t.stillnessTitle }} />
+        {/* The Gears' waiting room — off the Armament tab, ahead of the
+            ability page. See the note at the top of app/gears.tsx. */}
+        <Stack.Screen name="gears" options={{ title: t.gearsTitle }} />
         <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />
         {/* One Road Poneglyph. The title is set from the pillar itself once
             it loads, so the header carries its name rather than a category. */}

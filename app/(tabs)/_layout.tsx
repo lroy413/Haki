@@ -19,11 +19,14 @@ import { useHaki } from '../../src/state/HakiProvider';
  *
  * `title` stays: the bar reads it for each tab's accessible name.
  *
- * Conqueror's (覇王色) took the fifth slot once the Log Pose gave it something
- * to hold. Inherited Will moved *into* it rather than alongside it — the
- * people whose dreams you carry belong with where you are going, not in a
- * drawer of their own — which keeps this at five tabs. Six would not fit the
- * bar, and a tab that is only a list of names was never a tab.
+ * The three lenses are the three tools, in canon's own order, and each tab is
+ * labelled with its lens: 見聞色 Observation is the mental-health space (the
+ * journal, the sits, the reading), 武装色 Armament is the productivity one
+ * (tasks, workouts, the schedule), 覇王色 Conqueror's is the dreams. Inherited
+ * Will lives inside Conqueror's rather than in a drawer of its own, which
+ * keeps this at five tabs. Gears are on neither: Haki is will and a Devil
+ * Fruit is ability, so they wait on a pushed screen for the ability page to
+ * form.
  */
 export default function TabsLayout() {
   const { t, palette } = useHaki();
@@ -37,8 +40,8 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: t.tabs.home.label }} />
-      <Tabs.Screen name="log" options={{ title: t.tabs.log.label }} />
-      <Tabs.Screen name="training" options={{ title: t.tabs.training.label }} />
+      <Tabs.Screen name="observation" options={{ title: t.tabs.observation.label }} />
+      <Tabs.Screen name="armament" options={{ title: t.tabs.armament.label }} />
       <Tabs.Screen name="conquerors" options={{ title: t.tabs.conquerors.label }} />
       <Tabs.Screen name="settings" options={{ title: t.tabs.settings.label }} />
     </Tabs>

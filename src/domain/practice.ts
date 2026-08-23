@@ -93,7 +93,7 @@ export function practice(acts: Acts, plain = false): Practice[] {
       label: plain ? 'Tasks' : 'Strike',
       line: acts.struck > 0 ? `${acts.struck} struck` : 'Anything on the list',
       done: acts.struck > 0,
-      route: '/training',
+      route: '/armament',
     },
     {
       key: 'gear',
@@ -101,7 +101,7 @@ export function practice(acts: Acts, plain = false): Practice[] {
       label: plain ? 'Focus' : 'Gear',
       line: acts.gearMinutes > 0 ? `${acts.gearMinutes} min` : '25 minutes',
       done: acts.gearMinutes > 0,
-      route: '/training',
+      route: '/gears',
     },
   ];
 }

@@ -72,8 +72,8 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
 
   const tabs: Tab[] = [
     t.tabs.home,
-    t.tabs.log,
-    t.tabs.training,
+    t.tabs.observation,
+    t.tabs.armament,
     t.tabs.conquerors,
     t.tabs.settings,
   ];

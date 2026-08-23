@@ -4,7 +4,6 @@ import {
   allSessions,
   allTasks,
   entriesOn,
-  gearSessionsBetween,
   gearSessionsOn,
   getCourse,
   getRead,
@@ -161,7 +160,6 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       gears,
       sits,
       todayCourse,
-      gearWindow,
       sitWindow,
       markDay,
       markLevel,
@@ -174,7 +172,6 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       gearSessionsOn(db, today),
       sitSessionsOn(db, today),
       getCourse(db, today),
-      gearSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
       sitSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
@@ -215,17 +212,17 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
 
     // 武装色 and 見聞色, each read over the same trailing window. Grouped into
     // days here because the domain wants days and the database only has rows.
+    //
+    // Armament reads its own tool and nothing else: tasks struck and sessions
+    // logged. Gears are conspicuously not in this list — they are leaving the
+    // page for the ability tool, and hardening (which reads the whole day)
+    // is where a gear block still counts.
     const now = Date.now();
     const armamentDays = new Map<string, ArmamentDay>();
     const dayOf = (key: string): ArmamentDay => {
       const existing = armamentDays.get(key);
       if (existing) return existing;
-      const fresh: ArmamentDay = {
-        day: key as typeof today,
-        struck: 0,
-        gearMinutes: 0,
-        sessions: 0,
-      };
+      const fresh: ArmamentDay = { day: key as typeof today, struck: 0, sessions: 0 };
       armamentDays.set(key, fresh);
       return fresh;
     };
@@ -233,9 +230,6 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       if (t.committedFor && t.doneAt !== null) dayOf(t.committedFor).struck += 1;
     }
     for (const session of sessions) dayOf(session.day).sessions += 1;
-    for (const [key, group] of groupByDay(gearWindow)) {
-      dayOf(key).gearMinutes = minutesToday(group, now);
-    }
     const armamentHistory = [...armamentDays.values()];
     setArmament({
       value: hardness(armamentHistory, today, ARMAMENT_WINDOW),

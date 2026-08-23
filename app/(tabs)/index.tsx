@@ -5,6 +5,7 @@ import { CourseLine } from '../../src/components/CourseLine';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
+import { LogLine } from '../../src/components/LogLine';
 import { QuoteLine } from '../../src/components/QuoteLine';
 import { SeaBand } from '../../src/components/SeaBand';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
@@ -37,6 +38,9 @@ export default function Home() {
     <ScrollView
       style={styles.screen}
       contentContainerStyle={[styles.content, pad]}
+      // The quick journal line lives mid-page now; without this, the tap on
+      // its Log button while the keyboard is up only dismisses the keyboard.
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl refreshing={false} onRefresh={refresh} tintColor={palette.inkDim} />
       }
@@ -91,7 +95,7 @@ export default function Home() {
       <NextStrike
         task={next}
         emptyLabel={t.nextStrikeEmpty}
-        onOpenList={() => router.push('/training')}
+        onOpenList={() => router.push('/armament')}
         onDone={(task) => {
           void (async () => {
             await setTaskDone(db, task.id, true);
@@ -99,6 +103,11 @@ export default function Home() {
           })();
         }}
       />
+
+      {/* The journal's small door, kept on home when the journal moved into
+          the Observation tab. One line, folded into today's entry — the door
+          that asks nothing stays one tap from where the day starts. */}
+      <LogLine />
 
       {/*
         Everything you do already counts — the acts feed a weight, the weight
@@ -111,7 +120,7 @@ export default function Home() {
       <DayPractice onOpen={(route) => router.push(route as '/read')} />
 
       <Pressable
-        onPress={() => router.push('/training')}
+        onPress={() => router.push('/armament')}
         accessibilityRole="button"
         accessibilityLabel={t.trainingSection}
         style={({ pressed }) => [styles.strip, pressed && styles.ctaPressed]}

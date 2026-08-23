@@ -18,8 +18,8 @@ export type Strings = {
   appName: string;
   tabs: {
     home: Tab;
-    log: Tab;
-    training: Tab;
+    observation: Tab;
+    armament: Tab;
     conquerors: Tab;
     settings: Tab;
   };
@@ -30,6 +30,8 @@ export type Strings = {
   dailyReadCta: string;
   dailyReadDone: string;
 
+  observationTitle: string;
+  entriesLabel: string;
   logTitle: string;
   logEmpty: string;
   logLine: string;
@@ -110,13 +112,17 @@ export type Strings = {
 
 const haki: Strings = {
   appName: 'Haki',
+  // The three lenses are the tools, and the labels are the owner's: 見聞色 is
+  // the mental-health space, 武装色 the productivity one, 覇王色 the dreams.
+  // English words under the kanji stay short — the kanji is the identity and
+  // the word is a caption, and "Observation" at tab size wraps.
   tabs: {
     home: { glyph: '覇気', label: 'Home' },
-    log: { glyph: '日誌', label: 'Logbook' },
-    training: { glyph: '武装色', label: 'Do' },
-    // 覇王色 — the third lens, and the one with no meter. The tab word is
-    // Journey rather than Log Pose because Logbook is two tabs away and two
-    // labels starting with "Log" is a coin flip every time you reach for one.
+    observation: { glyph: '見聞色', label: 'Sense' },
+    armament: { glyph: '武装色', label: 'Do' },
+    // The tab word is Journey rather than Log Pose because the journal sits
+    // two tabs away and two labels starting with "Log" is a coin flip every
+    // time you reach for one.
     conquerors: { glyph: '覇王色', label: 'Journey' },
     settings: { glyph: '設定', label: 'Settings' },
   },
@@ -127,6 +133,8 @@ const haki: Strings = {
   dailyReadCta: 'Daily Read',
   dailyReadDone: 'Read logged',
 
+  observationTitle: 'Observation',
+  entriesLabel: 'Logbook',
   logTitle: 'Logbook',
   logEmpty: 'Nothing logged yet. The first entry is the hardest.',
   logLine: 'Log it',
@@ -216,8 +224,8 @@ const plain: Strings = {
   appName: 'Journal',
   tabs: {
     home: { glyph: '', label: 'Today' },
-    log: { glyph: '', label: 'Log' },
-    training: { glyph: '', label: 'Training' },
+    observation: { glyph: '', label: 'Journal' },
+    armament: { glyph: '', label: 'Tasks' },
     conquerors: { glyph: '', label: 'Goals' },
     settings: { glyph: '', label: 'Settings' },
   },
@@ -227,6 +235,8 @@ const plain: Strings = {
   dailyReadCta: 'Check in',
   dailyReadDone: 'Checked in',
 
+  observationTitle: 'Journal',
+  entriesLabel: 'Entries',
   logTitle: 'Journal',
   courseTitle: 'Intention',
   stillnessTitle: 'Meditation',

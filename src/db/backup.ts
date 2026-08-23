@@ -162,6 +162,56 @@ export type ImportReport = {
   totalSkipped: number;
 };
 
+/** Every backup table, by the name `TABLE_NAMES` uses. */
+const TABLES = {
+  dailyRead,
+  sleepLog,
+  entry,
+  trainingSession,
+  gearSession,
+  sitSession,
+  course,
+  roadPoneglyph,
+  poneglyph,
+  carried,
+  task,
+  setting,
+} as const;
+
+/**
+ * Rows per transaction.
+ *
+ * Two limits hide under one number. Drizzle builds one INSERT for every array
+ * it is handed, so an unchunked import of a year's journal is a single
+ * statement carrying hundreds of kilobytes. And on the web the whole batch —
+ * however it is chunked — wedges once roughly a third of a megabyte has gone
+ * through expo-sqlite's channel *without the main thread yielding*: no error,
+ * no rejection, the promise never settles and the import sits there looking
+ * busy forever. Twelve hundred small tasks import in three seconds; six
+ * hundred page-long entries never finish. It is bytes, not rows.
+ *
+ * So the import is one transaction per chunk with a macrotask yield between
+ * them, rather than one transaction per table. What that trades away is
+ * per-table atomicity, and the merge design already covers it: import never
+ * deletes, never overwrites, and dedupes on natural keys, so a failure
+ * part-way leaves a partial import that running the same file again simply
+ * completes. Idempotency is the real guarantee here; the transaction was only
+ * ever making the window smaller.
+ *
+ * The floor this cannot go under is one row: a single entry with a novel
+ * pasted into it is one statement whatever happens here.
+ */
+const CHUNK_ROWS = 25;
+
+/** Let the event loop breathe between chunks — see the note above. */
+const yieldToEventLoop = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+function chunk<T>(rows: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < rows.length; i += size) out.push(rows.slice(i, i + size));
+  return out;
+}
+
 /**
  * Merge a backup into this database.
  *
@@ -196,8 +246,8 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
 
     if (plan.insert.length === 0) continue;
 
-    // One transaction per table: a failure part-way cannot leave half a table
-    // written.
+    // One transaction per chunk, a yield between chunks — the why is on
+    // CHUNK_ROWS above.
     //
     // The callback is deliberately NOT async, and neither are the inserts.
     // Drizzle's expo-sqlite driver is synchronous all the way down —
@@ -212,70 +262,14 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
     // stray microtask can read a payload half-written by another and throw a
     // JSON parse error at a different offset each run. `.run()` executes the
     // statement here and now, which is what the driver was always expecting.
-    db.transaction((tx) => {
-      switch (table) {
-        case 'dailyRead':
-          tx.insert(dailyRead)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'sleepLog':
-          tx.insert(sleepLog)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'entry':
-          tx.insert(entry)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'trainingSession':
-          tx.insert(trainingSession)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'gearSession':
-          tx.insert(gearSession)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'sitSession':
-          tx.insert(sitSession)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'course':
-          tx.insert(course)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'roadPoneglyph':
-          tx.insert(roadPoneglyph)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'poneglyph':
-          tx.insert(poneglyph)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'carried':
-          tx.insert(carried)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'task':
-          tx.insert(task)
-            .values(plan.insert as never)
-            .run();
-          break;
-        case 'setting':
-          tx.insert(setting)
-            .values(plan.insert as never)
-            .run();
-          break;
-      }
-    });
+    for (const batch of chunk(plan.insert, CHUNK_ROWS)) {
+      db.transaction((tx) => {
+        tx.insert(TABLES[table])
+          .values(batch as never)
+          .run();
+      });
+      await yieldToEventLoop();
+    }
   }
 
   const sum = (record: Record<string, number>) =>
