@@ -284,8 +284,18 @@ Stillness, the course and the log stopped being separate features and became
 **the day's practice**: six things, each showing its offer rather than its
 absence.
 
-**Still entirely unbuilt:** Conqueror's in every form, the Log Pose and
-finish-or-abandon, Road Poneglyphs, the Setting Sail ritual, the Ship as a
+**Conqueror's opened with the Log Pose**, and it opened as the lens with no
+meter — which was not the plan and is better than the plan. The three sizes are
+here (one Dream, four to seven Road Poneglyphs, one Poneglyph at a time under
+each), and so is finish-or-abandon, with the WIP limit enforced in the database
+rather than only in the UI. Two things shifted in the building: the fourth
+failure mode's fix turned out to need an **asymmetry** — reaching costs a tap,
+sailing past costs a written line — and the record of a sailed-past island had
+to read kinder than the event that made it, because that list sits in the app
+for years. Inherited Will moved into the tab; the people whose dreams you carry
+belong with where you are going.
+
+**Still entirely unbuilt:** the Flag, the Setting Sail ritual, the Ship as a
 self-care module, bounties and wanted posters, Gear 5, Inner Weather,
 correlations and the Foresight engine.
 
@@ -309,6 +319,6 @@ Build Haki mode as the real UI from day one. Plain mode is a **label map plus an
 
 _What's actually breaking right now?_ — **A sleep slip cascading into a lost week of training; backsliding once things get comfortable; and projects that stay open instead of getting finished.**
 
-v0 is aimed directly at the first one, because it's the one with a known mechanism and it can be caught on day one. The Calm Belt lands in v1 with the habit engine. Finish-or-abandon lands in v2 with Log Pose, where it belongs.
+v0 is aimed directly at the first one, because it's the one with a known mechanism and it can be caught on day one. The Calm Belt landed as Ryuo. Finish-or-abandon landed with the Log Pose, where this document said it belonged — all three are now aimed at.
 
 Everything in this document should be read against those three. If a feature doesn't help with a cascade, a drift, or a finish, it's v5.

@@ -14,7 +14,6 @@ const TODAY = '2026-08-23' as DayKey;
 const day = (d: DayKey, over: Partial<ArmamentDay> = {}): ArmamentDay => ({
   day: d,
   struck: 0,
-  gearMinutes: 0,
   sessions: 0,
   ...over,
 });
@@ -24,11 +23,11 @@ const run = (n: number, over: Partial<ArmamentDay> = { struck: 1 }) =>
   Array.from({ length: n }, (_, i) => day(addDays(TODAY, -i), over));
 
 describe('hasArmament', () => {
-  it('counts any of the three, not just the gym', () => {
-    // The whole correction: training was the only input and it should be one
-    // of several. One workout a day cannot carry a measure on its own.
+  it('counts both halves of the tool, not just the gym', () => {
+    // The owner's correction: training was the only input, and it should be
+    // everything done under this tool. One workout a day cannot carry a
+    // measure on its own; a struck task carries a day exactly as far.
     expect(hasArmament(day(TODAY, { struck: 1 }))).toBe(true);
-    expect(hasArmament(day(TODAY, { gearMinutes: 12 }))).toBe(true);
     expect(hasArmament(day(TODAY, { sessions: 1 }))).toBe(true);
   });
 
@@ -36,10 +35,15 @@ describe('hasArmament', () => {
     expect(hasArmament(day(TODAY))).toBe(false);
   });
 
-  it('counts a gear that was ended early', () => {
-    // Minutes in front of the work are the work. Rounding a short block away
-    // would make starting look the same as avoiding.
-    expect(hasArmament(day(TODAY, { gearMinutes: 3 }))).toBe(true);
+  it('reads only this tool', () => {
+    // The correction ran the other way once too: a rewrite reached for every
+    // act in the app, and that was wrong in the opposite direction — the Daily
+    // Read and the sits are Observation's, and a lens that reads everything is
+    // not a lens. The type itself is the guarantee now: an ArmamentDay cannot
+    // even carry a sit or a read, so this test is here to say the boundary is
+    // load-bearing, not to exercise it.
+    const keys = Object.keys(day(TODAY)).sort();
+    expect(keys).toEqual(['day', 'sessions', 'struck']);
   });
 });
 
@@ -48,7 +52,7 @@ describe('hardDays', () => {
     // Three tasks is not a better day than one. This is the axis that only
     // asks whether you showed up; depth within a day is hardening's job.
     const one = [day(TODAY, { struck: 1 })];
-    const many = [day(TODAY, { struck: 9, gearMinutes: 120, sessions: 2 })];
+    const many = [day(TODAY, { struck: 9, sessions: 2 })];
     expect(hardDays(one, TODAY)).toBe(hardDays(many, TODAY));
   });
 
@@ -84,14 +88,14 @@ describe('hardness', () => {
 
   it('does not reward doing more on one day', () => {
     const light = run(10, { struck: 1 });
-    const heavy = run(10, { struck: 8, gearMinutes: 240, sessions: 3 });
+    const heavy = run(10, { struck: 8, sessions: 3 });
     expect(hardness(light, TODAY)).toBe(hardness(heavy, TODAY));
   });
 
   it('is not capped by how often anyone trains', () => {
-    // One workout a day was the ceiling of the old figure. Striking tasks and
-    // running gears has to be able to carry it on its own.
-    const noGym = run(28, { struck: 2, gearMinutes: 50 });
+    // One workout a day was the ceiling of the old figure. Striking tasks has
+    // to be able to carry it on its own.
+    const noGym = run(28, { struck: 2 });
     expect(hardness(noGym, TODAY)).toBe(100);
   });
 
@@ -128,9 +132,9 @@ describe('the week this app was built for', () => {
   });
 
   it('is carried by a day with no workout in it', () => {
-    // One workout a day was the ceiling of the old figure. A day of gears and
-    // struck tasks has to count exactly as much.
-    const noGym = [day(TODAY, { struck: 1, gearMinutes: 25 })];
+    // One workout a day was the ceiling of the old figure. A day of struck
+    // tasks has to count exactly as much.
+    const noGym = [day(TODAY, { struck: 1 })];
     const gymOnly = [day(TODAY, { sessions: 1 })];
     expect(hardness(noGym, TODAY)).toBe(hardness(gymOnly, TODAY));
   });
@@ -155,6 +159,6 @@ describe('what it says', () => {
 
   it('tells a low window what moves it rather than what is missing', () => {
     expect(hardnessMessage(10, 3).toLowerCase()).toContain('one thing today');
-    expect(hardnessMessage(null, 0).toLowerCase()).toContain('anything you do');
+    expect(hardnessMessage(null, 0).toLowerCase()).toContain('anything done in this tool');
   });
 });

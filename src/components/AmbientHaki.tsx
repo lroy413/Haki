@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
+import { darkest } from '../theme/palettes';
 import { nextGapMs, weatherFor } from '../domain/ambient';
 import { Lightning } from './Lightning';
 
@@ -126,7 +127,7 @@ export function AmbientHaki() {
   // impact frame's. On the grounds this ever runs on, the core sinks in and
   // the crimson rim is what you see — which is how it is drawn over a night
   // sky.
-  const core = palette.lightSurface ? palette.ink : palette.bg;
+  const core = darkest(palette);
 
   return (
     <View pointerEvents="none" style={styles.layer}>

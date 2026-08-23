@@ -4,14 +4,17 @@ import { addDays, type DayKey } from './date';
  * 武装色 — Armament. What you actually did, on purpose.
  *
  * This used to be measured from training sessions alone, and that was wrong in
- * a way the owner caught immediately: he trains once a day at most, so a
+ * a way the owner caught immediately: the owner trains once a day at most, so a
  * figure built on workout *count* has about two useful values and spends most
  * of its life saying nothing. Worse, it quietly redefined Armament as "the
  * gym", when Armament is the lens for **everything you do on purpose** — the
  * concept doc's own word for it is _Act_.
  *
- * So it reads every act of doing: a task struck, a block of focus, a session
- * logged. A workout is one input among three rather than the whole measure.
+ * So it reads the whole of its own tool: a task struck counts exactly as a
+ * session logged does. The owner's word for this tab is the productivity one —
+ * to-do lists, a record of the workouts, the schedule, the day to day — and
+ * everything done under it contributes. A workout is one input rather than the
+ * whole measure.
  *
  * **Days, not output.** Hardness is the share of recent days that had *any*
  * Armament in them, never how much. Three tasks is not a better day than one,
@@ -28,13 +31,30 @@ import { addDays, type DayKey } from './date';
  * 2. **No target you can fail.** Nothing here returns a pass or a verdict.
  */
 
-/** What one day had in it, for this lens only. */
+/**
+ * What one day had in it, **inside this tool only**.
+ *
+ * The scope is the owner's own correction, made twice and in both directions.
+ * First the figure read workouts alone, and that was too narrow: the owner
+ * trains once a day, so a session count had about two useful values.
+ * Then a rewrite reached for every act in the app — the Daily Read, the
+ * journal, the sits — and that was too wide: those belong to Observation, and
+ * a lens that reads everything is not a lens.
+ *
+ * The rule that survives both: **whatever is done under this tool hardens this
+ * Haki.** The Armament tab is the productivity tool — the to-do list, the
+ * record of the workouts, the schedule — so its hardness reads exactly that.
+ * Not just the workouts logged, and not the rest of the app either.
+ *
+ * Gears are deliberately absent. They were on this page once, and they are
+ * leaving it: Haki is will and a Devil Fruit is ability, and the gears belong
+ * to the ability page when it forms. Hardening still counts them toward the
+ * day — a day with a gear in it got used — but this lens no longer does.
+ */
 export type ArmamentDay = {
   day: DayKey;
   /** Tasks struck. */
   struck: number;
-  /** Minutes spent in gear. */
-  gearMinutes: number;
   /** Training sessions logged. */
   sessions: number;
 };
@@ -45,12 +65,11 @@ export const WINDOW_DAYS = 28;
 /**
  * Did this day have Armament in it at all?
  *
- * Any one of the three is enough, and a partial gear counts: minutes sat in
- * front of the work are the work, and rounding them away would make a day
- * spent starting look identical to a day spent avoiding.
+ * Either half of the tool is enough. One struck task carries a day exactly as
+ * far as a workout does.
  */
 export function hasArmament(day: ArmamentDay): boolean {
-  return day.struck > 0 || day.gearMinutes > 0 || day.sessions > 0;
+  return day.struck > 0 || day.sessions > 0;
 }
 
 /** How many days in the trailing window had any Armament in them. */
@@ -103,7 +122,8 @@ export function hardnessName(value: number | null): string {
  * most needs the app not to pile on.
  */
 export function hardnessMessage(value: number | null, days: number): string {
-  if (value === null) return 'Anything you do lands here — a task, a gear, a session.';
+  if (value === null)
+    return 'Anything done in this tool lands here — a task struck, a session logged.';
   if (value >= 80) return `${days} of the last 28 days had something in them.`;
   if (value >= 30) return `${days} of the last 28. It climbs the day you come back.`;
   return `${days} of the last 28. One thing today moves it.`;

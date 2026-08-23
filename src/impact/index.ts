@@ -13,19 +13,41 @@
 
 type Listener = () => void;
 
-const listeners = new Set<Listener>();
-
-export function fireImpact(): void {
-  for (const listener of listeners) {
-    try {
-      listener();
-    } catch {
-      // Decoration. It never surfaces an error.
-    }
-  }
+function channel() {
+  const listeners = new Set<Listener>();
+  return {
+    fire(): void {
+      for (const listener of listeners) {
+        try {
+          listener();
+        } catch {
+          // Decoration. It never surfaces an error.
+        }
+      }
+    },
+    on(listener: Listener): () => void {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
 }
 
-export function onImpact(listener: Listener): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
+/** 武装色 — the strike. Fires on every struck task, many times a day. */
+const impact = channel();
+
+/**
+ * 覇王色 — the burst. A separate channel because it is a separate event, not a
+ * louder one.
+ *
+ * The strike frame is a hundred milliseconds and fires whenever a box gets
+ * ticked. This fires when an island is reached, which is weeks of work
+ * closing — a handful of times a year if the Log Pose is being used honestly.
+ * Rarity is the entire value: at four times a year it is electric, and if it
+ * ever starts firing weekly the thing to fix is what is calling it.
+ */
+const conquerors = channel();
+
+export const fireImpact = impact.fire;
+export const onImpact = impact.on;
+export const fireConquerors = conquerors.fire;
+export const onConquerors = conquerors.on;

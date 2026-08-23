@@ -277,6 +277,23 @@ describe('key hygiene', () => {
         createdAt: 1,
         updatedAt: 1,
       },
+      roadPoneglyph: {
+        title: 'Strong enough for the ones along the way',
+        why: null,
+        createdAt: 1,
+        updatedAt: 1,
+        retiredAt: null,
+      },
+      poneglyph: {
+        roadCreatedAt: 1,
+        title: 'An island',
+        state: 'open',
+        openedOn: '2026-08-22',
+        closedOn: null,
+        reason: null,
+        createdAt: 1,
+        updatedAt: 1,
+      },
       carried: {
         name: 'Someone',
         relationship: null,
@@ -345,6 +362,65 @@ describe('the tables added in v5', () => {
     const plan = planMerge([sit(1000)], [sit(1000), sit(9000)], KEYS.sitSession);
     expect(plan.insert).toHaveLength(1);
     expect(plan.insert[0].startedAt).toBe(9000);
+  });
+});
+
+describe('the tables added in v6', () => {
+  const road = (createdAt: number, title = 'Strong enough for the ones along the way') => ({
+    title,
+    why: null,
+    createdAt,
+    updatedAt: createdAt,
+    retiredAt: null,
+  });
+  const island = (createdAt: number, roadCreatedAt = 1, state = 'open') => ({
+    roadCreatedAt,
+    title: 'An island',
+    state,
+    openedOn: '2026-08-22',
+    closedOn: state === 'open' ? null : '2026-08-23',
+    reason: null,
+    createdAt,
+    updatedAt: createdAt,
+  });
+
+  it('travels with everything else', () => {
+    const original = tables({ roadPoneglyph: [road(1)], poneglyph: [island(2)] });
+    const result = parseBackup(serializeBackup(buildBackup(original, 6, 0)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.roadPoneglyph).toEqual(original.roadPoneglyph);
+    expect(result.backup.data.poneglyph).toEqual(original.poneglyph);
+  });
+
+  it('keeps an island pointing at its pillar across the move', () => {
+    // The link is the parent's createdAt precisely because row ids are not
+    // carried. If this ever regresses, every island lands orphaned on the far
+    // side and the whole Log Pose arrives blank.
+    const original = tables({ roadPoneglyph: [road(1700)], poneglyph: [island(1800, 1700)] });
+    const result = parseBackup(serializeBackup(buildBackup(original, 6, 0)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const [glyph] = result.backup.data.poneglyph;
+    const [pillar] = result.backup.data.roadPoneglyph;
+    expect(glyph.roadCreatedAt).toBe(pillar.createdAt);
+  });
+
+  it('does not stack a pillar on a second import', () => {
+    const plan = planMerge([road(1)], [road(1, 'Renamed since')], KEYS.roadPoneglyph);
+    expect(plan.insert).toHaveLength(0);
+    expect(plan.skipped).toBe(1);
+  });
+
+  it('rejects an island whose link is missing rather than importing it orphaned', () => {
+    const bad = { ...island(2) } as Record<string, unknown>;
+    delete bad.roadCreatedAt;
+    const raw = buildBackup(tables({ poneglyph: [bad as never] }), 6, 0);
+    const result = parseBackup(serializeBackup(raw));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.poneglyph).toHaveLength(0);
+    expect(result.rejected.poneglyph).toBe(1);
   });
 });
 

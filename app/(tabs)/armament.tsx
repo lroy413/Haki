@@ -21,10 +21,8 @@ import {
   allTasks,
   commitTask,
   deleteTask,
-  gearSessionsOn,
   recentSessions,
   setTaskDone,
-  startGear,
 } from '../../src/db/repo';
 import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
@@ -37,18 +35,10 @@ import {
   stale,
   type Task,
 } from '../../src/domain/tasks';
-import {
-  GEARS,
-  GEAR_ORDER,
-  GEAR_SOUND,
-  availability,
-  minutesToday,
-  runningSession,
-  type GearName,
-  type GearSession,
-} from '../../src/domain/gears';
 import { todayKey } from '../../src/domain/date';
 import { hardnessMessage, hardnessName } from '../../src/domain/armament';
+import { Bolt } from '../../src/components/instruments/Bolt';
+import { darkest } from '../../src/theme/palettes';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
@@ -56,12 +46,18 @@ import type { Palette } from '../../src/theme/palettes';
 const MINUTE_CHIPS = [5, 15, 30, 60, 120];
 
 /**
- * 武装色 — Armament. Everything you do on purpose.
+ * 武装色 — Armament. The productivity tool: the list, the workouts, the day.
  *
- * Today's load sits at the top because that is the only part you act on. The
- * backlog is below and deliberately quieter: a wall of undone things is what
- * makes an ADHD brain close the app, so it is somewhere you go on purpose
- * rather than the first thing you face.
+ * Everything done under this tool hardens this lens — the owner's rule, and
+ * the reason the hardness figure sits at the top of it. Today's load is first
+ * because that is the only part you act on. The backlog is below and
+ * deliberately quieter: a wall of undone things is what makes an ADHD brain
+ * close the app, so it is somewhere you go on purpose rather than the first
+ * thing you face.
+ *
+ * The Gears used to be a section here and are deliberately gone: Haki is will
+ * and a Devil Fruit is ability, and they wait on `/gears` for the ability
+ * page. Nothing on this screen spends; all of it builds.
  */
 export default function ArmamentScreen() {
   const router = useRouter();
@@ -75,17 +71,11 @@ export default function ArmamentScreen() {
   const [title, setTitle] = useState('');
   const [minutes, setMinutes] = useState(DEFAULT_TASK_MINUTES);
   const [showBacklog, setShowBacklog] = useState(false);
-  const [gears, setGears] = useState<GearSession[]>([]);
 
   const reload = useCallback(async () => {
-    const [allT, recent, todaysGears] = await Promise.all([
-      allTasks(db),
-      recentSessions(db, 8),
-      gearSessionsOn(db),
-    ]);
+    const [allT, recent] = await Promise.all([allTasks(db), recentSessions(db, 8)]);
     setTasks(allT);
     setSessions(recent);
-    setGears(todaysGears);
     await refresh();
   }, [db, refresh]);
 
@@ -128,17 +118,6 @@ export default function ArmamentScreen() {
     await reload();
   }
 
-  async function shiftInto(gear: GearName) {
-    play(GEAR_SOUND[gear]);
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    await startGear(db, gear);
-    await reload();
-    router.push({ pathname: '/gear', params: { gear } });
-  }
-
-  const nowMs = Date.now();
-  const running = runningSession(gears, nowMs);
-  const inGear = minutesToday(gears, nowMs);
   const today = [
     ...load.open.map((item) => ({ item, done: false })),
     ...load.doneToday.map((item) => ({ item, done: true })),
@@ -157,13 +136,13 @@ export default function ArmamentScreen() {
         contentContainerStyle={[styles.content, pad]}
         keyboardShouldPersistTaps="handled"
       >
-        <PageHeading title={t.trainingTitle} />
+        <PageHeading title={t.trainingTitle} trailing={plainMode ? undefined : '武装色'} />
 
         {/*
-          The lens, read over four weeks — and read from *everything* you do
-          on purpose, not from workouts. It used to be sessions-per-week, which
-          made Armament look like a gym tracker and gave a figure with about
-          two useful values to somebody who trains once a day.
+          The lens, read over four weeks — from everything done under this
+          tool, tasks and workouts alike. It used to be sessions-per-week,
+          which made Armament look like a gym tracker and gave a figure with
+          about two useful values to somebody who trains once a day.
         */}
         <View style={styles.head}>
           <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
@@ -171,6 +150,24 @@ export default function ArmamentScreen() {
             {hardness.value === null ? hardnessName(null) : `${hardness.value}%`}
           </Text>
         </View>
+        {/* The gauge: one bolt, filling across the frame as the window fills
+            with used days. The faint channel is the storm's path; the strike
+            has travelled as far as the figure above says. Plain mode keeps
+            the words and loses the weather. */}
+        {plainMode ? null : (
+          <View
+            style={styles.bolt}
+            accessibilityRole="image"
+            accessibilityLabel={`Hardness, ${hardnessName(hardness.value)}`}
+          >
+            <Bolt
+              track={palette.lineSoft}
+              core={darkest(palette)}
+              halo={palette.crimson}
+              fill={(hardness.value ?? 0) / 100}
+            />
+          </View>
+        )}
         <Text style={styles.message}>{hardnessMessage(hardness.value, hardness.days)}</Text>
 
         {/* ---------------------------------------------------------- today */}
@@ -297,56 +294,9 @@ export default function ArmamentScreen() {
           <Text style={styles.emptyBacklog}>{t.backlogEmpty}</Text>
         ) : null}
 
-        {/* ------------------------------------------------------- gears */}
-        <Text style={[styles.sectionLabel, styles.trainingLabel]}>
-          {t.gearsTitle}
-          {inGear > 0 ? ` · ${formatMinutes(inGear)} today` : ''}
-        </Text>
-
-        {running ? (
-          <Pressable
-            onPress={() => router.push({ pathname: '/gear', params: { gear: running.gear } })}
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.gearRunning, pressed && styles.pressed]}
-          >
-            <Text style={styles.gearRunningLabel}>{GEARS[running.gear].label} is running</Text>
-            <Text style={styles.gearRunningHint}>Tap to go back to it</Text>
-          </Pressable>
-        ) : (
-          GEAR_ORDER.map((name) => {
-            const gear = GEARS[name];
-            const state = availability(name, gears, nowMs);
-            return (
-              <Pressable
-                key={name}
-                onPress={() => void shiftInto(name)}
-                disabled={!state.ready}
-                accessibilityRole="button"
-                accessibilityLabel={`${gear.label}, ${gear.minutes} minutes`}
-                style={({ pressed }) => [
-                  styles.gear,
-                  !state.ready && styles.gearLocked,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View style={styles.gearHead}>
-                  <Text style={styles.gearName}>
-                    {plainMode ? gear.label : `${gear.kanji}  ${gear.label}`}
-                  </Text>
-                  <Text style={styles.gearMinutes}>{formatMinutes(gear.minutes)}</Text>
-                </View>
-                <Text style={styles.gearBlurb}>{state.ready ? gear.blurb : state.reason}</Text>
-                {state.ready && gear.cost ? (
-                  <Text style={styles.gearCost}>{gear.cost}</Text>
-                ) : null}
-              </Pressable>
-            );
-          })
-        )}
-
         {/* ----------------------------------------------------- training */}
-        {/* The gym, under its own name. It is one input to the figure at the
-            top of this screen, not the whole of it. */}
+        {/* The gym, under its own name. One half of the figure at the top of
+            this screen; the list above is the other. */}
         <Text style={[styles.sectionLabel, styles.trainingLabel]}>{t.trainingSection}</Text>
 
         <View style={styles.stats}>
@@ -535,6 +485,8 @@ const makeStyles = (c: Palette) =>
 
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sectionLabel: { ...type.label, color: c.inkFaint },
+    // Full-bleed within the padding; the drawing keeps its own aspect.
+    bolt: { width: '100%', aspectRatio: 200 / 26, marginVertical: -2 },
     carrying: {
       fontFamily: font.display,
       fontSize: 22,
@@ -725,33 +677,4 @@ const makeStyles = (c: Palette) =>
     logSessionText: { ...type.heading, color: c.onAccent },
 
     pressed: { opacity: 0.75 },
-
-    gear: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
-      padding: space.lg,
-      gap: space.xs,
-    },
-    // Still legible, still readable — a locked gear explains itself, so it must
-    // not be dimmed to the point where the reason cannot be read.
-    gearLocked: { backgroundColor: c.bg, borderColor: c.lineSoft },
-    gearHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    gearName: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
-    gearMinutes: { ...type.mono, color: c.inkDim },
-    gearBlurb: { ...type.body, color: c.inkDim, lineHeight: 21 },
-    gearCost: { ...type.mono, fontSize: 11, color: c.inkFaint },
-
-    gearRunning: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.cyan,
-      borderRadius: radius.md,
-      padding: space.lg,
-      gap: space.xs,
-    },
-    gearRunningLabel: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
-    gearRunningHint: { ...type.mono, color: c.inkDim },
   });

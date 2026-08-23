@@ -19,9 +19,14 @@ import { useHaki } from '../../src/state/HakiProvider';
  *
  * `title` stays: the bar reads it for each tab's accessible name.
  *
- * Conqueror's (覇王色) is deliberately absent until v2 builds something to put
- * in it. Empty placeholder tabs are the classic unfinished-project smell, and
- * this app of all apps cannot afford it.
+ * The three lenses are the three tools, in canon's own order, and each tab is
+ * labelled with its lens: 見聞色 Observation is the mental-health space (the
+ * journal, the sits, the reading), 武装色 Armament is the productivity one
+ * (tasks, workouts, the schedule), 覇王色 Conqueror's is the dreams. Inherited
+ * Will lives inside Conqueror's rather than in a drawer of its own, which
+ * keeps this at five tabs. Gears are on neither: Haki is will and a Devil
+ * Fruit is ability, so they wait on a pushed screen for the ability page to
+ * form.
  */
 export default function TabsLayout() {
   const { t, palette } = useHaki();
@@ -35,9 +40,9 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: t.tabs.home.label }} />
-      <Tabs.Screen name="log" options={{ title: t.tabs.log.label }} />
-      <Tabs.Screen name="training" options={{ title: t.tabs.training.label }} />
-      <Tabs.Screen name="carried" options={{ title: t.tabs.carried.label }} />
+      <Tabs.Screen name="observation" options={{ title: t.tabs.observation.label }} />
+      <Tabs.Screen name="armament" options={{ title: t.tabs.armament.label }} />
+      <Tabs.Screen name="conquerors" options={{ title: t.tabs.conquerors.label }} />
       <Tabs.Screen name="settings" options={{ title: t.tabs.settings.label }} />
     </Tabs>
   );

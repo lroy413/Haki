@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PALETTES, paletteFor, type Palette } from '../palettes';
+import { PALETTES, darkest, paletteFor, type Palette } from '../palettes';
 import { levelName, type HardeningLevel } from '../../domain/hardening';
 
 /**
@@ -183,5 +183,36 @@ describe('the ramp as a whole', () => {
   it('ends on the palette the app was designed in', () => {
     expect(PALETTES[3].bg).toBe('#0A0B12');
     expect(PALETTES[3].violet).toBe('#B14CFF');
+  });
+});
+
+describe('darkest', () => {
+  it('is genuinely the darkest ground in every palette', () => {
+    // The three lightning layers draw their cores in this, and one of them
+    // used `palette.ink` for it directly. That is near-black on paper and
+    // near-*white* from level 1 up — it is the text colour, and the text is
+    // light on a dark ground — so a full-screen wash in it flashed the whole
+    // display white on the three palettes the app spends its day in.
+    // Every colour the app paints an area in. `onAccent` is excluded, and is
+    // darker still on two levels: it is the text on a violet button and never
+    // a ground, so it is not a candidate. See the note on `darkest`.
+    const KEYS = ['bg', 'surface', 'surface2', 'ink', 'inkDim', 'inkFaint'] as const;
+    for (const level of LEVELS) {
+      const p = paletteFor(level);
+      const black = luminance(darkest(p));
+      for (const key of KEYS) {
+        expect(black, `level ${level}: ${key} is darker`).toBeLessThanOrEqual(
+          luminance(p[key]),
+        );
+      }
+    }
+  });
+
+  it('is dark in absolute terms, not merely the least light one', () => {
+    // A palette could in principle drift light all over and still satisfy the
+    // test above while the "black" lightning came out grey.
+    for (const level of LEVELS) {
+      expect(luminance(darkest(paletteFor(level))), `level ${level}`).toBeLessThan(0.05);
+    }
   });
 });

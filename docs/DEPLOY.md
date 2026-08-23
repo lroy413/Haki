@@ -135,11 +135,15 @@ Verified end to end: exported from one browser profile, imported into a fresh
 one, journal entry and training session both came back, second import reported
 `0 added, 4 already here`.
 
-**Known limit.** On the web, importing a backup with more than roughly six
-tasks still corrupts the queries that follow it — the failure is down in
-expo-sqlite's shared result buffer, below this app. Small exports restore
-cleanly; a large one is not yet trustworthy on the PWA. Native does not use
-that buffer, so the move _to_ native is the path this matters least on.
+**Known limit.** On the web, a very large import can stall without an error —
+the failure is down in expo-sqlite's channel, below this app, and it is about
+payload bytes rather than rows. The import now writes in small chunks and
+yields between them, which moved the ceiling from a few hundred kilobytes to
+somewhere past half a megabyte: ~1,200 ordinary rows restore in seconds. A
+multi-megabyte backup (years of long entries) may still stall on the PWA; if
+it does, nothing is corrupted — import never deletes and is idempotent, so
+run the same file again and it continues where it got to. Native does not
+share the limit, so the move _to_ native is the path this matters least on.
 
 ---
 

@@ -10,13 +10,13 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useStore } from '../../src/db/client';
-import { listCarried, upsertCarried } from '../../src/db/repo';
-import type { CarriedRow } from '../../src/db/schema';
-import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
-import { useHaki } from '../../src/state/HakiProvider';
-import { radius, space, type } from '../../src/theme/tokens';
-import type { Palette } from '../../src/theme/palettes';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useStore } from '../src/db/client';
+import { listCarried, upsertCarried } from '../src/db/repo';
+import type { CarriedRow } from '../src/db/schema';
+import { useHaki } from '../src/state/HakiProvider';
+import { radius, space, type } from '../src/theme/tokens';
+import type { Palette } from '../src/theme/palettes';
 
 /**
  * Inherited Will.
@@ -25,6 +25,13 @@ import type { Palette } from '../../src/theme/palettes';
  * appears anywhere else in the app uninvited — memory is a source, never a
  * stick. It opens only when you open it.
  *
+ * **Pushed rather than a tab of its own**, and it moved here when the Log Pose
+ * took the fifth slot. It belongs under 覇王色: the whole argument of the
+ * source material is that a dream outlives the person who held it as long as
+ * somebody keeps carrying it, which makes this part of where you are going
+ * rather than a drawer beside it. The Conqueror's tab lists who is aboard and
+ * this screen is where you write them down.
+ *
  * The surfacing logic (at Road Poneglyph milestones and at the weekly Setting
  * Sail) arrives in v2 alongside the things it would surface against.
  */
@@ -32,7 +39,7 @@ export default function CarriedScreen() {
   const { db } = useStore();
   const { t, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
-  const pad = useTabInsets();
+  const insets = useSafeAreaInsets();
 
   const [people, setPeople] = useState<CarriedRow[]>([]);
   const [adding, setAdding] = useState(false);
@@ -73,11 +80,14 @@ export default function CarriedScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={[styles.content, pad]}
+        contentContainerStyle={[
+          styles.content,
+          // Pushed, so the header owns the top. Only the home indicator is
+          // this screen's problem.
+          { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
-        <PageHeading title={t.carriedTitle} />
-
         <Text style={styles.blurb}>{t.carriedBlurb}</Text>
 
         {people.length === 0 && !adding ? (

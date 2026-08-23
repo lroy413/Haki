@@ -23,6 +23,7 @@ import { StoreProvider } from '../src/db/client';
 import { HakiProvider, useHaki } from '../src/state/HakiProvider';
 import { AmbientHaki } from '../src/components/AmbientHaki';
 import { ImpactLayer } from '../src/components/ImpactLayer';
+import { ConquerorsLayer } from '../src/components/ConquerorsLayer';
 import { font } from '../src/theme/tokens';
 
 // Hold the splash until the faces are ready. Type is most of this app's
@@ -80,7 +81,14 @@ function Chrome() {
         {/* A sit keeps its header: unlike a gear it has no cost to abandon,
             so backing out of one needs no ceremony. */}
         <Stack.Screen name="sit" options={{ title: t.stillnessTitle }} />
+        {/* The Gears' waiting room — off the Armament tab, ahead of the
+            ability page. See the note at the top of app/gears.tsx. */}
+        <Stack.Screen name="gears" options={{ title: t.gearsTitle }} />
         <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />
+        {/* One Road Poneglyph. The title is set from the pillar itself once
+            it loads, so the header carries its name rather than a category. */}
+        <Stack.Screen name="pillar" options={{ title: '' }} />
+        <Stack.Screen name="carried" options={{ title: t.carriedTitle }} />
       </Stack>
       {/* The weather, over the content and under the frame: distant sky
           rather than interface. Silent until the day hardens. */}
@@ -88,6 +96,10 @@ function Chrome() {
       {/* Above everything, including the tab bar: an impact frame is the whole
           screen or it is nothing. */}
       <ImpactLayer />
+      {/* 覇王色, and the only thing that fires it is an island reached on the
+          Log Pose. Above even the impact frame — nothing outranks this, and
+          the two can only meet if a task is struck in the same second. */}
+      <ConquerorsLayer />
     </>
   );
 }
