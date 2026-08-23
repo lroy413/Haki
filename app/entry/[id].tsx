@@ -214,6 +214,7 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.surface,
       borderWidth: 1,
       borderColor: c.line,
+      borderTopColor: c.specular,
       borderRadius: radius.md,
       paddingVertical: space.lg,
       alignItems: 'center',

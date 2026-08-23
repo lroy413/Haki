@@ -52,6 +52,7 @@ const SOLID: (keyof Palette)[] = [
   'crimsonSoft',
   'warn',
   'warnSoft',
+  'specular',
   'onAccent',
 ];
 
@@ -156,6 +157,27 @@ describe('the ramp as a whole', () => {
 
     const inkIsLight = LEVELS.map((l) => luminance(paletteFor(l).ink) > 0.5);
     expect(inkIsLight).toEqual([false, true, true, true]);
+  });
+
+  it('grows a gloss as it hardens, and has none on paper', () => {
+    // An unhardened surface catches no light, so level 0's glint is simply the
+    // hairline. From there it has to brighten every step: the sheen is what
+    // separates hardened black from a screen that is just dark.
+    expect(PALETTES[0].specular).toBe(PALETTES[0].line);
+
+    const lift = ([1, 2, 3] as const).map((l) =>
+      contrast(paletteFor(l).specular, paletteFor(l).bg),
+    );
+    for (let i = 1; i < lift.length; i += 1) {
+      expect(lift[i], `level ${i + 1} vs ${i}`).toBeGreaterThan(lift[i - 1]);
+    }
+
+    // Visible against the card it edges, without becoming a second border.
+    for (const level of [1, 2, 3] as const) {
+      const p = paletteFor(level);
+      expect(contrast(p.specular, p.surface), `level ${level}`).toBeGreaterThanOrEqual(1.3);
+      expect(contrast(p.specular, p.surface), `level ${level}`).toBeLessThan(4);
+    }
   });
 
   it('ends on the palette the app was designed in', () => {

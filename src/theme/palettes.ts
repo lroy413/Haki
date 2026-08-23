@@ -42,6 +42,17 @@ export type Palette = {
   glassActive: string;
 
   /**
+   * The glint along a card's top edge.
+   *
+   * Hardened Armament is glossy, not matte — the reference frames put hard
+   * highlights on the knuckles, and that sheen is what makes the black read as
+   * *hardened* rather than merely dark. It brightens up the ramp, and at level
+   * 0 it is simply the hairline colour: an unhardened surface has no gloss to
+   * catch anything.
+   */
+  specular: string;
+
+  /**
    * Text that sits *on* a filled accent button. Near-black on the dark
    * palettes, where every accent is bright; near-white on paper, where they
    * are deep.
@@ -80,6 +91,7 @@ const unhardened: Palette = {
   glassEdge: 'rgba(23,19,9,0.14)',
   glassActive: 'rgba(99,33,184,0.12)',
 
+  specular: '#C6BBA2',
   onAccent: '#FFFFFF',
   lightSurface: true,
 };
@@ -109,6 +121,7 @@ const hardened: Palette = {
   glassEdge: 'rgba(241,239,248,0.12)',
   glassActive: 'rgba(193,112,255,0.16)',
 
+  specular: '#4C5266',
   onAccent: '#0A0B12',
   lightSurface: false,
 };
@@ -138,6 +151,7 @@ const set: Palette = {
   glassEdge: 'rgba(237,235,245,0.11)',
   glassActive: 'rgba(185,92,255,0.15)',
 
+  specular: '#565C77',
   onAccent: '#0A0B12',
   lightSurface: false,
 };
@@ -167,6 +181,7 @@ const black: Palette = {
   glassEdge: 'rgba(233,231,243,0.10)',
   glassActive: 'rgba(177,76,255,0.14)',
 
+  specular: '#616787',
   onAccent: '#0A0B12',
   lightSurface: false,
 };
