@@ -14,6 +14,7 @@ import {
 } from '../domain/willReserve';
 import { strings, type Strings } from '../theme/strings';
 import { syncKeystoneWarning } from '../notifications/denDenMushi';
+import { preloadSounds, setSoundEnabled } from '../sound';
 
 type HakiState = {
   read: DailyRead | null;
@@ -107,6 +108,13 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Plain mode is the mute button for everything, sound included.
+  useEffect(() => {
+    const on = settings.soundOn && !settings.plainMode;
+    setSoundEnabled(on);
+    if (on) preloadSounds();
+  }, [settings.soundOn, settings.plainMode]);
 
   const value = useMemo<HakiState>(
     () => ({

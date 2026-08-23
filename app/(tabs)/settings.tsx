@@ -5,14 +5,14 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { BackupCard } from '../../src/components/BackupCard';
+import { Toggle } from '../../src/components/Toggle';
 import { useStore } from '../../src/db/client';
-import { setKeystone, setPlainMode, setTraining } from '../../src/db/settings';
+import { setKeystone, setPlainMode, setSoundOn, setTraining } from '../../src/db/settings';
 import { useHaki } from '../../src/state/HakiProvider';
 import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/tokens';
 
@@ -68,6 +68,11 @@ export default function SettingsScreen() {
     await refresh();
   }
 
+  async function toggleSound(next: boolean) {
+    await setSoundOn(db, next);
+    await refreshSettings();
+  }
+
   async function togglePlain(next: boolean) {
     await setPlainMode(db, next);
     await refreshSettings();
@@ -87,12 +92,20 @@ export default function SettingsScreen() {
                 Swaps labels and turns the effects off. For waiting rooms and screenshares.
               </Text>
             </View>
-            <Switch
-              value={settings.plainMode}
-              onValueChange={togglePlain}
-              trackColor={{ true: color.violet, false: color.line }}
-              thumbColor={color.ink}
-            />
+            <Toggle value={settings.plainMode} onValueChange={togglePlain} />
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.switchRow}>
+            <View style={styles.switchText}>
+              <Text style={styles.cardTitle}>Sound</Text>
+              <Text style={styles.blurb}>
+                Armament on a struck task. Mixes with whatever else is playing rather than
+                interrupting it.
+              </Text>
+            </View>
+            <Toggle value={settings.soundOn} onValueChange={toggleSound} tint={color.crimson} />
           </View>
         </View>
 

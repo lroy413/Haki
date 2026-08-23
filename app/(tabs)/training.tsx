@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { play } from '../../src/sound';
 import { useStore } from '../../src/db/client';
 import {
   addTask,
@@ -80,8 +81,11 @@ export default function ArmamentScreen() {
   }
 
   async function toggleDone(taskItem: Task) {
+    const marking = taskItem.doneAt === null;
+    // Only on the way to done — an undo should not sound like an achievement.
+    if (marking) play('armamentStrike');
     void Haptics.selectionAsync();
-    await setTaskDone(db, taskItem.id, taskItem.doneAt === null);
+    await setTaskDone(db, taskItem.id, marking);
     await reload();
   }
 

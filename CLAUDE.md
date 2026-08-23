@@ -51,6 +51,24 @@ inset from the edges. Anything scrollable must leave `TAB_BAR_CLEARANCE` at the
 bottom or its last item ends up underneath. Floating buttons stack _above_ the
 bar, never behind it.
 
+## Sound
+
+Effects live in `assets/sounds/` and are declared in `src/sound/sounds.ts` —
+adding one is a line there plus a file. Play with `play('name')` from
+`src/sound`.
+
+- **Cut every source with `tools/make_sound.py`.** Raw sound-effect exports are
+  mastered for video: stereo, 48kHz, several seconds, often with leading
+  silence. The Armament source was 4.54s and 871KB; the cut is 0.70s and 33KB.
+  Anything that fires on a tap belongs under a second.
+- **Never commit the raw source into `assets/`** — everything under it is
+  bundled and shipped to the phone.
+- **Sound never blocks and never throws.** A file that will not load must not
+  stop a task being marked done.
+- **Mix, never interrupt.** The audio session is set to `mixWithOthers`, so
+  the app cannot pause someone's music.
+- Plain mode mutes everything, sound included.
+
 ## Architecture
 
 - **`src/domain/` is pure TypeScript with no React Native imports.** That is

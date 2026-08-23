@@ -116,8 +116,11 @@ public/                   copied verbatim into the web build
   _headers, _redirects    Netlify / Cloudflare Pages config
   pwa-*.png               PWA + iOS icons
 
+assets/sounds/            short effects, cut for UI use
+
 tools/
   make_icons.py           regenerates every icon from one glyph
+  make_sound.py           trims, folds to mono and normalises a source effect
   pwa-head.mjs            injects the PWA head into the exported index.html
   serve-web.mjs           local preview WITH the isolation headers
 
@@ -136,6 +139,7 @@ src/
     repo.ts               typed queries
     settings.ts           typed key/value accessors
   files/                  saving and picking files — one impl per platform
+  sound/                  the sound library and playback
   state/HakiProvider.tsx  today's read + reserve + cascade + training + intensity
   theme/                  tokens, and the one label map behind plain mode
   notifications/          Den Den Mushi channels

@@ -18,6 +18,7 @@ export type Settings = {
   training: TrainingConfig;
   /** Minutes of intentional work a day can really hold. */
   capacityMinutes: number;
+  soundOn: boolean;
 };
 
 const KEYS = {
@@ -26,15 +27,17 @@ const KEYS = {
   keystone: 'keystone.config',
   training: 'training.config',
   capacity: 'tasks.capacityMinutes',
+  sound: 'ui.soundOn',
 } as const;
 
 export async function loadSettings(db: Db): Promise<Settings> {
-  const [setSail, plain, keystoneRaw, trainingRaw, capacityRaw] = await Promise.all([
+  const [setSail, plain, keystoneRaw, trainingRaw, capacityRaw, soundRaw] = await Promise.all([
     readSetting(db, KEYS.setSailAt),
     readSetting(db, KEYS.plainMode),
     readSetting(db, KEYS.keystone),
     readSetting(db, KEYS.training),
     readSetting(db, KEYS.capacity),
+    readSetting(db, KEYS.sound),
   ]);
 
   // First launch is day one.
@@ -50,6 +53,8 @@ export async function loadSettings(db: Db): Promise<Settings> {
     keystone: parseKeystone(keystoneRaw),
     training: parseTraining(trainingRaw),
     capacityMinutes: numberOr(Number(capacityRaw), DEFAULT_CAPACITY_MINUTES),
+    // Default on — it is one of the reasons to open the thing.
+    soundOn: soundRaw !== 'false',
   };
 }
 
@@ -105,4 +110,8 @@ export async function setTraining(db: Db, config: TrainingConfig): Promise<void>
 
 export async function setCapacityMinutes(db: Db, minutes: number): Promise<void> {
   await writeSetting(db, KEYS.capacity, String(minutes));
+}
+
+export async function setSoundOn(db: Db, on: boolean): Promise<void> {
+  await writeSetting(db, KEYS.sound, on ? 'true' : 'false');
 }
