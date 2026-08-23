@@ -1,5 +1,8 @@
 # Haki — Concept v0.3
 
+> The build itself is chronicled in [VOYAGE.md](./VOYAGE.md) — where this
+> started, every decision since, and what is charted next.
+
 > Every other app tracks what you **did**. This one tracks the state of your **will**.
 
 A private journal, habit forge, and mental-health instrument built for an audience of one.
