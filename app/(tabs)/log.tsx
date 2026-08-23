@@ -40,6 +40,8 @@ export default function LogScreen() {
         renderItem={({ item }) => (
           <Pressable
             onPress={() => router.push(`/entry/${item.id}`)}
+            accessibilityRole="button"
+            accessibilityLabel={`Open the entry from ${item.day}`}
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}
           >
             <Text style={styles.rowDay}>
@@ -54,6 +56,7 @@ export default function LogScreen() {
 
       <Pressable
         onPress={() => router.push('/entry/new')}
+        accessibilityRole="button"
         style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
       >
         <Text style={styles.fabText}>{t.newEntry}</Text>

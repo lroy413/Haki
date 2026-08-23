@@ -157,7 +157,13 @@ export default function EntryScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable onPress={remove} hitSlop={10} style={styles.deleteHit}>
+            <Pressable
+              onPress={remove}
+              accessibilityRole="button"
+              accessibilityLabel="Delete this entry"
+              hitSlop={10}
+              style={styles.deleteHit}
+            >
               <Text style={styles.delete}>Delete</Text>
             </Pressable>
           ),
@@ -181,6 +187,7 @@ export default function EntryScreen() {
 
       <Pressable
         onPress={done}
+        accessibilityRole="button"
         style={({ pressed }) => [styles.done, pressed && styles.pressed]}
       >
         <Text style={styles.doneText}>Done</Text>

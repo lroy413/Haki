@@ -112,6 +112,8 @@ export default function DailyReadScreen() {
         <Pressable
           onPress={save}
           disabled={!complete || saving}
+          accessibilityRole="button"
+          accessibilityLabel={complete ? 'Save the read' : `${remaining} still to set`}
           style={({ pressed }) => [
             styles.save,
             (!complete || saving) && styles.saveDisabled,

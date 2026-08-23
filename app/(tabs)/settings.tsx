@@ -187,6 +187,7 @@ export default function SettingsScreen() {
 
           <Pressable
             onPress={saveKeystone}
+            accessibilityRole="button"
             style={({ pressed }) => [styles.save, pressed && styles.pressed]}
           >
             <Text style={styles.saveText}>Save keystone</Text>
@@ -214,6 +215,7 @@ export default function SettingsScreen() {
 
           <Pressable
             onPress={saveTraining}
+            accessibilityRole="button"
             style={({ pressed }) => [styles.save, pressed && styles.pressed]}
           >
             <Text style={styles.saveText}>Save training</Text>

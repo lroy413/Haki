@@ -119,12 +119,18 @@ export default function CarriedScreen() {
               multiline
             />
             <View style={styles.actions}>
-              <Pressable onPress={() => setAdding(false)} style={styles.ghost}>
+              <Pressable
+                onPress={() => setAdding(false)}
+                accessibilityRole="button"
+                style={styles.ghost}
+              >
                 <Text style={styles.ghostText}>Cancel</Text>
               </Pressable>
               <Pressable
                 onPress={save}
                 disabled={!name.trim()}
+                accessibilityRole="button"
+                accessibilityLabel="Save this person"
                 style={[styles.primary, !name.trim() && styles.primaryDisabled]}
               >
                 <Text style={styles.primaryText}>Save</Text>
@@ -134,6 +140,7 @@ export default function CarriedScreen() {
         ) : (
           <Pressable
             onPress={() => setAdding(true)}
+            accessibilityRole="button"
             style={({ pressed }) => [styles.add, pressed && styles.pressed]}
           >
             <Text style={styles.addText}>{t.carriedAdd}</Text>
