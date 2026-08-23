@@ -13,6 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { play } from '../../src/sound';
 import { Emission } from '../../src/components/Emission';
+import { fireImpact } from '../../src/impact';
 import { useStore } from '../../src/db/client';
 import {
   addTask,
@@ -407,7 +408,10 @@ function TaskRow({
     >
       <Pressable
         onPress={() => {
-          if (!done) setStrikes((n) => n + 1);
+          if (!done) {
+            setStrikes((n) => n + 1);
+            fireImpact();
+          }
           onToggle();
         }}
         accessibilityRole="checkbox"

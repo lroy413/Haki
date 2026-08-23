@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { formatMinutes, type Task } from '../domain/tasks';
 import { play } from '../sound';
+import { fireImpact } from '../impact';
 import { Emission } from './Emission';
 import { font, radius, space, type } from '../theme/tokens';
 import type { Palette } from '../theme/palettes';
@@ -65,6 +66,7 @@ export function NextStrike({
         <Pressable
           onPress={() => {
             play('armamentStrike');
+            fireImpact();
             void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setStrikes((n) => n + 1);
             onDone(task);
