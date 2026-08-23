@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
 """
-Turn a raw sound-effect WAV into something a UI can actually use.
+Turn a raw sound effect into something a UI can actually use.
 
 Source effects are mastered for video: long, stereo, 48kHz, often with leading
 silence and a tail that outlasts any button press. Playing one of those on a
 tap is how an app gets muted permanently.
 
-    python3 tools/make_sound.py <source.wav> <out.wav> [--start S] [--end S]
-                                [--fade MS] [--rate HZ] [--peak DBFS]
+    python3 tools/make_sound.py <source> <out.wav> [--start S] [--end S]
+                                [--fade MS] [--fade-in MS] [--rate HZ]
+                                [--peak DBFS]
+    python3 tools/make_sound.py <source> --map
 
 Defaults trim to the first transient, fold to mono, resample to 24kHz, and
 normalise — which takes a ~870KB stereo file down to about 30KB.
 
-No ffmpeg here on purpose: the bundled build is video-only, so this works with
-nothing but the standard library.
+`--map` prints a timestamped level readout instead of writing anything. Use it
+to choose --start and --end: nobody working on this can listen to the file, so
+the envelope is how a cut gets picked deliberately rather than guessed.
+
+16-bit PCM WAV needs nothing but the standard library, which is the point — the
+ffmpeg available here is built --disable-everything and has no audio decoders
+at all. Other formats (mp3, m4a, ogg, flac) go through `miniaudio` if it is
+installed: pip install miniaudio.
 """
 
 import argparse
@@ -52,6 +60,52 @@ def read_wav(path):
         i += 8 + size + (size & 1)
 
     raise SystemExit('no data chunk found')
+
+
+def read_encoded(path):
+    """mp3/m4a/ogg/flac, via miniaudio if it is around."""
+    try:
+        import miniaudio
+    except ImportError:
+        raise SystemExit(
+            f'{path} is not a WAV, and decoding it needs miniaudio.\n'
+            f'    pip install miniaudio'
+        )
+    decoded = miniaudio.decode_file(path, output_format=miniaudio.SampleFormat.SIGNED16)
+    return array.array('h', decoded.samples), decoded.nchannels, decoded.sample_rate
+
+
+def read_source(path):
+    with open(path, 'rb') as f:
+        head = f.read(12)
+    if head[:4] == b'RIFF' and head[8:12] == b'WAVE':
+        return read_wav(path)
+    return read_encoded(path)
+
+
+def envelope(mono, rate, rows=48):
+    """Peak level per slice of time, as (start_seconds, peak_0_to_1)."""
+    if not mono:
+        return []
+    per = max(1, len(mono) // rows)
+    out = []
+    for i in range(0, len(mono), per):
+        chunk = mono[i : i + per]
+        out.append((i / rate, max(abs(s) for s in chunk) / 32768))
+    return out
+
+
+def print_map(mono, rate, channels):
+    """A readout to choose --start and --end from, since we cannot listen."""
+    print(f'{len(mono) / rate:.2f}s  {channels}ch  {rate}Hz  {len(mono)} frames')
+    peak = max((abs(s) for s in mono), default=0) / 32768
+    print(f'peak {20 * math.log10(peak):.1f} dBFS' if peak else 'silent')
+    print(f'onset at {find_onset(mono, rate) / rate:.3f}s\n')
+    print('    time   level')
+    for at, level in envelope(mono, rate):
+        db = 20 * math.log10(level) if level else -99
+        bar = '#' * int(level * 40)
+        print(f'  {at:6.3f}  {db:6.1f}  {bar}')
 
 
 def to_mono(samples, channels):
@@ -103,6 +157,16 @@ def apply_fade(mono, rate, fade_ms):
     return mono
 
 
+def apply_fade_in(mono, rate, fade_ms):
+    """Cutting into the middle of a waveform starts on a step, which clicks."""
+    n = int(rate * fade_ms / 1000)
+    if n <= 0 or n > len(mono):
+        return mono
+    for i in range(n):
+        mono[i] = int(mono[i] * i / n)
+    return mono
+
+
 def normalise(mono, peak_dbfs):
     peak = max((abs(s) for s in mono), default=0)
     if peak == 0:
@@ -127,16 +191,25 @@ def write_wav(path, mono, rate):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('source')
-    ap.add_argument('out')
+    ap.add_argument('out', nargs='?', help='omit with --map')
+    ap.add_argument('--map', action='store_true', help='print the envelope and stop')
     ap.add_argument('--start', type=float, default=None, help='seconds; default is the onset')
     ap.add_argument('--end', type=float, default=None, help='seconds from the source start')
     ap.add_argument('--fade', type=float, default=120, help='tail fade in ms')
+    ap.add_argument('--fade-in', type=float, default=4, help='attack fade in ms; kills the cut click')
     ap.add_argument('--rate', type=int, default=24000)
     ap.add_argument('--peak', type=float, default=-1.0, help='normalise target in dBFS')
     args = ap.parse_args()
 
-    samples, channels, rate = read_wav(args.source)
+    samples, channels, rate = read_source(args.source)
     mono = to_mono(samples, channels)
+
+    if args.map:
+        print_map(mono, rate, channels)
+        return
+    if not args.out:
+        raise SystemExit('an output path is required unless you pass --map')
+
     print(f'source: {len(mono) / rate:.2f}s, {channels}ch, {rate}Hz')
 
     start = int(rate * args.start) if args.start is not None else find_onset(mono, rate)
@@ -150,6 +223,7 @@ def main():
 
     clipped = resample(clipped, rate, args.rate)
     clipped = normalise(clipped, args.peak)
+    clipped = apply_fade_in(clipped, args.rate, args.fade_in)
     clipped = apply_fade(clipped, args.rate, args.fade)
 
     write_wav(args.out, clipped, args.rate)
