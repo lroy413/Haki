@@ -69,6 +69,13 @@ export type Observation = {
  */
 const FLOOR = 0.35;
 
+/** Reach below which a clear head is only open, and at which it is sharp. */
+const CLEAR_AT = 0.2;
+const SHARP_AT = 0.5;
+
+/** Clarity below this is a clouded day, whatever the practice. */
+const CLOUDED_BELOW = 0.3;
+
 /** Map the 1..5 clarity dial onto 0..1. Out of range is clamped, never trusted. */
 function dial(value: number): number {
   return Math.min(1, Math.max(0, (value - 1) / 4));
@@ -97,15 +104,47 @@ export function observation(
   return { state: stateFor(depth, clarity), depth, satDays: sat, clarity };
 }
 
+function reachFor(depth: number, clarity: number): number {
+  return depth * (FLOOR + (1 - FLOOR) * clarity);
+}
+
 function stateFor(depth: number, clarity: number | null): ObservationState {
   // Without a Daily Read there is no clarity reading, and Observation is a
   // thing you cannot report on without one. Silence rather than a guess.
   if (clarity === null) return 'unread';
-  const reach = depth * (FLOOR + (1 - FLOOR) * clarity);
-  if (clarity < 0.3) return 'clouded';
-  if (reach >= 0.5) return 'sharp';
-  if (reach >= 0.2) return 'clear';
+  if (clarity < CLOUDED_BELOW) return 'clouded';
+  const reach = reachFor(depth, clarity);
+  if (reach >= SHARP_AT) return 'sharp';
+  if (reach >= CLEAR_AT) return 'clear';
   return 'open';
+}
+
+/**
+ * How far the eyes are open, 0..1 — the gauge's whole input.
+ *
+ * The owner's design: a pair of eyes that open as the tool is used, and a
+ * glint once they are fully open. So this is reach, normalised so that
+ * **fully open and sharp are the same moment** — the glint appears exactly
+ * when the lids finish, never before, because dividing by `SHARP_AT` makes 1.0
+ * and the sharp threshold the same line.
+ *
+ * Unread is closed. No reading has been taken, and eyes that have not looked
+ * are not open — the Daily Read is literally what opens them each morning.
+ *
+ * A clouded day is heavy-lidded. Reach alone would let a long practice hold
+ * the eyes half open through the fog, and the rule is older than the gauge:
+ * Observation only works in clarity. The lids come down; the practice is
+ * still there underneath, which is exactly what the state message says.
+ */
+export function openness(o: Observation): number {
+  if (o.clarity === null) return 0;
+  const open = Math.min(1, reachFor(o.depth, o.clarity) / SHARP_AT);
+  return o.state === 'clouded' ? Math.min(open, 0.35) : open;
+}
+
+/** Fully open, and the glint is lit. The gauge's name for sharp. */
+export function futureSight(o: Observation): boolean {
+  return o.state === 'sharp';
 }
 
 export function stateName(state: ObservationState): string {

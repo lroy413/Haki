@@ -414,6 +414,18 @@ they wait on a pushed screen reached from the practice card until that page's
 vision forms. Nothing about their costs changed, and a gear block still
 darkens the day: hardening reads the whole day, whichever tool it happened in.
 
+And each tool got a face. The owner asked for the gauges to be _visual_, with
+references: Armament's hardness is now **one bolt filling across the frame** —
+crimson with a black filament, the unlit channel waiting ahead of it — and
+Observation is **a pair of eyes** that open as the tool is used. Closed until
+the Daily Read, because the reading is literally what opens them; heavy-lidded
+on a clouded day however long the practice; and the future-sight glint lights
+at exactly the moment the lids finish, because openness and the sharp
+threshold are the same line in `domain/observation.ts`. Both drawings carry
+the REPLACING THIS DRAWING contract, both are seeded so they never re-roll,
+and the eyes mask with the ground colour rather than a clip — a flat ground
+makes cover-up exact in every renderer.
+
 ## Where it stands
 
 **Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Fourteen pull

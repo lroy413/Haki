@@ -37,6 +37,8 @@ import {
 } from '../../src/domain/tasks';
 import { todayKey } from '../../src/domain/date';
 import { hardnessMessage, hardnessName } from '../../src/domain/armament';
+import { Bolt } from '../../src/components/instruments/Bolt';
+import { darkest } from '../../src/theme/palettes';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
@@ -148,6 +150,24 @@ export default function ArmamentScreen() {
             {hardness.value === null ? hardnessName(null) : `${hardness.value}%`}
           </Text>
         </View>
+        {/* The gauge: one bolt, filling across the frame as the window fills
+            with used days. The faint channel is the storm's path; the strike
+            has travelled as far as the figure above says. Plain mode keeps
+            the words and loses the weather. */}
+        {plainMode ? null : (
+          <View
+            style={styles.bolt}
+            accessibilityRole="image"
+            accessibilityLabel={`Hardness, ${hardnessName(hardness.value)}`}
+          >
+            <Bolt
+              track={palette.lineSoft}
+              core={darkest(palette)}
+              halo={palette.crimson}
+              fill={(hardness.value ?? 0) / 100}
+            />
+          </View>
+        )}
         <Text style={styles.message}>{hardnessMessage(hardness.value, hardness.days)}</Text>
 
         {/* ---------------------------------------------------------- today */}
@@ -465,6 +485,8 @@ const makeStyles = (c: Palette) =>
 
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sectionLabel: { ...type.label, color: c.inkFaint },
+    // Full-bleed within the padding; the drawing keeps its own aspect.
+    bolt: { width: '100%', aspectRatio: 200 / 26, marginVertical: -2 },
     carrying: {
       fontFamily: font.display,
       fontSize: 22,

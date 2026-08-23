@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   SAT_COUNTS_FROM,
   WINDOW_DAYS,
+  futureSight,
   observation,
+  openness,
   satDays,
   stateMessage,
   stateName,
@@ -79,6 +81,55 @@ describe('clarity is what lets you use it', () => {
   it('clamps a dial that is out of range rather than trusting it', () => {
     expect(observation(sat(10), 99, TODAY).clarity).toBe(1);
     expect(observation(sat(10), -4, TODAY).clarity).toBe(0);
+  });
+});
+
+describe('the eyes', () => {
+  it('are closed before a reading is taken', () => {
+    // The Daily Read is what opens them: eyes that have not looked are not
+    // open, however long the practice behind them is.
+    expect(openness(observation(sat(28), null, TODAY))).toBe(0);
+  });
+
+  it('open further the more the tool is used', () => {
+    const clarity = 4;
+    const a = openness(observation(sat(3), clarity, TODAY));
+    const b = openness(observation(sat(10), clarity, TODAY));
+    const c = openness(observation(sat(20), clarity, TODAY));
+    expect(a).toBeGreaterThan(0);
+    expect(b).toBeGreaterThan(a);
+    expect(c).toBeGreaterThan(b);
+  });
+
+  it('are fully open exactly when the state is sharp, and the glint with them', () => {
+    // The owner's spec, made structural: "once full open, a glint". Both
+    // derive from the same threshold, so the glint can never appear on
+    // half-lidded eyes and full lids can never lack it.
+    for (const days of [2, 6, 12, 16, 20, 28]) {
+      for (const clarity of [2, 3, 4, 5]) {
+        const o = observation(sat(days), clarity, TODAY);
+        expect(openness(o) === 1, `${days} days at ${clarity}`).toBe(o.state === 'sharp');
+        expect(futureSight(o), `${days} days at ${clarity}`).toBe(o.state === 'sharp');
+      }
+    }
+  });
+
+  it('come down on a clouded day, whatever the practice', () => {
+    // Observation only works in clarity. The lids drop below half; the
+    // practice is still there underneath, which is what the message says.
+    const clouded = openness(observation(sat(28), 1, TODAY));
+    expect(clouded).toBeGreaterThan(0);
+    expect(clouded).toBeLessThanOrEqual(0.35);
+  });
+
+  it('never leaves the dial', () => {
+    for (const days of [0, 1, 14, 28]) {
+      for (const clarity of [null, 1, 3, 5]) {
+        const v = openness(observation(sat(days), clarity, TODAY));
+        expect(v).toBeGreaterThanOrEqual(0);
+        expect(v).toBeLessThanOrEqual(1);
+      }
+    }
   });
 });
 

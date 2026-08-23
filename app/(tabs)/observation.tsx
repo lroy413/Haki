@@ -16,7 +16,8 @@ import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea } from '../../src/domain/date';
 import { LogLine } from '../../src/components/LogLine';
-import { stateMessage, stateName } from '../../src/domain/observation';
+import { futureSight, openness, stateMessage, stateName } from '../../src/domain/observation';
+import { Eyes } from '../../src/components/instruments/Eyes';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
@@ -92,6 +93,26 @@ export default function ObservationScreen() {
               trailing={plainMode ? undefined : '見聞色'}
             />
 
+            {/* The gauge: a pair of eyes, open as far as the tool has been
+                used today — reach, normalised so fully open and sharp are the
+                same moment, at which the glint lights. Closed until the Daily
+                Read, because the reading is literally what opens them. */}
+            {plainMode ? null : (
+              <View
+                style={styles.eyes}
+                accessibilityRole="image"
+                accessibilityLabel={`Observation, ${stateName(observation.state)}`}
+              >
+                <Eyes
+                  ink={palette.ink}
+                  iris={palette.violet}
+                  ground={palette.bg}
+                  openness={openness(observation)}
+                  lit={futureSight(observation)}
+                />
+              </View>
+            )}
+
             {/* The reading: the same card the sit screen leads with, because
                 it is the same fact. Practice and condition, reported
                 separately, naming whichever is the limit. */}
@@ -164,6 +185,7 @@ const makeStyles = (c: Palette) =>
     screen: { flex: 1, backgroundColor: c.bg },
     list: { padding: space.lg, gap: space.sm },
     head: { gap: space.sm, marginBottom: space.sm },
+    eyes: { width: '100%', height: 84, marginBottom: -space.xs },
 
     reading: {
       borderWidth: 1,
