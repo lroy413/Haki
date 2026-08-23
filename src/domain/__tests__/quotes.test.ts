@@ -45,6 +45,18 @@ describe('the quote list', () => {
     for (const q of QUOTES) expect(q.who.trim().length).toBeGreaterThan(0);
   });
 
+  it('reaches every quote across a year', () => {
+    // A hash that clusters would quietly retire part of the bank, and nothing
+    // else here would notice.
+    const seen = new Set<string>();
+    const day = new Date(Date.UTC(2026, 0, 1));
+    for (let i = 0; i < 365; i += 1) {
+      seen.add(quoteForDay(day.toISOString().slice(0, 10)).text);
+      day.setUTCDate(day.getUTCDate() + 1);
+    }
+    expect(seen.size).toBe(QUOTES.length);
+  });
+
   it('never scolds — this is the first thing seen on a bad day', () => {
     for (const q of QUOTES) {
       const text = q.text.toLowerCase();
