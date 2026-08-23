@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useStore } from '../../src/db/client';
@@ -6,12 +6,15 @@ import { listEntries } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea } from '../../src/domain/date';
-import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, radius, space, type } from '../../src/theme/tokens';
+import type { Palette } from '../../src/theme/palettes';
 
 export default function LogScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t } = useHaki();
+  const { t, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
+
   const [entries, setEntries] = useState<EntryRow[]>([]);
 
   useFocusEffect(
@@ -59,33 +62,35 @@ export default function LogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  list: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE + 72 },
-  empty: { ...type.body, color: color.inkDim, textAlign: 'center', marginTop: space.xxxl },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    list: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE + 72 },
+    empty: { ...type.body, color: c.inkDim, textAlign: 'center', marginTop: space.xxxl },
 
-  row: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.xs,
-  },
-  rowDay: { ...type.mono, color: color.inkFaint },
-  rowBody: { ...type.body, color: color.ink, lineHeight: 21 },
-  pressed: { opacity: 0.75 },
+    row: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+    },
+    rowDay: { ...type.mono, color: c.inkFaint },
+    rowBody: { ...type.body, color: c.ink, lineHeight: 21 },
+    pressed: { opacity: 0.75 },
 
-  fab: {
-    position: 'absolute',
-    left: space.lg,
-    right: space.lg,
-    // Stacked above the floating tab bar rather than under it.
-    bottom: TAB_BAR_CLEARANCE,
-    backgroundColor: color.violet,
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    alignItems: 'center',
-  },
-  fabText: { ...type.heading, color: '#0A0B12' },
-});
+    fab: {
+      position: 'absolute',
+      left: space.lg,
+      right: space.lg,
+      // Stacked above the floating tab bar rather than under it.
+      bottom: TAB_BAR_CLEARANCE,
+      backgroundColor: c.violet,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+    },
+    fabText: { ...type.heading, color: c.onAccent },
+  });

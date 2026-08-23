@@ -1,6 +1,9 @@
+import { useHaki } from '../state/HakiProvider';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { color, radius, space, type } from '../theme/tokens';
+import { radius, space, type } from '../theme/tokens';
+import type { Palette } from '../theme/palettes';
 
 const STEPS = [1, 2, 3, 4, 5];
 
@@ -20,18 +23,16 @@ type Props = {
  * at 11pm — which is exactly when it matters most. That budget is why this is a
  * row of taps rather than a slider.
  */
-export function Dial({
-  label,
-  value,
-  onChange,
-  inverted = false,
-  accent = color.violet,
-}: Props) {
+export function Dial({ label, value, onChange, inverted = false, accent }: Props) {
+  const { palette } = useHaki();
+  const tone = accent ?? palette.violet;
+
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   return (
     <View style={styles.wrap}>
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.hint, { color: accent }]}>{inverted ? 'low is better' : ''}</Text>
+        <Text style={[styles.hint, { color: tone }]}>{inverted ? 'low is better' : ''}</Text>
       </View>
       <View style={styles.row}>
         {STEPS.map((step) => {
@@ -49,7 +50,7 @@ export function Dial({
               }}
               style={({ pressed }) => [
                 styles.step,
-                selected && { backgroundColor: accent, borderColor: accent },
+                selected && { backgroundColor: tone, borderColor: tone },
                 pressed && styles.pressed,
               ]}
             >
@@ -62,23 +63,24 @@ export function Dial({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { gap: space.sm },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  label: { ...type.heading, color: color.ink },
-  hint: { ...type.mono, fontSize: 10, letterSpacing: 1 },
-  row: { flexDirection: 'row', gap: space.sm },
-  step: {
-    flex: 1,
-    height: 54,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: color.line,
-    backgroundColor: color.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: { opacity: 0.7 },
-  stepText: { ...type.body, color: color.inkDim, fontVariant: ['tabular-nums'] },
-  stepTextSelected: { color: '#0A0B12' },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    wrap: { gap: space.sm },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    label: { ...type.heading, color: c.ink },
+    hint: { ...type.mono, fontSize: 10, letterSpacing: 1 },
+    row: { flexDirection: 'row', gap: space.sm },
+    step: {
+      flex: 1,
+      height: 54,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.line,
+      backgroundColor: c.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pressed: { opacity: 0.7 },
+    stepText: { ...type.body, color: c.inkDim, fontVariant: ['tabular-nums'] },
+    stepTextSelected: { color: c.onAccent },
+  });

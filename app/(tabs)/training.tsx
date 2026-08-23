@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +12,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { play } from '../../src/sound';
+import { Emission } from '../../src/components/Emission';
 import { useStore } from '../../src/db/client';
 import {
   addTask,
@@ -45,7 +46,8 @@ import {
   type GearSession,
 } from '../../src/domain/gears';
 import { todayKey } from '../../src/domain/date';
-import { TAB_BAR_CLEARANCE, color, font, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, font, radius, space, type } from '../../src/theme/tokens';
+import type { Palette } from '../../src/theme/palettes';
 
 /** Estimates you can pick without thinking. Typing a number is a decision too. */
 const MINUTE_CHIPS = [5, 15, 30, 60, 120];
@@ -61,7 +63,8 @@ const MINUTE_CHIPS = [5, 15, 30, 60, 120];
 export default function ArmamentScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, training, load, refresh, plainMode } = useHaki();
+  const { t, training, load, refresh, plainMode, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
@@ -128,6 +131,10 @@ export default function ArmamentScreen() {
   const nowMs = Date.now();
   const running = runningSession(gears, nowMs);
   const inGear = minutesToday(gears, nowMs);
+  const today = [
+    ...load.open.map((item) => ({ item, done: false })),
+    ...load.doneToday.map((item) => ({ item, done: true })),
+  ];
   const waiting = backlog(tasks);
   const old = stale(tasks, todayKey());
   const message = loadMessage(load);
@@ -142,7 +149,7 @@ export default function ArmamentScreen() {
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
           <Text style={styles.sectionLabel}>{t.todayLoad}</Text>
-          <Text style={[styles.carrying, load.read === 'over' && { color: color.warn }]}>
+          <Text style={[styles.carrying, load.read === 'over' && { color: palette.warn }]}>
             {formatMinutes(load.openMinutes)}
           </Text>
         </View>
@@ -153,18 +160,23 @@ export default function ArmamentScreen() {
           </Text>
         ) : null}
 
-        {load.open.map((item) => (
+        {/*
+          One list, not two. Striking a task moves it from `open` to
+          `doneToday`, and across two separate maps React sees that as an
+          unmount and a remount — which throws away the row's own state and
+          swallows the emission before a frame of it renders. Rendering both
+          from one array keeps the component identity, so the row is reordered
+          in place and the corona survives the move.
+        */}
+        {today.map(({ item, done }) => (
           <TaskRow
             key={item.id}
             task={item}
+            done={done}
             onToggle={() => toggleDone(item)}
-            onSecondary={() => moveTo(item, null)}
-            secondaryLabel="Later"
+            onSecondary={done ? undefined : () => moveTo(item, null)}
+            secondaryLabel={done ? undefined : 'Later'}
           />
-        ))}
-
-        {load.doneToday.map((item) => (
-          <TaskRow key={item.id} task={item} onToggle={() => toggleDone(item)} done />
         ))}
 
         {/* ------------------------------------------------------ capture */}
@@ -173,7 +185,7 @@ export default function ArmamentScreen() {
             value={title}
             onChangeText={setTitle}
             placeholder={t.taskPlaceholder}
-            placeholderTextColor={color.inkFaint}
+            placeholderTextColor={palette.inkFaint}
             style={styles.input}
             returnKeyType="done"
             onSubmitEditing={() => void add(true)}
@@ -312,17 +324,17 @@ export default function ArmamentScreen() {
           <Stat
             label={t.trainingThisWeek}
             value={`${training.sessionsThisWeek}/${training.weeklyTarget}`}
-            tone={color.crimson}
+            tone={palette.crimson}
           />
           <Stat
             label={t.trainingConsistency}
             value={training.consistency === null ? null : `${training.consistency}%`}
-            tone={color.violet}
+            tone={palette.violet}
           />
           <Stat
             label={t.trainingSinceLast}
             value={since === null ? null : String(since)}
-            tone={training.inGap ? color.warn : color.cyan}
+            tone={training.inGap ? palette.warn : palette.cyan}
           />
         </View>
 
@@ -382,10 +394,22 @@ function TaskRow({
   onRemove?: () => void;
   done?: boolean;
 }) {
+  const { palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
+  // Only on the way to done. Undoing something is not an act of will.
+  const [strikes, setStrikes] = useState(0);
+
   return (
-    <View style={[styles.task, done && styles.taskDone]}>
+    <Emission
+      trigger={strikes}
+      radius={radius.md}
+      style={StyleSheet.flatten([styles.task, done && styles.taskDone])}
+    >
       <Pressable
-        onPress={onToggle}
+        onPress={() => {
+          if (!done) setStrikes((n) => n + 1);
+          onToggle();
+        }}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: !!done }}
         accessibilityLabel={`${done ? 'Undo' : 'Done'}: ${task.title}`}
@@ -425,11 +449,13 @@ function TaskRow({
           <Text style={styles.removeText}>Drop</Text>
         </Pressable>
       ) : null}
-    </View>
+    </Emission>
   );
 }
 
 function Stat({ label, value, tone }: { label: string; value: string | null; tone: string }) {
+  const { palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statLabel} numberOfLines={1}>
@@ -444,211 +470,217 @@ function Stat({ label, value, tone }: { label: string; value: string | null; ton
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    content: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE },
 
-  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  sectionLabel: { ...type.label, color: color.inkFaint },
-  carrying: {
-    fontFamily: font.display,
-    fontSize: 22,
-    color: color.ink,
-    fontVariant: ['tabular-nums'],
-  },
-  message: { ...type.small, color: color.inkDim, lineHeight: 20, marginBottom: space.xs },
-  messageWarn: { color: color.warn },
+    head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    sectionLabel: { ...type.label, color: c.inkFaint },
+    carrying: {
+      fontFamily: font.display,
+      fontSize: 22,
+      color: c.ink,
+      fontVariant: ['tabular-nums'],
+    },
+    message: { ...type.small, color: c.inkDim, lineHeight: 20, marginBottom: space.xs },
+    messageWarn: { color: c.warn },
 
-  /* ------------------------------------------------------------- a task */
-  task: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    paddingVertical: space.md,
-    paddingHorizontal: space.md,
-  },
-  taskDone: { opacity: 0.45 },
-  box: {
-    width: 26,
-    height: 26,
-    borderRadius: radius.sm,
-    borderWidth: 1.5,
-    borderColor: color.inkFaint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  boxOn: { backgroundColor: color.cyan, borderColor: color.cyan },
-  tick: { color: '#0A0B12', fontSize: 15, fontFamily: font.displayBold },
-  taskBody: { flex: 1, gap: 1 },
-  taskTitle: { ...type.body, fontSize: 16, color: color.ink },
-  taskTitleDone: { textDecorationLine: 'line-through', color: color.inkDim },
-  taskMinutes: { ...type.mono, fontSize: 11, color: color.inkFaint },
-  secondary: { paddingHorizontal: space.sm, paddingVertical: space.xs },
-  secondaryText: { ...type.mono, fontSize: 11, color: color.cyan },
-  removeText: { ...type.mono, fontSize: 11, color: color.inkFaint },
+    /* ------------------------------------------------------------- a task */
+    task: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.md,
+    },
+    taskDone: { opacity: 0.45 },
+    box: {
+      width: 26,
+      height: 26,
+      borderRadius: radius.sm,
+      borderWidth: 1.5,
+      borderColor: c.inkFaint,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    boxOn: { backgroundColor: c.cyan, borderColor: c.cyan },
+    tick: { color: c.onAccent, fontSize: 15, fontFamily: font.displayBold },
+    taskBody: { flex: 1, gap: 1 },
+    taskTitle: { ...type.body, fontSize: 16, color: c.ink },
+    taskTitleDone: { textDecorationLine: 'line-through', color: c.inkDim },
+    taskMinutes: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    secondary: { paddingHorizontal: space.sm, paddingVertical: space.xs },
+    secondaryText: { ...type.mono, fontSize: 11, color: c.cyan },
+    removeText: { ...type.mono, fontSize: 11, color: c.inkFaint },
 
-  /* ------------------------------------------------------------ capture */
-  capture: {
-    gap: space.sm,
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.md,
-    marginTop: space.sm,
-  },
-  input: {
-    ...type.body,
-    fontSize: 16,
-    color: color.ink,
-    backgroundColor: color.surface2,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.sm,
-    paddingHorizontal: space.md,
-    height: 46,
-  },
-  chips: { flexDirection: 'row', gap: space.xs },
-  chip: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.pill,
-    paddingVertical: space.xs,
-    alignItems: 'center',
-  },
-  chipOn: { borderColor: color.cyan, backgroundColor: color.cyanSoft },
-  chipText: { ...type.mono, fontSize: 11, color: color.inkDim },
-  chipTextOn: { color: color.cyan },
-  addRow: { flexDirection: 'row', gap: space.sm },
-  addToday: {
-    flex: 2,
-    backgroundColor: color.cyan,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    alignItems: 'center',
-  },
-  addTodayText: { ...type.heading, color: '#0A0B12' },
-  addLater: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    alignItems: 'center',
-  },
-  addLaterText: { ...type.heading, color: color.inkDim },
-  addDisabled: { opacity: 0.4 },
+    /* ------------------------------------------------------------ capture */
+    capture: {
+      gap: space.sm,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      padding: space.md,
+      marginTop: space.sm,
+    },
+    input: {
+      ...type.body,
+      fontSize: 16,
+      color: c.ink,
+      backgroundColor: c.surface2,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      height: 46,
+    },
+    chips: { flexDirection: 'row', gap: space.xs },
+    chip: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.pill,
+      paddingVertical: space.xs,
+      alignItems: 'center',
+    },
+    chipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
+    chipText: { ...type.mono, fontSize: 11, color: c.inkDim },
+    chipTextOn: { color: c.cyan },
+    addRow: { flexDirection: 'row', gap: space.sm },
+    addToday: {
+      flex: 2,
+      backgroundColor: c.cyan,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      alignItems: 'center',
+    },
+    addTodayText: { ...type.heading, color: c.onAccent },
+    addLater: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      alignItems: 'center',
+    },
+    addLaterText: { ...type.heading, color: c.inkDim },
+    addDisabled: { opacity: 0.4 },
 
-  /* ------------------------------------------------------------ backlog */
-  disclosure: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: space.md,
-    marginTop: space.sm,
-    borderTopWidth: 1,
-    borderTopColor: color.lineSoft,
-  },
-  disclosureText: { ...type.label, color: color.inkFaint },
-  chevron: { ...type.heading, color: color.inkFaint },
-  emptyBacklog: {
-    ...type.small,
-    color: color.inkFaint,
-    textAlign: 'center',
-    padding: space.md,
-  },
+    /* ------------------------------------------------------------ backlog */
+    disclosure: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: space.md,
+      marginTop: space.sm,
+      borderTopWidth: 1,
+      borderTopColor: c.lineSoft,
+    },
+    disclosureText: { ...type.label, color: c.inkFaint },
+    chevron: { ...type.heading, color: c.inkFaint },
+    emptyBacklog: {
+      ...type.small,
+      color: c.inkFaint,
+      textAlign: 'center',
+      padding: space.md,
+    },
 
-  /* ----------------------------------------------------------- training */
-  trainingLabel: { marginTop: space.xl, marginBottom: space.xs },
-  stats: { flexDirection: 'row', gap: space.sm },
-  stat: {
-    flex: 1,
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.md,
-    gap: space.xs,
-  },
-  statLabel: { ...type.label, color: color.inkFaint, fontSize: 9 },
-  statValue: {
-    fontFamily: font.display,
-    fontSize: 24,
-    letterSpacing: -1,
-    fontVariant: ['tabular-nums'],
-  },
-  statEmpty: { ...type.small, fontSize: 14, color: color.inkFaint, lineHeight: 28 },
+    /* ----------------------------------------------------------- training */
+    trainingLabel: { marginTop: space.xl, marginBottom: space.xs },
+    stats: { flexDirection: 'row', gap: space.sm },
+    stat: {
+      flex: 1,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      padding: space.md,
+      gap: space.xs,
+    },
+    statLabel: { ...type.label, color: c.inkFaint, fontSize: 9 },
+    statValue: {
+      fontFamily: font.display,
+      fontSize: 24,
+      letterSpacing: -1,
+      fontVariant: ['tabular-nums'],
+    },
+    statEmpty: { ...type.small, fontSize: 14, color: c.inkFaint, lineHeight: 28 },
 
-  gap: {
-    borderWidth: 1,
-    borderColor: color.warn,
-    backgroundColor: color.warnSoft,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.xs,
-  },
-  gapLabel: { ...type.label, color: color.warn },
-  gapBody: { ...type.body, color: color.ink, lineHeight: 21 },
+    gap: {
+      borderWidth: 1,
+      borderColor: c.warn,
+      backgroundColor: c.warnSoft,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+    },
+    gapLabel: { ...type.label, color: c.warn },
+    gapBody: { ...type.body, color: c.ink, lineHeight: 21 },
 
-  session: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.md,
-    gap: 2,
-  },
-  sessionHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-  },
-  sessionKind: { ...type.heading, color: color.ink },
-  sessionDay: { ...type.mono, color: color.inkFaint },
-  sessionMeta: { ...type.small, fontSize: 13, color: color.inkDim },
-  sessionReturn: { ...type.small, fontSize: 13, color: color.violet },
+    session: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      padding: space.md,
+      gap: 2,
+    },
+    sessionHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    sessionKind: { ...type.heading, color: c.ink },
+    sessionDay: { ...type.mono, color: c.inkFaint },
+    sessionMeta: { ...type.small, fontSize: 13, color: c.inkDim },
+    sessionReturn: { ...type.small, fontSize: 13, color: c.violet },
 
-  logSession: {
-    backgroundColor: color.crimson,
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    alignItems: 'center',
-    marginTop: space.sm,
-  },
-  logSessionText: { ...type.heading, color: '#0A0B12' },
+    logSession: {
+      backgroundColor: c.crimson,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+      marginTop: space.sm,
+    },
+    logSessionText: { ...type.heading, color: c.onAccent },
 
-  pressed: { opacity: 0.75 },
+    pressed: { opacity: 0.75 },
 
-  gear: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.xs,
-  },
-  // Still legible, still readable — a locked gear explains itself, so it must
-  // not be dimmed to the point where the reason cannot be read.
-  gearLocked: { backgroundColor: color.bg, borderColor: color.lineSoft },
-  gearHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  gearName: { fontFamily: font.displayBold, fontSize: 18, color: color.ink },
-  gearMinutes: { ...type.mono, color: color.inkDim },
-  gearBlurb: { ...type.body, color: color.inkDim, lineHeight: 21 },
-  gearCost: { ...type.mono, fontSize: 11, color: color.inkFaint },
+    gear: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+    },
+    // Still legible, still readable — a locked gear explains itself, so it must
+    // not be dimmed to the point where the reason cannot be read.
+    gearLocked: { backgroundColor: c.bg, borderColor: c.lineSoft },
+    gearHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    gearName: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    gearMinutes: { ...type.mono, color: c.inkDim },
+    gearBlurb: { ...type.body, color: c.inkDim, lineHeight: 21 },
+    gearCost: { ...type.mono, fontSize: 11, color: c.inkFaint },
 
-  gearRunning: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.cyan,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.xs,
-  },
-  gearRunningLabel: { fontFamily: font.displayBold, fontSize: 18, color: color.ink },
-  gearRunningHint: { ...type.mono, color: color.inkDim },
-});
+    gearRunning: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.cyan,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+    },
+    gearRunningLabel: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    gearRunningHint: { ...type.mono, color: c.inkDim },
+  });

@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { GlassTabBar } from '../../src/components/GlassTabBar';
 import { useHaki } from '../../src/state/HakiProvider';
-import { color, font } from '../../src/theme/tokens';
+import { font } from '../../src/theme/tokens';
 
 /**
  * Five tabs, rendered by the floating glass bar in `GlassTabBar`.
@@ -14,17 +14,17 @@ import { color, font } from '../../src/theme/tokens';
  * this app of all apps cannot afford it.
  */
 export default function TabsLayout() {
-  const { t } = useHaki();
+  const { t, palette } = useHaki();
 
   return (
     <Tabs
       tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
-        headerStyle: { backgroundColor: color.bg },
+        headerStyle: { backgroundColor: palette.bg },
         headerShadowVisible: false,
-        headerTintColor: color.ink,
+        headerTintColor: palette.ink,
         headerTitleStyle: { fontFamily: font.displayBold, fontSize: 20, letterSpacing: -0.4 },
-        sceneStyle: { backgroundColor: color.bg },
+        sceneStyle: { backgroundColor: palette.bg },
       }}
     >
       <Tabs.Screen

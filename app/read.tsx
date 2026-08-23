@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,7 +16,8 @@ import { recentSleep, saveRead, saveSleep } from '../src/db/repo';
 import { play } from '../src/sound';
 import { useHaki } from '../src/state/HakiProvider';
 import { todayKey } from '../src/domain/date';
-import { color, radius, space, type } from '../src/theme/tokens';
+import { radius, space, type } from '../src/theme/tokens';
+import type { Palette } from '../src/theme/palettes';
 
 /**
  * The Daily Read. Four dials and a sleep figure.
@@ -27,7 +28,8 @@ import { color, radius, space, type } from '../src/theme/tokens';
 export default function DailyReadScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { read, t, refresh } = useHaki();
+  const { read, t, refresh, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [energy, setEnergy] = useState<number | null>(read?.energy ?? null);
   const [mood, setMood] = useState<number | null>(read?.mood ?? null);
@@ -76,21 +78,21 @@ export default function DailyReadScreen() {
           label={t.dials.energy}
           value={energy}
           onChange={setEnergy}
-          accent={color.violet}
+          accent={palette.violet}
         />
-        <Dial label={t.dials.mood} value={mood} onChange={setMood} accent={color.violet} />
+        <Dial label={t.dials.mood} value={mood} onChange={setMood} accent={palette.violet} />
         <Dial
           label={t.dials.clarity}
           value={clarity}
           onChange={setClarity}
-          accent={color.cyan}
+          accent={palette.cyan}
         />
         <Dial
           label={t.dials.tension}
           value={tension}
           onChange={setTension}
           inverted
-          accent={color.crimson}
+          accent={palette.crimson}
         />
 
         <View style={styles.sleep}>
@@ -100,7 +102,7 @@ export default function DailyReadScreen() {
             onChangeText={setSleep}
             keyboardType="decimal-pad"
             placeholder="7.5"
-            placeholderTextColor={color.inkFaint}
+            placeholderTextColor={palette.inkFaint}
             style={styles.sleepInput}
             returnKeyType="done"
             accessibilityLabel={t.sleepPrompt}
@@ -125,30 +127,32 @@ export default function DailyReadScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.xl, paddingBottom: space.xxxl },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    content: { padding: space.lg, gap: space.xl, paddingBottom: space.xxxl },
 
-  sleep: { gap: space.sm },
-  sleepLabel: { ...type.heading, color: color.ink },
-  sleepInput: {
-    ...type.body,
-    color: color.ink,
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    paddingHorizontal: space.lg,
-    height: 54,
-  },
+    sleep: { gap: space.sm },
+    sleepLabel: { ...type.heading, color: c.ink },
+    sleepInput: {
+      ...type.body,
+      color: c.ink,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      paddingHorizontal: space.lg,
+      height: 54,
+    },
 
-  save: {
-    backgroundColor: color.violet,
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    alignItems: 'center',
-  },
-  saveDisabled: { backgroundColor: color.surface2 },
-  saveText: { ...type.heading, color: '#0A0B12' },
-  pressed: { opacity: 0.75 },
-});
+    save: {
+      backgroundColor: c.violet,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+    },
+    saveDisabled: { backgroundColor: c.surface2 },
+    saveText: { ...type.heading, color: c.onAccent },
+    pressed: { opacity: 0.75 },
+  });

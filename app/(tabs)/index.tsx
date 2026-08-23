@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { NextStrike } from '../../src/components/NextStrike';
@@ -7,9 +7,13 @@ import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
 import { setTaskDone } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
-import { TAB_BAR_CLEARANCE, color, font, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, font, radius, space, type } from '../../src/theme/tokens';
+import type { Palette } from '../../src/theme/palettes';
 
 export default function Home() {
+  const { palette } = useHaki();
+
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   const router = useRouter();
   const { db } = useStore();
   const { reserve, cascade, intensity, day, t, read, training, next, quote, refresh } =
@@ -29,7 +33,7 @@ export default function Home() {
       style={styles.screen}
       contentContainerStyle={styles.content}
       refreshControl={
-        <RefreshControl refreshing={false} onRefresh={refresh} tintColor={color.inkDim} />
+        <RefreshControl refreshing={false} onRefresh={refresh} tintColor={palette.inkDim} />
       }
     >
       <Text style={styles.days}>{t.daysAtSea(day)}</Text>
@@ -45,7 +49,9 @@ export default function Home() {
 
       {cascade.message ? (
         <View style={[styles.warning, breach ? styles.warningBreach : styles.warningWatch]}>
-          <Text style={[styles.warningLabel, { color: breach ? color.crimson : color.warn }]}>
+          <Text
+            style={[styles.warningLabel, { color: breach ? palette.crimson : palette.warn }]}
+          >
             {breach ? 'Keystone slipping' : 'Keystone'}
           </Text>
           <Text style={styles.warningBody}>{cascade.message}</Text>
@@ -79,7 +85,10 @@ export default function Home() {
           </Text>
         </View>
         <Text
-          style={[styles.stripCount, { color: training.inGap ? color.warn : color.crimson }]}
+          style={[
+            styles.stripCount,
+            { color: training.inGap ? palette.warn : palette.crimson },
+          ]}
         >
           {training.sessionsThisWeek}/{training.weeklyTarget}
         </Text>
@@ -103,49 +112,51 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
-  days: { ...type.label, color: color.inkFaint },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
+    days: { ...type.label, color: c.inkFaint },
 
-  warning: { borderWidth: 1, borderRadius: radius.md, padding: space.lg, gap: space.xs },
-  warningBreach: { borderColor: color.crimson, backgroundColor: color.crimsonSoft },
-  warningWatch: { borderColor: color.warn, backgroundColor: color.warnSoft },
-  warningLabel: { ...type.label },
-  warningBody: { ...type.body, color: color.ink, lineHeight: 21 },
+    warning: { borderWidth: 1, borderRadius: radius.md, padding: space.lg, gap: space.xs },
+    warningBreach: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
+    warningWatch: { borderColor: c.warn, backgroundColor: c.warnSoft },
+    warningLabel: { ...type.label },
+    warningBody: { ...type.body, color: c.ink, lineHeight: 21 },
 
-  cta: {
-    backgroundColor: color.violet,
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    alignItems: 'center',
-    gap: 2,
-  },
-  ctaPressed: { opacity: 0.75 },
-  ctaText: { ...type.heading, color: '#0A0B12' },
-  ctaHint: { ...type.small, color: '#0A0B12', opacity: 0.7 },
+    cta: {
+      backgroundColor: c.violet,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+      gap: 2,
+    },
+    ctaPressed: { opacity: 0.75 },
+    ctaText: { ...type.heading, color: c.onAccent },
+    ctaHint: { ...type.small, color: c.onAccent, opacity: 0.7 },
 
-  secondary: {
-    borderWidth: 1,
-    borderColor: color.line,
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    alignItems: 'center',
-  },
-  secondaryText: { ...type.heading, color: color.ink },
+    secondary: {
+      borderWidth: 1,
+      borderColor: c.line,
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+    },
+    secondaryText: { ...type.heading, color: c.ink },
 
-  strip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.lg,
-  },
-  stripLabel: { ...type.label, color: color.inkFaint, marginBottom: 2 },
-  stripValue: { ...type.body, color: color.ink },
-  stripCount: { fontFamily: font.display, fontSize: 22, fontVariant: ['tabular-nums'] },
-});
+    strip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      padding: space.lg,
+    },
+    stripLabel: { ...type.label, color: c.inkFaint, marginBottom: 2 },
+    stripValue: { ...type.body, color: c.ink },
+    stripCount: { fontFamily: font.display, fontSize: 22, fontVariant: ['tabular-nums'] },
+  });

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useHaki } from '../../src/state/HakiProvider';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -11,7 +12,8 @@ import {
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '../../src/db/client';
 import { createEntry, deleteEntry, getEntry, updateEntry } from '../../src/db/repo';
-import { color, radius, space, type } from '../../src/theme/tokens';
+import { radius, space, type } from '../../src/theme/tokens';
+import type { Palette } from '../../src/theme/palettes';
 
 const AUTOSAVE_MS = 800;
 
@@ -34,6 +36,9 @@ const AUTOSAVE_MS = 800;
  *    editable, and the row is created on demand instead of gating typing.
  */
 export default function EntryScreen() {
+  const { palette } = useHaki();
+
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   const router = useRouter();
   const { db } = useStore();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -167,7 +172,7 @@ export default function EntryScreen() {
         // Native only — see the note at the top of this file.
         autoFocus={Platform.OS !== 'web' && id === 'new'}
         placeholder="Markdown. Whatever it is."
-        placeholderTextColor={color.inkFaint}
+        placeholderTextColor={palette.inkFaint}
         textAlignVertical="top"
         accessibilityLabel="Entry body"
       />
@@ -184,34 +189,36 @@ export default function EntryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  input: {
-    flex: 1,
-    ...type.body,
-    fontSize: 17,
-    lineHeight: 26,
-    color: color.ink,
-    padding: space.lg,
-  },
-  // Without the inset the label sits flush against the screen edge and clips.
-  deleteHit: { paddingHorizontal: space.md, paddingVertical: space.xs },
-  delete: { ...type.small, color: color.crimson },
-  error: {
-    ...type.small,
-    color: color.warn,
-    paddingHorizontal: space.lg,
-    paddingBottom: space.sm,
-  },
-  done: {
-    margin: space.lg,
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    alignItems: 'center',
-  },
-  doneText: { ...type.heading, color: color.ink },
-  pressed: { opacity: 0.75 },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    input: {
+      flex: 1,
+      ...type.body,
+      fontSize: 17,
+      lineHeight: 26,
+      color: c.ink,
+      padding: space.lg,
+    },
+    // Without the inset the label sits flush against the screen edge and clips.
+    deleteHit: { paddingHorizontal: space.md, paddingVertical: space.xs },
+    delete: { ...type.small, color: c.crimson },
+    error: {
+      ...type.small,
+      color: c.warn,
+      paddingHorizontal: space.lg,
+      paddingBottom: space.sm,
+    },
+    done: {
+      margin: space.lg,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+    },
+    doneText: { ...type.heading, color: c.ink },
+    pressed: { opacity: 0.75 },
+  });

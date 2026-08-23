@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -5,7 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useHaki } from '../state/HakiProvider';
 import type { Tab } from '../theme/strings';
-import { color, font, radius, space } from '../theme/tokens';
+import { font, radius, space } from '../theme/tokens';
+import type { Palette } from '../theme/palettes';
 
 /**
  * The floating glass bar.
@@ -20,7 +22,8 @@ import { color, font, radius, space } from '../theme/tokens';
  */
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { t } = useHaki();
+  const { t, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const tabs: Tab[] = [
     t.tabs.home,
@@ -38,7 +41,8 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
       <View style={styles.shadow}>
         <BlurView
           intensity={Platform.OS === 'android' ? 24 : 40}
-          tint="dark"
+          // Blurring dark over paper is what makes a light bar read as mud.
+          tint={palette.lightSurface ? 'light' : 'dark'}
           style={styles.bar}
           accessibilityRole="tablist"
         >
@@ -50,7 +54,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
             if (!tab) return null;
 
             const { options } = descriptors[route.key];
-            const tint = focused ? color.violet : color.inkFaint;
+            const tint = focused ? palette.violet : palette.inkFaint;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -93,47 +97,48 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: space.md,
-  },
-  // The shadow lives on a wrapper: BlurView clips its own overflow, so a
-  // shadow set on it would be cut off at the rounded corners.
-  shadow: {
-    borderRadius: radius.xl,
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 16,
-  },
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    borderRadius: radius.xl,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: color.glassEdge,
-    // The blur alone reads muddy over a near-black ground; this tints it back
-    // toward the app's own surface colour.
-    backgroundColor: color.glass,
-    paddingVertical: space.sm,
-    paddingHorizontal: space.xs,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 1,
-    paddingVertical: space.xs,
-    borderRadius: radius.lg,
-  },
-  tabActive: { backgroundColor: color.glassActive },
-  pressed: { opacity: 0.6 },
-  glyph: { fontFamily: font.displayBold, fontSize: 14, lineHeight: 19 },
-  label: { fontFamily: font.mono, fontSize: 9, letterSpacing: 0.6 },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    wrap: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      paddingHorizontal: space.md,
+    },
+    // The shadow lives on a wrapper: BlurView clips its own overflow, so a
+    // shadow set on it would be cut off at the rounded corners.
+    shadow: {
+      borderRadius: radius.xl,
+      shadowColor: '#000',
+      shadowOpacity: 0.5,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 16,
+    },
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+      borderRadius: radius.xl,
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.glassEdge,
+      // The blur alone reads muddy over a near-black ground; this tints it back
+      // toward the app's own surface colour.
+      backgroundColor: c.glass,
+      paddingVertical: space.sm,
+      paddingHorizontal: space.xs,
+    },
+    tab: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 1,
+      paddingVertical: space.xs,
+      borderRadius: radius.lg,
+    },
+    tabActive: { backgroundColor: c.glassActive },
+    pressed: { opacity: 0.6 },
+    glyph: { fontFamily: font.displayBold, fontSize: 14, lineHeight: 19 },
+    label: { fontFamily: font.mono, fontSize: 9, letterSpacing: 0.6 },
+  });

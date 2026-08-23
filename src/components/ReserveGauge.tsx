@@ -1,5 +1,8 @@
+import { useHaki } from '../state/HakiProvider';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { color, font, radius, space, type } from '../theme/tokens';
+import { font, radius, space, type } from '../theme/tokens';
+import type { Palette } from '../theme/palettes';
 import { reserveColor } from '../theme/tokens';
 import type { Reserve } from '../domain/willReserve';
 
@@ -28,7 +31,10 @@ const STATE_WORD: Record<Reserve['state'], string> = {
  * number stay exactly as legible at 5 as they are at 95.
  */
 export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props) {
-  const tone = reserveColor[reserve.state];
+  const { palette } = useHaki();
+
+  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const tone = reserveColor(palette)[reserve.state];
   const filled = reserve.value ?? 0;
 
   return (
@@ -36,7 +42,7 @@ export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props)
       style={[
         styles.card,
         {
-          borderColor: reserve.value === null ? color.line : tone,
+          borderColor: reserve.value === null ? palette.line : tone,
           shadowColor: tone,
           shadowOpacity: 0.55 * intensity,
           shadowRadius: 24 * intensity,
@@ -73,30 +79,31 @@ export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props)
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: space.xl,
-    gap: space.lg,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  label: { ...type.label, color: color.inkFaint },
-  readout: { flexDirection: 'row', alignItems: 'baseline', gap: space.md },
-  value: {
-    fontFamily: font.display,
-    fontSize: 64,
-    letterSpacing: -3,
-    fontVariant: ['tabular-nums'],
-  },
-  state: { ...type.heading, color: color.inkDim },
-  unknown: { ...type.body, color: color.inkDim, paddingVertical: space.md },
-  track: {
-    height: 6,
-    borderRadius: radius.pill,
-    backgroundColor: color.surface2,
-    overflow: 'hidden',
-  },
-  fill: { height: '100%', borderRadius: radius.pill },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderRadius: radius.lg,
+      padding: space.xl,
+      gap: space.lg,
+      shadowOffset: { width: 0, height: 0 },
+    },
+    label: { ...type.label, color: c.inkFaint },
+    readout: { flexDirection: 'row', alignItems: 'baseline', gap: space.md },
+    value: {
+      fontFamily: font.display,
+      fontSize: 64,
+      letterSpacing: -3,
+      fontVariant: ['tabular-nums'],
+    },
+    state: { ...type.heading, color: c.inkDim },
+    unknown: { ...type.body, color: c.inkDim, paddingVertical: space.md },
+    track: {
+      height: 6,
+      borderRadius: radius.pill,
+      backgroundColor: c.surface2,
+      overflow: 'hidden',
+    },
+    fill: { height: '100%', borderRadius: radius.pill },
+  });

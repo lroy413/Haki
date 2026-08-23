@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,11 +14,13 @@ import { Toggle } from '../../src/components/Toggle';
 import { useStore } from '../../src/db/client';
 import { setKeystone, setPlainMode, setSoundOn, setTraining } from '../../src/db/settings';
 import { useHaki } from '../../src/state/HakiProvider';
-import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, radius, space, type } from '../../src/theme/tokens';
+import type { Palette } from '../../src/theme/palettes';
 
 export default function SettingsScreen() {
   const { db, settings, refreshSettings } = useStore();
-  const { t, refresh } = useHaki();
+  const { t, refresh, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [threshold, setThreshold] = useState(String(settings.keystone.thresholdHours));
   const [target, setTarget] = useState(String(settings.keystone.targetHours));
@@ -105,7 +107,11 @@ export default function SettingsScreen() {
                 interrupting it.
               </Text>
             </View>
-            <Toggle value={settings.soundOn} onValueChange={toggleSound} tint={color.crimson} />
+            <Toggle
+              value={settings.soundOn}
+              onValueChange={toggleSound}
+              tint={palette.crimson}
+            />
           </View>
         </View>
 
@@ -191,6 +197,8 @@ function Field({
   numeric?: boolean;
   placeholder?: string;
 }) {
+  const { palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -199,7 +207,7 @@ function Field({
         onChangeText={onChangeText}
         keyboardType={numeric ? 'decimal-pad' : 'default'}
         placeholder={placeholder}
-        placeholderTextColor={color.inkFaint}
+        placeholderTextColor={palette.inkFaint}
         style={styles.input}
         accessibilityLabel={label}
       />
@@ -207,46 +215,48 @@ function Field({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
 
-  card: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.md,
-  },
-  cardTitle: { ...type.title, color: color.ink },
-  blurb: { ...type.small, color: color.inkDim, lineHeight: 20 },
+    card: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.md,
+    },
+    cardTitle: { ...type.title, color: c.ink },
+    blurb: { ...type.small, color: c.inkDim, lineHeight: 20 },
 
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
-  switchText: { flex: 1, gap: space.xs },
+    switchRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+    switchText: { flex: 1, gap: space.xs },
 
-  field: { gap: space.xs },
-  fieldLabel: { ...type.label, color: color.inkFaint, fontSize: 10 },
-  input: {
-    ...type.body,
-    color: color.ink,
-    backgroundColor: color.surface2,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.sm,
-    paddingHorizontal: space.md,
-    height: 44,
-  },
+    field: { gap: space.xs },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 10 },
+    input: {
+      ...type.body,
+      color: c.ink,
+      backgroundColor: c.surface2,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      height: 44,
+    },
 
-  save: {
-    backgroundColor: color.violet,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    alignItems: 'center',
-    marginTop: space.xs,
-  },
-  saveText: { ...type.body, color: '#0A0B12' },
-  pressed: { opacity: 0.75 },
+    save: {
+      backgroundColor: c.violet,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      alignItems: 'center',
+      marginTop: space.xs,
+    },
+    saveText: { ...type.body, color: c.onAccent },
+    pressed: { opacity: 0.75 },
 
-  footer: { ...type.small, color: color.inkFaint, textAlign: 'center' },
-});
+    footer: { ...type.small, color: c.inkFaint, textAlign: 'center' },
+  });

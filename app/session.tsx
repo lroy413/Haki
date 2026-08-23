@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,7 +17,8 @@ import { useHaki } from '../src/state/HakiProvider';
 import { gapClosedBy, returnMessage } from '../src/domain/training';
 import { play } from '../src/sound';
 import { todayKey } from '../src/domain/date';
-import { color, font, radius, space, type } from '../src/theme/tokens';
+import { font, radius, space, type } from '../src/theme/tokens';
+import type { Palette } from '../src/theme/palettes';
 
 const QUICK_KINDS = ['Push', 'Pull', 'Legs', 'Full body', 'Run', 'Conditioning'];
 
@@ -31,7 +32,8 @@ const QUICK_KINDS = ['Push', 'Pull', 'Legs', 'Full body', 'Run', 'Conditioning']
 export default function SessionScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t, refresh } = useHaki();
+  const { t, refresh, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [kind, setKind] = useState('');
   const [minutes, setMinutes] = useState('');
@@ -112,7 +114,7 @@ export default function SessionScreen() {
             value={kind}
             onChangeText={setKind}
             placeholder="Push"
-            placeholderTextColor={color.inkFaint}
+            placeholderTextColor={palette.inkFaint}
             style={styles.input}
             // Native only: iOS opens the keyboard for gesture-driven focus,
             // never for programmatic focus, and an already-focused field
@@ -144,7 +146,7 @@ export default function SessionScreen() {
             onChangeText={setMinutes}
             keyboardType="number-pad"
             placeholder="45"
-            placeholderTextColor={color.inkFaint}
+            placeholderTextColor={palette.inkFaint}
             style={styles.input}
             accessibilityLabel={t.trainingMinutes}
           />
@@ -154,7 +156,7 @@ export default function SessionScreen() {
           label={t.trainingIntensity}
           value={intensity}
           onChange={setIntensity}
-          accent={color.crimson}
+          accent={palette.crimson}
         />
 
         <View style={styles.field}>
@@ -164,7 +166,7 @@ export default function SessionScreen() {
             onChangeText={setNote}
             multiline
             placeholder="Optional"
-            placeholderTextColor={color.inkFaint}
+            placeholderTextColor={palette.inkFaint}
             style={[styles.input, styles.multiline]}
             accessibilityLabel={t.trainingNote}
           />
@@ -186,65 +188,67 @@ export default function SessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.xl, paddingBottom: space.xxxl },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    content: { padding: space.lg, gap: space.xl, paddingBottom: space.xxxl },
 
-  field: { gap: space.sm },
-  label: { ...type.heading, color: color.ink },
-  input: {
-    ...type.body,
-    color: color.ink,
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    paddingHorizontal: space.lg,
-    height: 54,
-  },
-  multiline: { height: 90, paddingTop: space.md, textAlignVertical: 'top' },
+    field: { gap: space.sm },
+    label: { ...type.heading, color: c.ink },
+    input: {
+      ...type.body,
+      color: c.ink,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      borderRadius: radius.md,
+      paddingHorizontal: space.lg,
+      height: 54,
+    },
+    multiline: { height: 90, paddingTop: space.md, textAlignVertical: 'top' },
 
-  quick: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  chip: {
-    borderWidth: 1,
-    borderColor: color.line,
-    backgroundColor: color.surface,
-    borderRadius: radius.pill,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-  },
-  chipOn: { borderColor: color.crimson, backgroundColor: color.crimsonSoft },
-  chipText: { ...type.small, color: color.inkDim },
-  chipTextOn: { color: color.crimson },
+    quick: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+    chip: {
+      borderWidth: 1,
+      borderColor: c.line,
+      backgroundColor: c.surface,
+      borderRadius: radius.pill,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
+    },
+    chipOn: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
+    chipText: { ...type.small, color: c.inkDim },
+    chipTextOn: { color: c.crimson },
 
-  save: {
-    backgroundColor: color.crimson,
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    paddingHorizontal: space.lg,
-    alignItems: 'center',
-  },
-  // Centred rather than stretched, so it needs a width of its own.
-  returnDone: { paddingHorizontal: space.xxxl, minWidth: 180, marginTop: space.sm },
-  saveDisabled: { backgroundColor: color.surface2 },
-  saveText: { ...type.heading, color: '#0A0B12' },
-  pressed: { opacity: 0.75 },
+    save: {
+      backgroundColor: c.crimson,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.lg,
+      alignItems: 'center',
+    },
+    // Centred rather than stretched, so it needs a width of its own.
+    returnDone: { paddingHorizontal: space.xxxl, minWidth: 180, marginTop: space.sm },
+    saveDisabled: { backgroundColor: c.surface2 },
+    saveText: { ...type.heading, color: c.onAccent },
+    pressed: { opacity: 0.75 },
 
-  returnScreen: {
-    flex: 1,
-    backgroundColor: color.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: space.xl,
-    gap: space.lg,
-  },
-  returnKanji: { fontFamily: font.display, fontSize: 72, color: color.violet },
-  returnTitle: { ...type.display, color: color.ink },
-  returnBody: {
-    ...type.body,
-    color: color.inkDim,
-    textAlign: 'center',
-    lineHeight: 23,
-    maxWidth: 320,
-  },
-});
+    returnScreen: {
+      flex: 1,
+      backgroundColor: c.bg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: space.xl,
+      gap: space.lg,
+    },
+    returnKanji: { fontFamily: font.display, fontSize: 72, color: c.violet },
+    returnTitle: { ...type.display, color: c.ink },
+    returnBody: {
+      ...type.body,
+      color: c.inkDim,
+      textAlign: 'center',
+      lineHeight: 23,
+      maxWidth: 320,
+    },
+  });
