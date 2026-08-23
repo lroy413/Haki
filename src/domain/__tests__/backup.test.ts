@@ -263,6 +263,20 @@ describe('key hygiene', () => {
         completed: 0,
         createdAt: 1,
       },
+      sitSession: {
+        depth: 'presence',
+        day: '2026-08-22',
+        startedAt: 1,
+        endedAt: null,
+        completed: 0,
+        createdAt: 1,
+      },
+      course: {
+        day: '2026-08-22',
+        heading: 'One long thing, properly',
+        createdAt: 1,
+        updatedAt: 1,
+      },
       carried: {
         name: 'Someone',
         relationship: null,
@@ -287,6 +301,50 @@ describe('key hygiene', () => {
       // eslint-disable-next-line no-control-regex
       expect(/[\x00-\x08\x0e-\x1f]/.test(key)).toBe(false);
     }
+  });
+});
+
+describe('the tables added in v5', () => {
+  const sit = (startedAt: number) => ({
+    depth: 'presence',
+    day: '2026-08-22',
+    startedAt,
+    endedAt: startedAt + 300_000,
+    completed: 1,
+    createdAt: startedAt,
+  });
+  const course = (day: string, heading = 'One long thing, properly') => ({
+    day,
+    heading,
+    createdAt: 1,
+    updatedAt: 1,
+  });
+
+  it('travels with everything else', () => {
+    // Sits and headings are as much a record of the days as the entries are.
+    // A backup that quietly dropped them would lose them on the move to
+    // native, which is the exact thing this file exists to prevent.
+    const original = tables({ sitSession: [sit(1000)], course: [course('2026-08-22')] });
+    const result = parseBackup(serializeBackup(buildBackup(original, 5, 0)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.sitSession).toEqual(original.sitSession);
+    expect(result.backup.data.course).toEqual(original.course);
+  });
+
+  it('imports a second time without stacking a day a second heading', () => {
+    const existing = [course('2026-08-22')];
+    // Re-exported after the heading was edited: same day, different text.
+    const incoming = [course('2026-08-22', 'Rest, on purpose')];
+    const plan = planMerge(existing, incoming, KEYS.course);
+    expect(plan.insert).toHaveLength(0);
+    expect(plan.skipped).toBe(1);
+  });
+
+  it('keys a sit on when it started, so two in one day both survive', () => {
+    const plan = planMerge([sit(1000)], [sit(1000), sit(9000)], KEYS.sitSession);
+    expect(plan.insert).toHaveLength(1);
+    expect(plan.insert[0].startedAt).toBe(9000);
   });
 });
 

@@ -3,6 +3,28 @@ import Svg, { Ellipse, G, Path } from 'react-native-svg';
 /**
  * The fist. Luffy's instrument, and the shape of the default impact frame.
  *
+ * ---------------------------------------------------------------------------
+ * REPLACING THIS DRAWING
+ *
+ * Hand-plotted, and the second-weakest thing in the app after the ship. If you
+ * draw a better one, swapping it in needs nothing outside this file. The
+ * contract is:
+ *
+ *   - `viewBox="0 0 100 100"`, `preserveAspectRatio="xMidYMid meet"`. The
+ *     lightning in `../Lightning.tsx` crackles out of the same centre at the
+ *     same aspect, so a drawing that keeps the box keeps the crackle.
+ *   - Three colours, all props, no literals: `fill` is the body, `rim` is the
+ *     aura, `sheen` is the interior line. The impact frame inverts between its
+ *     two frames and the whole app moves through four palettes — a baked-in
+ *     hex is right in exactly one of them, and there is a test.
+ *   - Composition is a punch seen from the receiving end. That is what every
+ *     reference impact frame draws, and it is why the wrist runs off the
+ *     bottom-right rather than being contained.
+ *
+ * A theme swaps this file, not the layer above it: the field owns the
+ * violence, the instrument owns the shape. Zoro's is a sword.
+ * ---------------------------------------------------------------------------
+ *
  * A punch seen from the receiving end — the four curled fingers fill the
  * face, the thumb locks across beneath them, the back of the hand recedes to
  * a wrist that runs off the frame. That is the composition of every graphic

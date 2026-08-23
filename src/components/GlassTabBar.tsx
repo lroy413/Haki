@@ -13,9 +13,11 @@ import type { Palette } from '../theme/palettes';
  * The floating glass bar.
  *
  * It hovers over the content rather than sitting in a docked strip, so the
- * dark ground and the Reserve glow carry all the way to the bottom of the
- * screen. Every scroll view leaves `TAB_BAR_CLEARANCE` at the end so nothing
- * ends up trapped underneath it.
+ * ground and the Reserve glow carry all the way to the bottom of the display.
+ * Every tab screen takes its bottom padding from `useTabInsets`, which leaves
+ * `TAB_BAR_CLEARANCE` plus the home indicator, so nothing ends up trapped
+ * underneath it. The tabs have no header for the same reason at the other
+ * end: the scene runs from the top of the display down to here.
  *
  * Each tab carries the kanji above and the English word below. Plain mode
  * ships an empty glyph, which collapses a tab to the English word alone.

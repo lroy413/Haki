@@ -1,4 +1,5 @@
 import type { DayKey } from './date';
+import { SITS } from './stillness';
 
 /**
  * Hardening — how dark the app is, and why.
@@ -34,6 +35,8 @@ export type HardeningLevel = 0 | 1 | 2 | 3;
 
 /** What the day has actually had in it. */
 export type Acts = {
+  /** A heading set for today. */
+  course: boolean;
   /** The Daily Read, saved. */
   read: boolean;
   /** Journal entries written today. */
@@ -44,14 +47,18 @@ export type Acts = {
   trained: number;
   /** Minutes spent in gear today. */
   gearMinutes: number;
+  /** Minutes sat still today. */
+  satMinutes: number;
 };
 
 export const NO_ACTS: Acts = {
+  course: false,
   read: false,
   entries: 0,
   struck: 0,
   trained: 0,
   gearMinutes: 0,
+  satMinutes: 0,
 };
 
 /**
@@ -62,6 +69,8 @@ export const NO_ACTS: Acts = {
  * missing; a struck task is the lightest because there can be many of them.
  */
 const WEIGHT = {
+  /** Cheap to do and worth doing, so: real, and small. */
+  course: 1,
   read: 2,
   entry: 2,
   struck: 1,
@@ -69,7 +78,23 @@ const WEIGHT = {
   /** One per full Gear 2. */
   gearBlock: 1,
   gearBlockMinutes: 25,
+  /**
+   * Flat, and equal to a journal entry.
+   *
+   * Deliberately not per-minute. Fifteen minutes of sitting is not three times
+   * the act that five minutes is — it is the same act, held longer, and paying
+   * by the minute would turn a practice into a race against yesterday.
+   */
+  sat: 2,
 } as const;
+
+/**
+ * The shortest sit on offer is what counts as having sat.
+ *
+ * Read from the shortest depth rather than written down again, so the two can
+ * never drift apart.
+ */
+const SAT_COUNTS_FROM = SITS.presence.minutes;
 
 /** Weight at which each level begins. Level 0 is "nothing yet today". */
 export const THRESHOLDS: Record<Exclude<HardeningLevel, 0>, number> = {
@@ -80,11 +105,13 @@ export const THRESHOLDS: Record<Exclude<HardeningLevel, 0>, number> = {
 
 export function weightOf(acts: Acts): number {
   return (
+    (acts.course ? WEIGHT.course : 0) +
     (acts.read ? WEIGHT.read : 0) +
     acts.entries * WEIGHT.entry +
     acts.struck * WEIGHT.struck +
     acts.trained * WEIGHT.trained +
-    Math.floor(acts.gearMinutes / WEIGHT.gearBlockMinutes) * WEIGHT.gearBlock
+    Math.floor(acts.gearMinutes / WEIGHT.gearBlockMinutes) * WEIGHT.gearBlock +
+    (acts.satMinutes >= SAT_COUNTS_FROM ? WEIGHT.sat : 0)
   );
 }
 

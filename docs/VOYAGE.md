@@ -128,16 +128,158 @@ code and obvious in a screenshot.
 The architecture is the theme system's seam: the field owns the violence,
 the instrument owns the shape. Luffy's is a fist. Zoro's will be a sword.
 
+## The day, said out loud
+
+The next session opened on a real problem, stated plainly: _"Anything I do
+should count toward some tracking… journaling once in the morning or at night,
+a 5 or 10 or 15 minute meditation, and setting the day's intention. Not sure
+how to tie it in to our system."_
+
+The answer was already half-built and completely invisible. Hardening had been
+counting every act since the day it shipped — and you could watch the app go
+black without ever learning what had done it. So the three new practices got
+built, and the mechanic got a face.
+
+**The course** is one line saying where the day is pointed, set in the morning
+or the night before (two buttons, because the night-before version is the one
+that actually works). It is never marked. Nothing asks at the end of the day
+whether it was held, because the moment an intention is graded it becomes a
+task you failed to finish.
+
+**Stillness** is 見聞色 sat down — the other lens, five, ten or fifteen minutes,
+named for what Observation gives you as it deepens: Presence, Intent, and A
+moment ahead. Where the Gears carry honest costs, this carries none: nobody has
+ever been harmed by sitting quietly a second time. A ring breathes at four
+seconds out, one held, six back in, with no words on it. The Den Den Mushi,
+uploaded weeks earlier and never given a home, became the bell.
+
+**The day** is the card that makes hardening legible — six practices, two to a
+row, each a way in. The one rule that took the longest to find: an untouched
+practice shows its **offer**, not its absence. Not "not yet" — _"5, 10 or 15"_.
+Six things you have not done is a checklist, which is a machine for producing
+six small failures every morning. Six things available is a card. That
+difference is one string per row, and it is the entire feature. At the top
+level it says there is nothing left to darken, because the failure mode of
+making a mechanic visible is that someone starts farming it.
+
+The weights were set so the daily practice alone reaches the settled black —
+course, read, a sit, an entry, one struck task — with no training and no gears
+in it. A day made entirely of small things is a full day, and the palette had
+to agree or the card would have been lying.
+
+The same session fixed a bug that had been quietly eating the habit it was
+supposed to build: **the checkbox took three taps.** Not one of them missed. A
+strike writes one row and then reloads eleven queries down a single synchronous
+channel, and until all of it landed the tick was not drawn — so the box read as
+broken, got tapped again, and a second tap on a checkbox is a perfectly good
+undo. The fix is now a standing rule: the screen answers the finger, not the
+write.
+
+## The ship, the lightning, and the second door
+
+Three from the charted list, in one pass.
+
+**The Logbook got a second door.** The editor was the only way in: a full
+screen with a cursor blinking in an empty document, which is a demand for a
+subject, a length and a reason to have opened it. So the tab now carries a
+one-line field that asks for none of that. Type a line, tap once, it folds into
+today's entry and you have not left the screen. Lines through a day accumulate
+into one entry rather than one each, because that is what a day's log is — and
+because the practice card counts entries, so three lines on a Tuesday is one
+Tuesday.
+
+**The black lightning landed on the impact frame**, which is where the
+reference puts it: bolts crackling off the contact point around the coated
+fist, thrown further the longer the top of the list has been getting struck.
+Two things had to be got right and both took a screenshot to see. The bolts
+were first drawn round-capped and four units wide, and rendered as fat pink
+tubes; lightning has corners, so they are mitred and butt-capped now. And the
+core was taking the fist's colour — but the frame _inverts_, so on the flash
+where the fist is pale the black lightning came out white. The core is now the
+darkest colour the palette owns, whichever frame is up: black with a hot rim
+against the light frame, and against the dark one the core sinks into the
+ground and the rim is all you see, exactly as the animators draw it.
+
+Catching it at all needed a lesson about the tooling: `clock.install()` fakes
+the timers but leaves them ticking with real time, and a screenshot takes
+longer than a 110ms flash. `clock.pauseAt()` freezes it. Both frames
+photographed on the first try after that.
+
+**The Thousand Sunny sails the top of the home screen** — and never moves. The
+obvious hardening meter is a bar with a boat on it, which is a progress bar in
+fancy dress, and the rule against scoring hardening binds the thing that draws
+it. So the ship stays where it is and its _state_ changes: at anchor with the
+canvas furled, then under way, then making way, then running with spray off the
+bow. At anchor, not adrift — a ship at anchor at seven in the morning is a ship
+about to leave, and this app does not own a picture of failure.
+
+It took nine drawing passes, and the ones that mattered came after the owner
+sent silhouette references mid-build. Those settled four things every earlier
+pass had wrong: **she faces left**, lion at the bow; the hull is a **deep
+crescent** with both ends swept up, not a bowl and certainly not the four-unit
+canoe of the third pass; the sails hang **clear of the deck**, because canvas
+set flush to a hull merges with it and the rig reads as two buildings on a
+barge; and she has **crow's nests**, the one detail that says _this_ ship
+rather than any ship.
+
+Everything else was faults invisible in the code and obvious in a screenshot: a
+figurehead that was unmistakably a duck (a circle with a pointed muzzle is a
+beak — the mane spikes are what make it a lion, and they are also a sun), sails
+drawn as lenses that rendered as leaves, sails so wide they merged into a
+deckhouse, furled canvas drawn as its own ellipse that blobbed into the
+platform above it, and a wake of three level rules that read as a barcode. One
+pass silently did nothing at all: a string replacement whose target prettier
+had reflowed, applied without checking it matched. The band is full-bleed to
+both screen edges, which is what the previous session's edge-to-edge work
+bought.
+
+## The weather, and a seam for a better hand
+
+The owner's verdict on the ship and the fist was fair: _"I may draw the SVGs
+myself in Illustrator and add them later, because no offense but you're
+struggling with accurate renderings."_ True, and worth building for rather
+than arguing with. Both drawings now carry a **REPLACING THIS DRAWING** block
+naming the viewBox, the aspect, the colour props and what the composition has
+to keep — so a proper redraw drops in without touching a line above it.
+
+The more useful half of that was separating what is a _drawing_ from what is a
+_system_. The Sunny's water moved into its own file, because swell,
+wavelength, phase and how much of it is running are not things anyone redraws
+by hand — and because throwing away a working sea to replace a boat would be
+absurd. The two stack in one coordinate system and align exactly.
+
+Which freed the sea to get good. It is three runs of swell now, at different
+depths and wavelengths and opposed phases, so they never line up into stripes —
+shorter and deeper as they come toward you, which is the whole of perspective
+at this size. At zero amplitude every segment is flat, so **calm water is the
+same code with the wind taken out of it** rather than a special case. Caps ride
+on the runs instead of floating between them, which is where they were reading
+as clutter.
+
+And the lightning came inside. It leaks now, as the day hardens: nothing at all
+on an unhardened morning, a flicker every half-minute or so once there is
+something in the day, something closer to a storm by the end of one that had a
+lot. Thin bolts thrown from somewhere different each time, over the content
+rather than behind it — every screen paints its own opaque ground, so behind
+would be invisible — at an opacity low enough to read as distant sky rather
+than as interface.
+
+Two limits are in the domain with tests behind them, because this is the one
+effect in the app that could genuinely hurt somebody. It is **never a strobe**:
+a floor on the interval sits far above the three-flashes-a-second line that
+photosensitive-seizure guidance draws, and a future level that wanted to be
+exciting has to argue with a test. And it stays decoration: plain mode,
+reduced motion, and a low Will Reserve each turn it off completely.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Eleven PRs
-merged, 273 tests, four palettes, seven sounds, sixty quotes, one
-principle held everywhere: the app rewards the act and never punishes the
-absence.
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** 404 tests,
+four palettes, seven sounds, sixty quotes, one principle held everywhere: the
+app rewards the act and never punishes the absence.
 
-**Charted next:** the Logbook (Oden kept one — journaling renamed, plus a
-way in that asks nothing), the two lightnings (small black bolts on
-Armament impact; Conqueror's leaking colour that grows with will), the
-Thousand Sunny sailing the top of the home screen as the hardening meter,
-the Log Pose as the finish-one-thing mechanic, Conqueror's
-unlock-then-master, and the Zoro theme.
+**Charted next:** the second lightning — Conqueror's, which leaks colour
+continuously and grows with the will behind it, and which needs the
+Conqueror's unlock before it means anything; that unlock itself, rare to have
+and rarer to master; the Log Pose as the finish-one-thing mechanic; and the
+Zoro theme, where the field keeps the violence and the instrument becomes a
+sword.

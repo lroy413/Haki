@@ -33,6 +33,31 @@ describe('weight', () => {
   it('adds acts together', () => {
     expect(weightOf(acts({ read: true, struck: 2, trained: 1 }))).toBe(2 + 2 + 3);
   });
+
+  it('pays for sitting flat, never by the minute', () => {
+    // Fifteen minutes of sitting is the same act as five, held longer. Paying
+    // per minute would turn a practice into a race against yesterday.
+    expect(weightOf(acts({ satMinutes: 5 }))).toBe(weightOf(acts({ satMinutes: 15 })));
+    expect(weightOf(acts({ satMinutes: 60 }))).toBe(weightOf(acts({ satMinutes: 5 })));
+  });
+
+  it('starts paying for a sit at the shortest one on offer', () => {
+    expect(weightOf(acts({ satMinutes: 4 }))).toBe(0);
+    expect(weightOf(acts({ satMinutes: 5 }))).toBeGreaterThan(0);
+  });
+
+  it('counts a heading, and counts it small', () => {
+    expect(weightOf(acts({ course: true }))).toBe(1);
+    expect(weightOf(acts({ course: true }))).toBeLessThan(weightOf(acts({ read: true })));
+  });
+
+  it('reaches the settled dark on the daily practice alone', () => {
+    // Course, read, a sit, an entry and one struck task — no training, no
+    // gears. A day made entirely of the small things is a full day, and the
+    // palette has to agree or the card is telling a lie.
+    const day = acts({ course: true, read: true, satMinutes: 5, entries: 1, struck: 1 });
+    expect(levelFor(day)).toBe(3);
+  });
 });
 
 describe('levelFor', () => {

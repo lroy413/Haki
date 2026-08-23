@@ -118,6 +118,30 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS gear_session_day_idx ON gear_session (day);
     `,
   },
+  {
+    version: 5,
+    up: `
+      CREATE TABLE IF NOT EXISTS sit_session (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        depth       TEXT    NOT NULL,
+        day         TEXT    NOT NULL,
+        started_at  INTEGER NOT NULL,
+        ended_at    INTEGER,
+        completed   INTEGER NOT NULL DEFAULT 0,
+        created_at  INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS sit_session_day_idx ON sit_session (day);
+
+      CREATE TABLE IF NOT EXISTS course (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        day         TEXT    NOT NULL,
+        heading     TEXT    NOT NULL,
+        created_at  INTEGER NOT NULL,
+        updated_at  INTEGER NOT NULL
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS course_day_idx ON course (day);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

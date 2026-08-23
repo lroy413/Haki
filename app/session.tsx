@@ -94,6 +94,7 @@ export default function SessionScreen() {
         <Text style={styles.returnBody}>{returned}</Text>
         <Pressable
           onPress={() => router.back()}
+          accessibilityRole="button"
           style={({ pressed }) => [styles.save, styles.returnDone, pressed && styles.pressed]}
         >
           <Text style={styles.saveText}>Good</Text>
@@ -127,6 +128,7 @@ export default function SessionScreen() {
               <Pressable
                 key={q}
                 onPress={() => setKind(q)}
+                accessibilityRole="button"
                 style={({ pressed }) => [
                   styles.chip,
                   kind === q && styles.chipOn,
@@ -175,6 +177,8 @@ export default function SessionScreen() {
         <Pressable
           onPress={save}
           disabled={!canSave}
+          accessibilityRole="button"
+          accessibilityLabel="Save this session"
           style={({ pressed }) => [
             styles.save,
             !canSave && styles.saveDisabled,

@@ -98,14 +98,6 @@ export const task = sqliteTable(
 );
 
 /**
- * Inherited Will — the people whose dreams you carry.
- *
- * A record, not a mechanic. Nothing reads this table to nag, score, or
- * motivate; the surfacing logic (at Road Poneglyph milestones and at the
- * weekly Setting Sail) lands in v2. Until then it is somewhere to write it
- * down, opened only on the days you choose to open it.
- */
-/**
  * One row per focus session. `started_at` is the source of truth for elapsed
  * time — nothing ticks, so closing the app mid-gear loses nothing.
  *
@@ -126,6 +118,56 @@ export const gearSession = sqliteTable(
   (t) => [index('gear_session_day_idx').on(t.day)],
 );
 
+/**
+ * One sit per row. Same shape as `gear_session` and for the same reason:
+ * `started_at` is the truth about elapsed time, so the phone can lock, the app
+ * can be killed, and the answer is still right when it comes back.
+ *
+ * Unlike a gear, nothing hangs off `completed` — sitting has no costs. It is
+ * recorded because ending early and running out are different things, and the
+ * screen says something different for each.
+ */
+export const sitSession = sqliteTable(
+  'sit_session',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    depth: text('depth').notNull(),
+    day: text('day').notNull(),
+    startedAt: integer('started_at').notNull(),
+    endedAt: integer('ended_at'),
+    completed: integer('completed').notNull().default(0),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('sit_session_day_idx').on(t.day)],
+);
+
+/**
+ * The day's heading. One row per day, so setting it again replaces it rather
+ * than stacking — a course is the current answer, not a history of answers.
+ *
+ * Rows for days in the future are ordinary and expected: setting tomorrow's
+ * heading before bed is the flow this is actually for.
+ */
+export const course = sqliteTable(
+  'course',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    day: text('day').notNull(),
+    heading: text('heading').notNull(),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (t) => [uniqueIndex('course_day_idx').on(t.day)],
+);
+
+/**
+ * Inherited Will — the people whose dreams you carry.
+ *
+ * A record, not a mechanic. Nothing reads this table to nag, score, or
+ * motivate; the surfacing logic (at Road Poneglyph milestones and at the
+ * weekly Setting Sail) lands in v2. Until then it is somewhere to write it
+ * down, opened only on the days you choose to open it.
+ */
 export const carried = sqliteTable('carried', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -152,3 +194,5 @@ export type CarriedRow = typeof carried.$inferSelect;
 export type TrainingSessionRow = typeof trainingSession.$inferSelect;
 export type TaskRow = typeof task.$inferSelect;
 export type GearSessionRow = typeof gearSession.$inferSelect;
+export type SitSessionRow = typeof sitSession.$inferSelect;
+export type CourseRow = typeof course.$inferSelect;

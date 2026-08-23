@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { play } from '../../src/sound';
 import { Emission } from '../../src/components/Emission';
+import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { fireImpact } from '../../src/impact';
 import { useStore } from '../../src/db/client';
 import {
@@ -47,7 +48,7 @@ import {
   type GearSession,
 } from '../../src/domain/gears';
 import { todayKey } from '../../src/domain/date';
-import { TAB_BAR_CLEARANCE, font, radius, space, type } from '../../src/theme/tokens';
+import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
 /** Estimates you can pick without thinking. Typing a number is a decision too. */
@@ -66,6 +67,7 @@ export default function ArmamentScreen() {
   const { db } = useStore();
   const { t, training, load, refresh, plainMode, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  const pad = useTabInsets();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
@@ -102,12 +104,16 @@ export default function ArmamentScreen() {
     await reload();
   }
 
-  async function toggleDone(taskItem: Task) {
-    const marking = taskItem.doneAt === null;
-    // Only on the way to done — an undo should not sound like an achievement.
-    if (marking) play('armamentStrike');
-    void Haptics.selectionAsync();
-    await setTaskDone(db, taskItem.id, marking);
+  /**
+   * The row says what it wants; this only writes it.
+   *
+   * It used to read `doneAt` and flip whatever it found, which is a
+   * read-modify-write against a row the screen may not have reloaded yet —
+   * two quick taps both saw "open" and both wrote "done". Taking the value
+   * as an argument makes the tap and the write agree by construction.
+   */
+  async function toggleDone(taskItem: Task, next: boolean) {
+    await setTaskDone(db, taskItem.id, next);
     await reload();
   }
 
@@ -146,7 +152,12 @@ export default function ArmamentScreen() {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[styles.content, pad]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <PageHeading title={t.trainingTitle} />
+
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
           <Text style={styles.sectionLabel}>{t.todayLoad}</Text>
@@ -174,7 +185,7 @@ export default function ArmamentScreen() {
             key={item.id}
             task={item}
             done={done}
-            onToggle={() => toggleDone(item)}
+            onToggle={(next) => toggleDone(item, next)}
             onSecondary={done ? undefined : () => moveTo(item, null)}
             secondaryLabel={done ? undefined : 'Later'}
           />
@@ -259,7 +270,7 @@ export default function ArmamentScreen() {
               <TaskRow
                 key={item.id}
                 task={item}
-                onToggle={() => toggleDone(item)}
+                onToggle={(next) => toggleDone(item, next)}
                 onSecondary={() => moveTo(item, todayKey())}
                 secondaryLabel="Today"
                 onRemove={() => remove(item)}
@@ -389,7 +400,7 @@ function TaskRow({
   done,
 }: {
   task: Task;
-  onToggle: () => void;
+  onToggle: (next: boolean) => void;
   onSecondary?: () => void;
   secondaryLabel?: string;
   onRemove?: () => void;
@@ -400,42 +411,74 @@ function TaskRow({
   // Only on the way to done. Undoing something is not an act of will.
   const [strikes, setStrikes] = useState(0);
 
+  /**
+   * What the box shows *now*, ahead of the database.
+   *
+   * Striking a task writes one row and then reloads eleven queries, every one
+   * of them going through the single synchronous channel expo-sqlite has on
+   * the web. Until all of that lands, the tick is not drawn — so the box read
+   * as broken and got tapped again, and a second tap on a checkbox is a
+   * perfectly good "undo", so it landed as one. Three taps to check a box,
+   * and not one of them missed.
+   *
+   * The box answers the finger, not the write. `pending` is what was just
+   * asked for, and it is dropped the moment the stored value agrees.
+   */
+  const [pending, setPending] = useState<boolean | null>(null);
+  const checked = pending ?? !!done;
+
+  useEffect(() => {
+    if (pending !== null && pending === !!done) setPending(null);
+  }, [pending, done]);
+
+  function strike() {
+    const next = !checked;
+    setPending(next);
+    void Haptics.selectionAsync();
+    // Only on the way to done — an undo should not sound like an achievement.
+    if (next) {
+      play('armamentStrike');
+      setStrikes((n) => n + 1);
+      fireImpact();
+    }
+    onToggle(next);
+  }
+
   return (
     <Emission
       trigger={strikes}
       radius={radius.md}
-      style={StyleSheet.flatten([styles.task, done && styles.taskDone])}
+      style={StyleSheet.flatten([styles.task, checked && styles.taskDone])}
     >
+      {/*
+        The whole row is the target, not the 26pt box sitting in it. Even with
+        hit slop that box was under the 44pt floor, and a checklist you have to
+        aim at is a checklist that gets abandoned.
+      */}
       <Pressable
-        onPress={() => {
-          if (!done) {
-            setStrikes((n) => n + 1);
-            fireImpact();
-          }
-          onToggle();
-        }}
+        onPress={strike}
         accessibilityRole="checkbox"
-        accessibilityState={{ checked: !!done }}
-        accessibilityLabel={`${done ? 'Undo' : 'Done'}: ${task.title}`}
-        hitSlop={8}
-        style={({ pressed }) => [styles.box, done && styles.boxOn, pressed && styles.pressed]}
+        accessibilityState={{ checked }}
+        accessibilityLabel={`${checked ? 'Undo' : 'Done'}: ${task.title}`}
+        style={({ pressed }) => [styles.strike, pressed && styles.pressed]}
       >
-        {done ? <Text style={styles.tick}>✓</Text> : null}
-      </Pressable>
+        <View style={[styles.box, checked && styles.boxOn]}>
+          {checked ? <Text style={styles.tick}>✓</Text> : null}
+        </View>
 
-      <View style={styles.taskBody}>
-        <Text style={[styles.taskTitle, done && styles.taskTitleDone]} numberOfLines={2}>
-          {task.title}
-        </Text>
-        <Text style={styles.taskMinutes}>{formatMinutes(task.minutes)}</Text>
-      </View>
+        <View style={styles.taskBody}>
+          <Text style={[styles.taskTitle, checked && styles.taskTitleDone]} numberOfLines={2}>
+            {task.title}
+          </Text>
+          <Text style={styles.taskMinutes}>{formatMinutes(task.minutes)}</Text>
+        </View>
+      </Pressable>
 
       {onSecondary && secondaryLabel ? (
         <Pressable
           onPress={onSecondary}
           accessibilityRole="button"
           accessibilityLabel={`${secondaryLabel}: ${task.title}`}
-          hitSlop={6}
           style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
         >
           <Text style={styles.secondaryText}>{secondaryLabel}</Text>
@@ -447,7 +490,6 @@ function TaskRow({
           onPress={onRemove}
           accessibilityRole="button"
           accessibilityLabel={`Remove: ${task.title}`}
-          hitSlop={6}
           style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
         >
           <Text style={styles.removeText}>Drop</Text>
@@ -477,7 +519,7 @@ function Stat({ label, value, tone }: { label: string; value: string | null; ton
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
-    content: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE },
+    content: { padding: space.lg, gap: space.sm },
 
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sectionLabel: { ...type.label, color: c.inkFaint },
@@ -493,17 +535,26 @@ const makeStyles = (c: Palette) =>
     /* ------------------------------------------------------------- a task */
     task: {
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.md,
+      alignItems: 'stretch',
       backgroundColor: c.surface,
       borderWidth: 1,
       borderColor: c.line,
       borderTopColor: c.specular,
       borderRadius: radius.md,
-      paddingVertical: space.md,
-      paddingHorizontal: space.md,
     },
     taskDone: { opacity: 0.45 },
+    // The padding lives on the press target rather than the card, so the
+    // whole face of the row is tappable rather than a box inside it.
+    strike: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      minHeight: 56,
+      paddingVertical: space.md,
+      paddingLeft: space.md,
+      paddingRight: space.sm,
+    },
     box: {
       width: 26,
       height: 26,
@@ -519,7 +570,11 @@ const makeStyles = (c: Palette) =>
     taskTitle: { ...type.body, fontSize: 16, color: c.ink },
     taskTitleDone: { textDecorationLine: 'line-through', color: c.inkDim },
     taskMinutes: { ...type.mono, fontSize: 11, color: c.inkFaint },
-    secondary: { paddingHorizontal: space.sm, paddingVertical: space.xs },
+    secondary: {
+      justifyContent: 'center',
+      paddingLeft: space.sm,
+      paddingRight: space.md,
+    },
     secondaryText: { ...type.mono, fontSize: 11, color: c.cyan },
     removeText: { ...type.mono, fontSize: 11, color: c.inkFaint },
 

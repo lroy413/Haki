@@ -1,22 +1,27 @@
 import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { CourseLine } from '../../src/components/CourseLine';
+import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
+import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
 import { QuoteLine } from '../../src/components/QuoteLine';
+import { SeaBand } from '../../src/components/SeaBand';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
 import { setTaskDone } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
-import { TAB_BAR_CLEARANCE, font, radius, space, type } from '../../src/theme/tokens';
+import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
 export default function Home() {
   const { palette } = useHaki();
 
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  const pad = useTabInsets();
   const router = useRouter();
   const { db } = useStore();
-  const { reserve, cascade, intensity, day, t, read, training, next, quote, refresh } =
+  const { reserve, cascade, intensity, day, t, read, training, next, quote, course, refresh } =
     useHaki();
 
   // Coming back from the Daily Read modal should show the new number at once.
@@ -31,21 +36,46 @@ export default function Home() {
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, pad]}
       refreshControl={
         <RefreshControl refreshing={false} onRefresh={refresh} tintColor={palette.inkDim} />
       }
     >
-      <Text style={styles.days}>{t.daysAtSea(day)}</Text>
+      {/* Wordmark and day count on one line, the way a masthead carries its
+          date. Two stacked rows for six words was the header's habit, not a
+          layout. */}
+      <PageHeading title={t.appName} trailing={t.daysAtSea(day)} />
+
+      {/* The day, as a ship. It never moves along anything — see
+          `domain/practice.ts`. */}
+      <SeaBand />
 
       <QuoteLine quote={quote} />
 
-      <ReserveGauge
-        reserve={reserve}
-        intensity={intensity}
-        label={t.reserveLabel}
-        unknownLabel={t.reserveUnknown}
+      {/* Directly under the day count, because that is what it is: the line
+          saying what this particular day at sea is for. */}
+      <CourseLine
+        course={course}
+        label={t.courseTitle}
+        onPress={() => router.push('/course')}
       />
+
+      {/* The gauge is the way into the Daily Read now that the loose button
+          below is gone. It already says "no reading yet today" when there
+          isn't one, which makes it the honest place to tap. */}
+      <Pressable
+        onPress={() => router.push('/read')}
+        accessibilityRole="button"
+        accessibilityLabel={read ? t.dailyReadDone : t.dailyReadCta}
+        style={({ pressed }) => [pressed && styles.ctaPressed]}
+      >
+        <ReserveGauge
+          reserve={reserve}
+          intensity={intensity}
+          label={t.reserveLabel}
+          unknownLabel={t.reserveUnknown}
+        />
+      </Pressable>
 
       {cascade.message ? (
         <View style={[styles.warning, breach ? styles.warningBreach : styles.warningWatch]}>
@@ -70,8 +100,20 @@ export default function Home() {
         }}
       />
 
+      {/*
+        Everything you do already counts — the acts feed a weight, the weight
+        settles a level, and the whole app goes darker. This is the part that
+        says so. It also replaces the two loose call-to-action buttons that
+        used to sit at the bottom of this screen: the Daily Read and a new
+        entry are two of the six, and having them twice made the six look
+        optional.
+      */}
+      <DayPractice onOpen={(route) => router.push(route as '/read')} />
+
       <Pressable
         onPress={() => router.push('/training')}
+        accessibilityRole="button"
+        accessibilityLabel={t.trainingTitle}
         style={({ pressed }) => [styles.strip, pressed && styles.ctaPressed]}
       >
         <View>
@@ -93,21 +135,6 @@ export default function Home() {
           {training.sessionsThisWeek}/{training.weeklyTarget}
         </Text>
       </Pressable>
-
-      <Pressable
-        onPress={() => router.push('/read')}
-        style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-      >
-        <Text style={styles.ctaText}>{read ? t.dailyReadDone : t.dailyReadCta}</Text>
-        <Text style={styles.ctaHint}>{read ? 'Tap to change' : '30 seconds'}</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push('/entry/new')}
-        style={({ pressed }) => [styles.secondary, pressed && styles.ctaPressed]}
-      >
-        <Text style={styles.secondaryText}>{t.newEntry}</Text>
-      </Pressable>
     </ScrollView>
   );
 }
@@ -115,8 +142,7 @@ export default function Home() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
-    content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
-    days: { ...type.label, color: c.inkFaint },
+    content: { padding: space.lg, gap: space.lg },
 
     warning: { borderWidth: 1, borderRadius: radius.md, padding: space.lg, gap: space.xs },
     warningBreach: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
@@ -124,26 +150,7 @@ const makeStyles = (c: Palette) =>
     warningLabel: { ...type.label },
     warningBody: { ...type.body, color: c.ink, lineHeight: 21 },
 
-    cta: {
-      backgroundColor: c.violet,
-      borderRadius: radius.md,
-      paddingVertical: space.lg,
-      alignItems: 'center',
-      gap: 2,
-    },
     ctaPressed: { opacity: 0.75 },
-    ctaText: { ...type.heading, color: c.onAccent },
-    ctaHint: { ...type.small, color: c.onAccent, opacity: 0.7 },
-
-    secondary: {
-      borderWidth: 1,
-      borderColor: c.line,
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
-      paddingVertical: space.lg,
-      alignItems: 'center',
-    },
-    secondaryText: { ...type.heading, color: c.ink },
 
     strip: {
       flexDirection: 'row',

@@ -87,12 +87,30 @@ export type GearSessionBackup = {
   createdAt: number;
 };
 
+export type SitSessionBackup = {
+  depth: string;
+  day: string;
+  startedAt: number;
+  endedAt: number | null;
+  completed: number;
+  createdAt: number;
+};
+
+export type CourseBackup = {
+  day: string;
+  heading: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type BackupTables = {
   dailyRead: DailyReadBackup[];
   sleepLog: SleepBackup[];
   entry: EntryBackup[];
   trainingSession: SessionBackup[];
   gearSession: GearSessionBackup[];
+  sitSession: SitSessionBackup[];
+  course: CourseBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
   setting: SettingBackup[];
@@ -112,6 +130,8 @@ export const EMPTY_TABLES: BackupTables = {
   entry: [],
   trainingSession: [],
   gearSession: [],
+  sitSession: [],
+  course: [],
   carried: [],
   task: [],
   setting: [],
@@ -179,6 +199,14 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     nullableNum(r.endedAt) &&
     num(r.completed) &&
     num(r.createdAt),
+  sitSession: (r) =>
+    str(r.depth) &&
+    str(r.day) &&
+    num(r.startedAt) &&
+    nullableNum(r.endedAt) &&
+    num(r.completed) &&
+    num(r.createdAt),
+  course: (r) => str(r.day) && str(r.heading) && num(r.createdAt) && num(r.updatedAt),
   carried: (r) =>
     str(r.name) &&
     nullableStr(r.relationship) &&
@@ -277,6 +305,9 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   entry: (r) => String(r.createdAt),
   trainingSession: (r) => String(r.createdAt),
   gearSession: (r) => String(r.startedAt),
+  sitSession: (r) => String(r.startedAt),
+  // One heading per day by definition, exactly like a Daily Read.
+  course: (r) => r.day,
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),
   setting: (r) => r.key,

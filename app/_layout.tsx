@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import {
 } from '@expo-google-fonts/ibm-plex-mono';
 import { StoreProvider } from '../src/db/client';
 import { HakiProvider, useHaki } from '../src/state/HakiProvider';
+import { AmbientHaki } from '../src/components/AmbientHaki';
 import { ImpactLayer } from '../src/components/ImpactLayer';
 import { font } from '../src/theme/tokens';
 
@@ -35,7 +37,23 @@ void SplashScreen.preventAutoHideAsync();
  * a context it is itself rendering.
  */
 function Chrome() {
-  const { palette } = useHaki();
+  const { palette, t } = useHaki();
+
+  /**
+   * Keep the browser's own chrome on the same ground as the app.
+   *
+   * `theme-color` is baked into the exported HTML as the settled black, which
+   * is right for eleven hours of the day and wrong for the paper the app opens
+   * on — an installed PWA would sit a black status bar on top of parchment.
+   * Following the palette closes the last seam at the top of the display.
+   *
+   * Web only, and entirely cosmetic: a missing tag is simply left alone.
+   */
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', palette.bg);
+  }, [palette.bg]);
+
   return (
     <>
       {/* On paper the status-bar icons have to be dark or they vanish. */}
@@ -59,7 +77,14 @@ function Chrome() {
         {/* No header and no back arrow: leaving is the Ease off button, which
             has to be a deliberate press rather than a stray swipe. */}
         <Stack.Screen name="gear" options={{ headerShown: false, gestureEnabled: false }} />
+        {/* A sit keeps its header: unlike a gear it has no cost to abandon,
+            so backing out of one needs no ceremony. */}
+        <Stack.Screen name="sit" options={{ title: t.stillnessTitle }} />
+        <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />
       </Stack>
+      {/* The weather, over the content and under the frame: distant sky
+          rather than interface. Silent until the day hardens. */}
+      <AmbientHaki />
       {/* Above everything, including the tab bar: an impact frame is the whole
           screen or it is nothing. */}
       <ImpactLayer />

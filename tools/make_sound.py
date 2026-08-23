@@ -105,17 +105,23 @@ def envelope(mono, rate, rows=48, rms=False):
     return out
 
 
-def print_map(mono, rate, channels, rows=48, rms=False):
-    """A readout to choose --start and --end from, since we cannot listen."""
-    print(f'{len(mono) / rate:.2f}s  {channels}ch  {rate}Hz  {len(mono)} frames')
+def print_map(mono, rate, channels, rows=48, rms=False, offset=0.0):
+    """
+    A readout to choose --start and --end from, since we cannot listen.
+
+    `offset` is where the mapped window begins in the source, so times stay
+    absolute and can be passed straight back in as --start and --end.
+    """
+    span = f'{offset:.2f}s -> {offset + len(mono) / rate:.2f}s' if offset else f'{len(mono) / rate:.2f}s'
+    print(f'{span}  {channels}ch  {rate}Hz  {len(mono)} frames')
     peak = max((abs(s) for s in mono), default=0) / 32768
     print(f'peak {20 * math.log10(peak):.1f} dBFS' if peak else 'silent')
-    print(f'onset at {find_onset(mono, rate) / rate:.3f}s')
+    print(f'onset at {offset + find_onset(mono, rate) / rate:.3f}s')
     print(f"\n    time  {'rms' if rms else 'peak':>6}")
     scale = 60 if rms else 40
     for at, level in envelope(mono, rate, rows, rms):
         db = 20 * math.log10(level) if level else -99
-        print(f'  {at:6.2f}  {db:6.1f}  {"#" * int(level * scale)}')
+        print(f'  {offset + at:6.2f}  {db:6.1f}  {"#" * int(level * scale)}')
 
 
 def to_channels(samples, channels):
@@ -276,7 +282,13 @@ def main():
     mono = to_mono(samples, channels)
 
     if args.map:
-        print_map(mono, rate, channels, args.rows, args.rms)
+        # --map honours the window too. Phrase boundaries inside a long take
+        # are invisible at whole-file resolution, and finding one is usually
+        # the entire reason for reading the envelope: map wide, then map the
+        # few seconds that look right at a resolution you can cut from.
+        head = int(rate * args.start) if args.start is not None else 0
+        tail = int(rate * args.end) if args.end is not None else len(mono)
+        print_map(mono[head:tail], rate, channels, args.rows, args.rms, head / rate)
         return
     if not args.out:
         raise SystemExit('an output path is required unless you pass --map')

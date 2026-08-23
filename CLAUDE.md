@@ -34,6 +34,26 @@ looking polished.** A feature that works but looks unfinished is not done.
 - An empty value is not a dash. Say what it means: "Not yet", "No sessions
   yet". A dash at display weight looks like data.
 
+## The screen answers the finger, not the write
+
+Striking a task writes one row and then reloads the whole provider. On the web
+every one of those queries goes through expo-sqlite's single synchronous
+channel, so the tick took long enough to appear that the checkbox read as
+broken — and a second tap on a checkbox is a perfectly good "undo", so it
+landed as one. Three taps to check a box, none of them missed.
+
+- **Anything that toggles holds its own optimistic state**, shown immediately
+  and dropped when the stored value agrees. See `TaskRow` in
+  `app/(tabs)/training.tsx`.
+- **Never read-modify-write from a row the screen is holding.** Pass the value
+  you want (`onToggle(next)`), not "flip whatever is there" — two quick taps
+  both read the stale row and both write the same thing.
+- **44pt is the floor for anything you tap.** A 26pt box with `hitSlop={8}`
+  comes to 42, which is under it. Prefer making the whole row the target over
+  growing the hit slop.
+- **Every `Pressable` carries an `accessibilityRole`.** Without one it renders
+  as a plain `div` and a screen reader walks straight past it. There is a test.
+
 ## Type
 
 Three faces, carried over from the concept doc. They are the identity:
@@ -55,16 +75,40 @@ flash of the system font on a cold start.
 
 ## Chrome
 
+**The app runs edge to edge.** The tabs have no navigation header — a fixed
+band across the top cost 64pt on the web and about 103 on an iPhone, on every
+screen, to hold one word. Each tab draws its own title inside its scroll view
+(`PageHeading`) so it scrolls away, and takes its padding from `useTabInsets`,
+which adds the notch at the top and `TAB_BAR_CLEARANCE` plus the home indicator
+at the bottom. **Use that hook rather than padding a tab screen by hand**, or
+the scene starts in the wrong place on exactly one class of phone.
+
 The tab bar floats: `src/components/GlassTabBar.tsx`, blurred and translucent,
-inset from the edges. Anything scrollable must leave `TAB_BAR_CLEARANCE` at the
-bottom or its last item ends up underneath. Floating buttons stack _above_ the
-bar, never behind it.
+inset from the edges. Anything scrollable must clear it at the bottom or its
+last item ends up underneath. Floating buttons stack _above_ the bar, never
+behind it.
+
+Screens pushed on top of the tabs — the Daily Read, a session, the course, an
+entry — keep their headers: they need a way back.
+
+## Drawings are replaceable; systems are not
+
+`src/components/instruments/` holds the two hand-plotted SVGs — the Sunny and
+the fist. Both carry a **REPLACING THIS DRAWING** block at the top naming the
+viewBox, the aspect, the colour props and what the composition has to keep, so
+a proper redraw drops in without touching anything above them.
+
+Keep that seam clean. The Sunny's _water_ lives in `instruments/Sea.tsx`
+because it is a system — swell, wavelength, phase, how much is running — and
+systems do not get thrown away when someone redraws the boat. Same rule for
+the impact frame: the field owns the violence, the instrument owns the shape.
 
 ## Sound
 
 Effects live in `assets/sounds/` and are declared in `src/sound/sounds.ts` —
 adding one is a line there plus a file. Play with `play('name')` from
-`src/sound`.
+`src/sound`. `docs/SOUNDS.md` records what each one was cut from; **add a row
+there when you cut a new one**, or the next person re-cutting it is guessing.
 
 - **Cut every source with `tools/make_sound.py`.** Raw sound-effect exports are
   mastered for video: stereo, 48kHz, several seconds, often with leading
@@ -103,6 +147,17 @@ This is a mental-health app for someone whose stated problem is consistency.
 - **Never congratulate a frictionless week.** Coasting is the thing to notice.
 - **Memory is a source, never a stick.** Nothing in Inherited Will may nag,
   score, or appear on a failure screen.
+- **An untouched practice shows its offer, not its absence.** The day's
+  practice card (`src/domain/practice.ts`) says "5, 10 or 15" under a sit that
+  has not happened, never "not yet". Six things you have not done is a
+  checklist; six things available is a card. That difference is one string per
+  row, and it is the whole feature.
+- **Hardening is never displayed as a score.** No count, no percentage, no
+  bar, no "2 of 6" — the rule in `domain/hardening.ts` binds anything that
+  renders it too, or displaying it undoes it. The Sunny at the top of the home
+  screen obeys it by never moving: it is **at anchor** and then under way, a
+  state and not a position. A ship travelling toward somewhere is a progress
+  bar in fancy dress, and a ship adrift is a picture of failure.
 
 ## Before pushing
 

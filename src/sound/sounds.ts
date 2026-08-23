@@ -14,7 +14,8 @@ export type SoundName =
   | 'returnDrums'
   | 'gearSecond'
   | 'gearThird'
-  | 'gearFourth';
+  | 'gearFourth'
+  | 'dendenRing';
 
 /**
  * `require` is deliberate: Metro resolves these at build time so the asset is
@@ -37,4 +38,9 @@ export const SOUNDS: Record<SoundName, number> = {
   gearSecond: require('../../assets/sounds/gear-second.mp3'),
   gearThird: require('../../assets/sounds/gear-third.mp3'),
   gearFourth: require('../../assets/sounds/gear-fourth.mp3'),
+
+  // 電伝虫 — one ring cycle, and the bell that closes a sit. A Den Den Mushi
+  // is a snail somebody is calling you on, which is as good a reason to open
+  // your eyes as any bowl-gong sample would have been.
+  dendenRing: require('../../assets/sounds/denden.wav'),
 };
