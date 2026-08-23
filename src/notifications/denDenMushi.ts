@@ -12,9 +12,14 @@
  *              Prism Log. Fires maybe twice a year, which is exactly why it
  *              will never be ignored. (v3, with the Sea Prism Log)
  *
- * Drop a `denden.wav` into `assets/sounds/` and set it in app.json to get the
- * purupuru. Without it the channel falls back to the system default — the app
- * works either way, it just sounds like everything else.
+ * The purupuru is `assets/sounds/denden.wav`, registered with the
+ * expo-notifications plugin in app.json so the native build copies it where
+ * each platform expects. It is one ring cycle — four pulses, 1.33s — because
+ * the OS handles repetition and a file containing three rings would stutter
+ * against itself.
+ *
+ * It needs a native build. The PWA has no notification channels, so on web
+ * this whole module no-ops and the home screen carries the warning instead.
  */
 
 import * as Notifications from 'expo-notifications';
@@ -46,7 +51,7 @@ export async function configureNotifications(): Promise<void> {
       importance: Notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 180, 120, 180],
       lightColor: '#B14CFF',
-      // sound: 'denden.wav',  // uncomment once the file is in assets/sounds
+      sound: 'denden.wav',
     });
   }
 }
