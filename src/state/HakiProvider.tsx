@@ -1,10 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../db/client';
-import { allSessions, allTasks, getRead, recentSleep } from '../db/repo';
+import {
+  allSessions,
+  allTasks,
+  gearSessionsOn,
+  getRead,
+  listEntries,
+  readSetting,
+  recentSleep,
+  writeSetting,
+} from '../db/repo';
 import { assessCascade, type CascadeVerdict } from '../domain/cascade';
 import { trainingStatus, type TrainingStatus } from '../domain/training';
 import { nextStrike, todaysLoad, type Load, type Task } from '../domain/tasks';
 import { quoteForDay, type Quote } from '../domain/quotes';
+import { minutesToday } from '../domain/gears';
+import { NO_ACTS, settleLevel, type Acts, type HardeningLevel } from '../domain/hardening';
+import { paletteFor, type Palette } from '../theme/palettes';
 import { daysAtSea, todayKey } from '../domain/date';
 import {
   computeReserve,
@@ -26,6 +38,10 @@ type HakiState = {
   quote: Quote;
   /** 0..1 — how strongly the app renders its own Haki. Plain mode pins it to 0. */
   intensity: number;
+  /** How far the day has hardened. Every colour in the app comes from this. */
+  hardening: HardeningLevel;
+  acts: Acts;
+  palette: Palette;
   day: number;
   t: Strings;
   plainMode: boolean;
@@ -59,6 +75,10 @@ const EMPTY_LOAD: Load = {
   overBy: 0,
 };
 
+/** Where the day's high-water mark lives. Derived state, not a user setting. */
+const HARDENING_DAY = 'hardening.day';
+const HARDENING_LEVEL = 'hardening.level';
+
 const EMPTY_RESERVE: Reserve = {
   value: null,
   state: 'unknown',
@@ -78,15 +98,22 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   });
   const [training, setTraining] = useState<TrainingStatus>(EMPTY_TRAINING);
   const [load, setLoad] = useState<Load>(EMPTY_LOAD);
+  const [hardening, setHardening] = useState<HardeningLevel>(0);
+  const [acts, setActs] = useState<Acts>(NO_ACTS);
 
   const refresh = useCallback(async () => {
     const today = todayKey();
-    const [todayRead, nights, sessions, tasks] = await Promise.all([
-      getRead(db, today),
-      recentSleep(db, 7, today),
-      allSessions(db),
-      allTasks(db),
-    ]);
+    const [todayRead, nights, sessions, tasks, entries, gears, markDay, markLevel] =
+      await Promise.all([
+        getRead(db, today),
+        recentSleep(db, 7, today),
+        allSessions(db),
+        allTasks(db),
+        listEntries(db, 200),
+        gearSessionsOn(db, today),
+        readSetting(db, HARDENING_DAY),
+        readSetting(db, HARDENING_LEVEL),
+      ]);
 
     const nextReserve = computeReserve({
       read: todayRead,
@@ -99,7 +126,32 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     setReserve(nextReserve);
     setCascade(nextCascade);
     setTraining(trainingStatus(sessions, settings.training, today));
-    setLoad(todaysLoad(tasks, today, settings.capacityMinutes));
+
+    const nextLoad = todaysLoad(tasks, today, settings.capacityMinutes);
+    setLoad(nextLoad);
+
+    const nextActs: Acts = {
+      read: todayRead !== null,
+      // A blank row created by opening the editor and leaving is not an entry.
+      entries: entries.filter((e) => e.day === today && e.body.trim().length > 0).length,
+      struck: nextLoad.doneToday.length,
+      trained: sessions.filter((s) => s.day === today).length,
+      gearMinutes: minutesToday(gears, Date.now()),
+    };
+    setActs(nextActs);
+
+    const recorded =
+      markDay && markLevel !== null
+        ? { day: markDay, level: Number(markLevel) as HardeningLevel }
+        : null;
+    const settled = settleLevel(nextActs, today, recorded);
+    setHardening(settled);
+
+    // Only write when the mark actually moves — every screen focus calls this.
+    if (!recorded || recorded.day !== today || recorded.level !== settled) {
+      await writeSetting(db, HARDENING_DAY, today);
+      await writeSetting(db, HARDENING_LEVEL, String(settled));
+    }
 
     // Fire-and-forget: a notification failure must never break a screen.
     void syncKeystoneWarning(nextCascade);
@@ -127,12 +179,28 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       quote: quoteForDay(todayKey()),
       // In plain mode the app stops performing entirely.
       intensity: settings.plainMode ? 0 : effectIntensity(reserve),
+      // Plain mode is the mute button for effects, and this is the loudest one
+      // in the app. Pinned to the settled dark so a screenshare stays still.
+      hardening: settings.plainMode ? 3 : hardening,
+      acts,
+      palette: paletteFor(settings.plainMode ? 3 : hardening),
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,
       refresh,
     }),
-    [read, reserve, cascade, training, load, settings.plainMode, settings.setSailAt, refresh],
+    [
+      read,
+      reserve,
+      cascade,
+      training,
+      load,
+      hardening,
+      acts,
+      settings.plainMode,
+      settings.setSailAt,
+      refresh,
+    ],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

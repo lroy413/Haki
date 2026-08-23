@@ -20,6 +20,15 @@ looking polished.** A feature that works but looks unfinished is not done.
   ```
 - Check **both modes** — Haki (default) and plain — and the empty state as
   well as the populated one. Most of the bugs above only appeared in one.
+- **Colour comes from `useHaki().palette`, never from a literal.** The app
+  runs four palettes: it opens on paper and hardens as the day is used
+  (`src/domain/hardening.ts`). A hex in a screen looks fine until the ground
+  moves under it — fifteen accent labels were near-black and invisible the
+  first time paper rendered. There are tests for both halves: every palette is
+  held to a contrast floor, and no source file may contain a colour literal.
+- A screenshot at one hardening level proves nothing about the others. Level 0
+  is the one to check first: it is the only light palette, so it is where
+  anything colour-blind to the ground shows up.
 - Cards in a row must end up the same height. Labels that wrap where their
   neighbours do not are a bug.
 - An empty value is not a dash. Say what it means: "Not yet", "No sessions

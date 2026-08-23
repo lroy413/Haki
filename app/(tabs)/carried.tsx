@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,7 +14,8 @@ import { useStore } from '../../src/db/client';
 import { listCarried, upsertCarried } from '../../src/db/repo';
 import type { CarriedRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
-import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/tokens';
+import { TAB_BAR_CLEARANCE, radius, space, type } from '../../src/theme/tokens';
+import type { Palette } from '../../src/theme/palettes';
 
 /**
  * Inherited Will.
@@ -28,7 +29,8 @@ import { TAB_BAR_CLEARANCE, color, radius, space, type } from '../../src/theme/t
  */
 export default function CarriedScreen() {
   const { db } = useStore();
-  const { t } = useHaki();
+  const { t, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [people, setPeople] = useState<CarriedRow[]>([]);
   const [adding, setAdding] = useState(false);
@@ -155,6 +157,8 @@ function Input({
   multiline?: boolean;
   autoFocus?: boolean;
 }) {
+  const { palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -165,75 +169,76 @@ function Input({
         // Native only — iOS will not open the keyboard for programmatic focus.
         autoFocus={Platform.OS !== 'web' && autoFocus}
         style={[styles.input, multiline && styles.inputMultiline]}
-        placeholderTextColor={color.inkFaint}
+        placeholderTextColor={palette.inkFaint}
         accessibilityLabel={label}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
-  blurb: { ...type.small, color: color.inkDim, lineHeight: 20 },
-  empty: { ...type.body, color: color.inkFaint, textAlign: 'center', marginVertical: space.xl },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
+    blurb: { ...type.small, color: c.inkDim, lineHeight: 20 },
+    empty: { ...type.body, color: c.inkFaint, textAlign: 'center', marginVertical: space.xl },
 
-  card: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.md,
-  },
-  name: { ...type.title, color: color.ink },
-  relationship: { ...type.small, color: color.violet, marginTop: -space.sm },
+    card: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.md,
+    },
+    name: { ...type.title, color: c.ink },
+    relationship: { ...type.small, color: c.violet, marginTop: -space.sm },
 
-  field: { gap: space.xs },
-  fieldLabel: { ...type.label, color: color.inkFaint, fontSize: 10 },
-  fieldValue: { ...type.body, color: color.ink, lineHeight: 21 },
+    field: { gap: space.xs },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 10 },
+    fieldValue: { ...type.body, color: c.ink, lineHeight: 21 },
 
-  input: {
-    ...type.body,
-    color: color.ink,
-    backgroundColor: color.surface2,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.sm,
-    paddingHorizontal: space.md,
-    paddingVertical: space.md,
-    minHeight: 44,
-  },
-  inputMultiline: { minHeight: 80, textAlignVertical: 'top' },
+    input: {
+      ...type.body,
+      color: c.ink,
+      backgroundColor: c.surface2,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      paddingVertical: space.md,
+      minHeight: 44,
+    },
+    inputMultiline: { minHeight: 80, textAlignVertical: 'top' },
 
-  actions: { flexDirection: 'row', gap: space.sm },
-  ghost: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    alignItems: 'center',
-  },
-  ghostText: { ...type.body, color: color.inkDim },
-  primary: {
-    flex: 1,
-    backgroundColor: color.violet,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    alignItems: 'center',
-  },
-  primaryDisabled: { backgroundColor: color.surface2 },
-  primaryText: { ...type.body, color: '#0A0B12' },
+    actions: { flexDirection: 'row', gap: space.sm },
+    ghost: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      alignItems: 'center',
+    },
+    ghostText: { ...type.body, color: c.inkDim },
+    primary: {
+      flex: 1,
+      backgroundColor: c.violet,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      alignItems: 'center',
+    },
+    primaryDisabled: { backgroundColor: c.surface2 },
+    primaryText: { ...type.body, color: c.onAccent },
 
-  add: {
-    borderWidth: 1,
-    borderColor: color.line,
-    borderStyle: 'dashed',
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    alignItems: 'center',
-  },
-  addText: { ...type.heading, color: color.inkDim },
-  pressed: { opacity: 0.75 },
-});
+    add: {
+      borderWidth: 1,
+      borderColor: c.line,
+      borderStyle: 'dashed',
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+    },
+    addText: { ...type.heading, color: c.inkDim },
+    pressed: { opacity: 0.75 },
+  });

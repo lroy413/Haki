@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../db/client';
 import { exportBackup, importBackup } from '../db/backup';
@@ -6,7 +6,8 @@ import { countRows, entriesToMarkdown, parseBackup, serializeBackup } from '../d
 import { todayKey } from '../domain/date';
 import { transfer } from '../files/transfer';
 import { useHaki } from '../state/HakiProvider';
-import { color, radius, space, type } from '../theme/tokens';
+import { radius, space, type } from '../theme/tokens';
+import type { Palette } from '../theme/palettes';
 
 /**
  * Export and import.
@@ -17,7 +18,9 @@ import { color, radius, space, type } from '../theme/tokens';
  */
 export function BackupCard() {
   const { db } = useStore();
-  const { refresh } = useHaki();
+  const { refresh, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
+
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -173,6 +176,8 @@ function Action({
   busy: boolean;
   primary?: boolean;
 }) {
+  const { palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   return (
     <Pressable
       onPress={onPress}
@@ -192,37 +197,38 @@ function Action({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.md,
-  },
-  title: { ...type.title, color: color.ink },
-  blurb: { ...type.small, color: color.inkDim, lineHeight: 20 },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.md,
+    },
+    title: { ...type.title, color: c.ink },
+    blurb: { ...type.small, color: c.inkDim, lineHeight: 20 },
 
-  row: { flexDirection: 'row', gap: space.sm },
-  action: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: color.line,
-    backgroundColor: color.surface2,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    paddingHorizontal: space.sm,
-    alignItems: 'center',
-    gap: 2,
-  },
-  actionPrimary: { backgroundColor: color.violet, borderColor: color.violet },
-  actionBusy: { opacity: 0.5 },
-  actionLabel: { ...type.body, color: color.ink },
-  actionLabelPrimary: { color: '#0A0B12' },
-  actionHint: { ...type.small, fontSize: 11, color: color.inkFaint },
-  actionHintPrimary: { color: '#0A0B12', opacity: 0.7 },
+    row: { flexDirection: 'row', gap: space.sm },
+    action: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.line,
+      backgroundColor: c.surface2,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      paddingHorizontal: space.sm,
+      alignItems: 'center',
+      gap: 2,
+    },
+    actionPrimary: { backgroundColor: c.violet, borderColor: c.violet },
+    actionBusy: { opacity: 0.5 },
+    actionLabel: { ...type.body, color: c.ink },
+    actionLabelPrimary: { color: c.onAccent },
+    actionHint: { ...type.small, fontSize: 11, color: c.inkFaint },
+    actionHintPrimary: { color: c.onAccent, opacity: 0.7 },
 
-  status: { ...type.small, color: color.cyan, lineHeight: 19 },
-  pressed: { opacity: 0.75 },
-});
+    status: { ...type.small, color: c.cyan, lineHeight: 19 },
+    pressed: { opacity: 0.75 },
+  });

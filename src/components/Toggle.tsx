@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import { Switch, type SwitchProps } from 'react-native';
-import { color } from '../theme/tokens';
+import { useHaki } from '../state/HakiProvider';
 
 /**
  * A switch that is the same colour everywhere.
@@ -13,13 +13,15 @@ import { color } from '../theme/tokens';
  */
 const PlatformSwitch = Switch as ComponentType<SwitchProps & { activeThumbColor?: string }>;
 
-export function Toggle({ tint = color.violet, ...props }: SwitchProps & { tint?: string }) {
+export function Toggle({ tint, ...props }: SwitchProps & { tint?: string }) {
+  const { palette } = useHaki();
+  const on = tint ?? palette.violet;
   return (
     <PlatformSwitch
-      trackColor={{ true: tint, false: color.line }}
-      thumbColor={color.ink}
-      activeThumbColor={color.ink}
-      ios_backgroundColor={color.line}
+      trackColor={{ true: on, false: palette.line }}
+      thumbColor={palette.ink}
+      activeThumbColor={palette.ink}
+      ios_backgroundColor={palette.line}
       {...props}
     />
   );

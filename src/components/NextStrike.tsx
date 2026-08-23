@@ -1,8 +1,11 @@
+import { useHaki } from '../state/HakiProvider';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { formatMinutes, type Task } from '../domain/tasks';
 import { play } from '../sound';
-import { color, font, radius, space, type } from '../theme/tokens';
+import { font, radius, space, type } from '../theme/tokens';
+import type { Palette } from '../theme/palettes';
 
 /**
  * One task, on the home screen, with one button.
@@ -25,6 +28,9 @@ export function NextStrike({
   onOpenList: () => void;
   emptyLabel: string;
 }) {
+  const { palette } = useHaki();
+
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   if (!task) {
     return (
       <Pressable
@@ -74,39 +80,40 @@ export function NextStrike({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.crimson,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.md,
-  },
-  empty: { borderColor: color.line, borderStyle: 'dashed' },
-  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  label: { ...type.label, color: color.crimson },
-  minutes: { ...type.mono, color: color.inkDim },
-  title: { fontFamily: font.displayBold, fontSize: 22, lineHeight: 28, color: color.ink },
-  emptyText: { ...type.body, color: color.inkDim },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.crimson,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.md,
+    },
+    empty: { borderColor: c.line, borderStyle: 'dashed' },
+    head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    label: { ...type.label, color: c.crimson },
+    minutes: { ...type.mono, color: c.inkDim },
+    title: { fontFamily: font.displayBold, fontSize: 22, lineHeight: 28, color: c.ink },
+    emptyText: { ...type.body, color: c.inkDim },
 
-  row: { flexDirection: 'row', gap: space.sm },
-  done: {
-    flex: 2,
-    backgroundColor: color.crimson,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    alignItems: 'center',
-  },
-  doneText: { ...type.heading, color: '#0A0B12' },
-  more: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    alignItems: 'center',
-  },
-  moreText: { ...type.heading, color: color.inkDim },
-  pressed: { opacity: 0.75 },
-});
+    row: { flexDirection: 'row', gap: space.sm },
+    done: {
+      flex: 2,
+      backgroundColor: c.crimson,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      alignItems: 'center',
+    },
+    doneText: { ...type.heading, color: c.onAccent },
+    more: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      alignItems: 'center',
+    },
+    moreText: { ...type.heading, color: c.inkDim },
+    pressed: { opacity: 0.75 },
+  });

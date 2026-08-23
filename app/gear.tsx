@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -15,7 +15,8 @@ import {
   type GearSession,
 } from '../src/domain/gears';
 import { useHaki } from '../src/state/HakiProvider';
-import { color, font, radius, space, type } from '../src/theme/tokens';
+import { font, radius, space, type } from '../src/theme/tokens';
+import type { Palette } from '../src/theme/palettes';
 
 /**
  * A gear, running.
@@ -31,7 +32,9 @@ import { color, font, radius, space, type } from '../src/theme/tokens';
 export default function GearScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { refresh, plainMode } = useHaki();
+  const { refresh, plainMode, palette } = useHaki();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
+
   const params = useLocalSearchParams<{ gear?: string }>();
 
   const [session, setSession] = useState<GearSession | null>(null);
@@ -88,7 +91,7 @@ export default function GearScreen() {
 
   const gearName = (session?.gear ?? params.gear ?? 'second') as GearName;
   const gear = GEARS[gearName];
-  const tint = TINT[gearName];
+  const tint = tintFor(palette, gearName);
 
   if (outcome) {
     return (
@@ -158,11 +161,9 @@ export default function GearScreen() {
 }
 
 /** Escalating heat. Gears are not Haki, so the three Haki hues stay unclaimed. */
-const TINT: Record<GearName, string> = {
-  second: color.cyan,
-  third: color.warn,
-  fourth: color.crimson,
-};
+function tintFor(c: Palette, gear: GearName): string {
+  return { second: c.cyan, third: c.warn, fourth: c.crimson }[gear];
+}
 
 function clockFace(ms: number): string {
   const total = Math.ceil(ms / 1000);
@@ -176,55 +177,56 @@ function spoken(ms: number): string {
   return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} left`;
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: space.xl,
-    gap: space.lg,
-  },
-  kanji: { fontFamily: font.display, fontSize: 64 },
-  label: { ...type.label, color: color.inkDim },
-  clock: {
-    fontFamily: font.displayBold,
-    fontSize: 76,
-    // Tabular figures would be ideal; failing that a fixed line box at least
-    // stops the digits jumping the layout every second.
-    lineHeight: 84,
-    fontVariant: ['tabular-nums'],
-  },
-  track: {
-    width: '100%',
-    maxWidth: 320,
-    height: 4,
-    borderRadius: radius.pill,
-    backgroundColor: color.line,
-    overflow: 'hidden',
-  },
-  fill: { height: '100%', borderRadius: radius.pill },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: c.bg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: space.xl,
+      gap: space.lg,
+    },
+    kanji: { fontFamily: font.display, fontSize: 64 },
+    label: { ...type.label, color: c.inkDim },
+    clock: {
+      fontFamily: font.displayBold,
+      fontSize: 76,
+      // Tabular figures would be ideal; failing that a fixed line box at least
+      // stops the digits jumping the layout every second.
+      lineHeight: 84,
+      fontVariant: ['tabular-nums'],
+    },
+    track: {
+      width: '100%',
+      maxWidth: 320,
+      height: 4,
+      borderRadius: radius.pill,
+      backgroundColor: c.line,
+      overflow: 'hidden',
+    },
+    fill: { height: '100%', borderRadius: radius.pill },
 
-  doneTitle: { ...type.display, color: color.ink },
-  doneBody: {
-    ...type.body,
-    color: color.inkDim,
-    textAlign: 'center',
-    lineHeight: 23,
-    maxWidth: 320,
-  },
+    doneTitle: { ...type.display, color: c.ink },
+    doneBody: {
+      ...type.body,
+      color: c.inkDim,
+      textAlign: 'center',
+      lineHeight: 23,
+      maxWidth: 320,
+    },
 
-  button: {
-    borderRadius: radius.md,
-    paddingVertical: space.lg,
-    paddingHorizontal: space.xxxl,
-    minWidth: 180,
-    alignItems: 'center',
-    marginTop: space.sm,
-  },
-  buttonText: { ...type.heading, color: '#0A0B12' },
-  quiet: { backgroundColor: 'transparent', borderWidth: 1, borderColor: color.line },
-  quietText: { ...type.heading, color: color.inkDim },
-  pressed: { opacity: 0.75 },
-  footnote: { ...type.mono, color: color.inkFaint, fontSize: 11 },
-});
+    button: {
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.xxxl,
+      minWidth: 180,
+      alignItems: 'center',
+      marginTop: space.sm,
+    },
+    buttonText: { ...type.heading, color: c.onAccent },
+    quiet: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.line },
+    quietText: { ...type.heading, color: c.inkDim },
+    pressed: { opacity: 0.75 },
+    footnote: { ...type.mono, color: c.inkFaint, fontSize: 11 },
+  });
