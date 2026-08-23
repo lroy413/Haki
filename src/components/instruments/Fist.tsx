@@ -9,8 +9,15 @@ import Svg, { G, Line, Path } from 'react-native-svg';
  * be bold and simple enough to read in fifty milliseconds, which a faithful
  * drawing would actually be worse at.
  *
- * `fill` is the body, `rim` is the coat of Haki around it, `lines` is the
- * radial burst. All three come from the palette at the call site so the frame
+ * The rendering follows the manga panel, not the anime cel. Oda's hardened
+ * fist has no outline: it is a solid black mass whose forms are carried
+ * entirely by broken licks of light along their top edges, floating inside a
+ * soft bubble of aura. So the body paths here are stroked barely or not at
+ * all, the sheen strokes are calligraphic and partial, and the Haki sits
+ * around the whole fist as an envelope rather than hugging its edge.
+ *
+ * `fill` is the body, `rim` is the aura, `lines` is the radial burst, `sheen`
+ * is the light. All four come from the palette at the call site so the frame
  * inverts correctly on both grounds; nothing here owns a colour.
  */
 export function Fist({
@@ -29,6 +36,20 @@ export function Fist({
 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100">
+      {/* The aura: a soft envelope around the whole fist, the way the manga
+          draws Ryuo — two offset shells faking the falloff, because native SVG
+          has no blur to lean on. */}
+      <Path
+        d="M50 12 Q86 14 90 52 Q92 82 70 94 L32 96 Q10 86 10 54 Q13 18 50 12 Z"
+        fill={rim}
+        fillOpacity={0.2}
+      />
+      <Path
+        d="M50 18 Q80 20 84 52 Q86 78 67 89 L34 90 Q16 82 16 54 Q19 23 50 18 Z"
+        fill={rim}
+        fillOpacity={0.32}
+      />
+
       {/* Radial burst: the intensity comes off the fist, so every line points
           away from its centre and none of them touch it. */}
       <G stroke={lines} strokeWidth={1.6} strokeLinecap="round">
@@ -44,7 +65,7 @@ export function Fist({
       </G>
 
       {/* Wrist, entering from the bottom. */}
-      <Path d="M38 83 L62 83 L64 100 L36 100 Z" fill={fill} stroke={rim} strokeWidth={2.4} />
+      <Path d="M36 78 L64 78 L66 100 L34 100 Z" fill={fill} />
 
       {/* The fist, front-on: the four curled fingers are most of its face,
           so the silhouette is four knuckle masses and the grooves between
@@ -61,41 +82,27 @@ export function Fist({
            L34 84
            Q22 82 22 68 Z"
         fill={fill}
-        stroke={rim}
-        strokeWidth={2.4}
-        strokeLinejoin="round"
       />
 
-      {/* The grooves between the fingers: strongest at the knuckles, gone by
-          the heel — run them long enough to read as fingers, no further. */}
-      <G stroke={rim} strokeWidth={1.8} strokeLinecap="round" fill="none">
-        <Line x1={40} y1={36} x2={40} y2={58} />
-        <Line x1={53} y1={34} x2={53} y2={60} />
-        <Line x1={66} y1={36} x2={66} y2={56} />
-      </G>
-
-      {/* Each finger bends on its own; a single line across reads as a wire. */}
-      <G stroke={rim} strokeWidth={1.5} strokeLinecap="round" fill="none">
-        <Path d="M28 45 Q33 43 38 45" />
-        <Path d="M42 44 Q47 42 51 44" />
-        <Path d="M55 44 Q60 42 64 44" />
-        <Path d="M68 45 Q72 43 75 45" />
-      </G>
-
-      {/* The thumb, tucked across the bottom left corner. */}
-      <Path
-        d="M24 76 Q26 66 35 67 Q42 68 41 75 Q40 81 32 82 Q26 81 24 76 Z"
-        fill={fill}
-        stroke={rim}
-        strokeWidth={2}
-        strokeLinejoin="round"
-      />
-
-      {/* Glints: hardened Armament is glossy, and the gloss is what reads. */}
-      <G stroke={sheen} strokeWidth={2} strokeLinecap="round">
-        <Line x1={31} y1={34} x2={35} y2={33} />
-        <Line x1={45} y1={32} x2={48} y2={32} />
-        <Line x1={58} y1={32} x2={61} y2={32} />
+      {/* The light. Thick wedges where an edge catches it and nothing else —
+          on a black mass the manga lets three or four licks carry everything,
+          and every extra line is noise. */}
+      <G stroke={sheen} fill="none" strokeLinecap="round">
+        {/* along the knuckle tops */}
+        <Path d="M29.5 32 Q33.5 29 38 30.5" strokeWidth={4.2} />
+        <Path d="M43.5 30 Q47.5 28 51 29.5" strokeWidth={4.2} />
+        <Path d="M56.5 30 Q60 28 63.5 29.5" strokeWidth={3.8} />
+        <Path d="M68.5 32.5 Q71 31.5 73 32.5" strokeWidth={2.8} />
+        {/* a short lick down each finger's lit side */}
+        <Path d="M41.5 37 L41.5 44" strokeWidth={2.6} />
+        <Path d="M54.5 36 L54.5 45" strokeWidth={2.6} />
+        <Path d="M67 37 L67 43" strokeWidth={2.2} />
+        {/* the left flank */}
+        <Path d="M25.5 40 Q24.2 47 25.2 53" strokeWidth={2.6} />
+        {/* the thumb, wrapped across the lower half: its whole form is one
+            long lick of light along the top edge, hooking down at the tip */}
+        <Path d="M27.5 73 Q38 65.5 51 69.5 Q56.5 71.5 55.5 76.5" strokeWidth={3.2} />
+        <Path d="M31 80 Q37.5 82 44 80" strokeWidth={2} />
       </G>
     </Svg>
   );
