@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { Dial } from '../src/components/Dial';
 import { useStore } from '../src/db/client';
 import { recentSleep, saveRead, saveSleep } from '../src/db/repo';
+import { play } from '../src/sound';
 import { useHaki } from '../src/state/HakiProvider';
 import { todayKey } from '../src/domain/date';
 import { color, radius, space, type } from '../src/theme/tokens';
@@ -57,6 +58,7 @@ export default function DailyReadScreen() {
         await saveSleep(db, hours);
       }
 
+      play('observationRead');
       await refresh();
       router.back();
     } finally {

@@ -8,7 +8,7 @@
  * Keep them short. Anything that fires on a tap should be under a second.
  */
 
-export type SoundName = 'armamentStrike';
+export type SoundName = 'armamentStrike' | 'observationRead';
 
 /**
  * `require` is deliberate: Metro resolves these at build time so the asset is
@@ -17,4 +17,6 @@ export type SoundName = 'armamentStrike';
 export const SOUNDS: Record<SoundName, number> = {
   // 武装色 — hardening, and the moment of impact. Plays when a task is struck.
   armamentStrike: require('../../assets/sounds/armament-strike.wav'),
+  // 見聞色 — sensing rather than striking. Plays when the Daily Read is saved.
+  observationRead: require('../../assets/sounds/observation-read.wav'),
 };
