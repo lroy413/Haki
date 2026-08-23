@@ -137,6 +137,7 @@ src/
     stillness.ts          sits, and the breath the ring is drawn to
     course.ts             the day's heading
     logbook.ts            folding one captured line into today's entry
+    ambient.ts            how often the weather comes, and how hard
     hardening.ts          what the day has had in it, and how dark that makes it
     practice.ts           the six, and what each one says
     ryuo.ts               how far the emission reaches
@@ -154,6 +155,20 @@ src/
   theme/                  tokens, and the one label map behind plain mode
   notifications/          Den Den Mushi channels
   components/
+    GlassTabBar.tsx       the floating, blurred tab bar
+    PageHeading.tsx       a tab's own title, and the inset hook every tab uses
+    SeaBand.tsx           the masthead: water and ship, stacked
+    DayPractice.tsx       the six, and hardening made legible
+    Emission.tsx          the corona a struck task throws
+    ImpactLayer.tsx       two frames, 110ms, the whole screen
+    AmbientHaki.tsx       the weather — lightning as the day hardens
+    Lightning.tsx         bolts: black core, hot rim, deterministic
+    ScratchField.tsx      56 torn speed-lines behind an impact frame
+    BreathRing.tsx        4s out, 1 held, 6 back in
+    instruments/          the two hand-drawn SVGs, each with a swap contract
+      Sunny.tsx           the ship — a state, never a position
+      Sea.tsx             the water — a system, and not a drawing
+      Fist.tsx            Luffy's instrument. Zoro's will be a sword
 ```
 
 `src/domain` is deliberately free of React Native imports so it tests on plain
@@ -224,6 +239,14 @@ screen with a cursor in an empty document, and an empty document is a demand.
 So the Logbook tab carries a one-line field that asks for nothing and folds
 what you type into today's entry. Lines through a day accumulate into one
 entry, because that is what a day's log is.
+
+**The weather** (`src/domain/ambient.ts`) — lightning leaks in the background
+as the day hardens: silent until something has been done, then a flicker every
+half-minute or so, then closer to a storm. Two limits are in the domain with
+tests behind them, because it is the one effect here that could genuinely hurt
+somebody: a floor on the interval that sits far above the three-flashes-a-second
+line photosensitive-seizure guidance draws, and no gating of anything on it —
+plain mode, reduced motion and a low Will Reserve each turn it off completely.
 
 **The app loses its power when you do** (`effectIntensity`) — the reserve drives
 a 0–1 intensity that fades the glow and flattens the gauge. It only ever touches
