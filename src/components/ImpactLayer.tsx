@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 import { onImpact } from '../impact';
 import { useHaki } from '../state/HakiProvider';
 import { Fist } from './instruments/Fist';
@@ -34,7 +34,6 @@ const FRAME_TWO_MS = 110;
 
 export function ImpactLayer() {
   const { palette, intensity, plainMode } = useHaki();
-  const { width, height } = useWindowDimensions();
   const [phase, setPhase] = useState<0 | 1 | 2>(0);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const reduceMotion = useRef(false);
@@ -80,8 +79,6 @@ export function ImpactLayer() {
   const body = phase === 1 ? palette.bg : palette.ink;
   const rim = phase === 1 ? palette.warn : palette.crimson;
 
-  const size = Math.min(width, height) * 0.98;
-
   return (
     <View pointerEvents="none" style={[styles.layer, { backgroundColor: ground }]}>
       {/* The scratch-field tears edge to edge underneath the instrument. */}
@@ -90,8 +87,8 @@ export function ImpactLayer() {
       </View>
       {/* The second frame kicks: slightly bigger, slightly off-true, the way
           the real frames shake between cels. */}
-      <View style={phase === 2 ? styles.kick : undefined}>
-        <Fist size={size} fill={body} rim={rim} sheen={ground} />
+      <View style={[StyleSheet.absoluteFill, phase === 2 && styles.kick]}>
+        <Fist fill={body} rim={rim} sheen={ground} />
       </View>
     </View>
   );
