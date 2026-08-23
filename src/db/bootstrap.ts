@@ -89,6 +89,20 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS training_session_day_idx ON training_session (day);
     `,
   },
+  {
+    version: 3,
+    up: `
+      CREATE TABLE IF NOT EXISTS task (
+        id            INTEGER PRIMARY KEY AUTOINCREMENT,
+        title         TEXT    NOT NULL,
+        minutes       INTEGER NOT NULL DEFAULT 15,
+        committed_for TEXT,
+        done_at       INTEGER,
+        created_at    INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS task_committed_idx ON task (committed_for);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

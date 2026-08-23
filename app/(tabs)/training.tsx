@@ -1,89 +1,271 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { play } from '../../src/sound';
 import { useStore } from '../../src/db/client';
-import { recentSessions } from '../../src/db/repo';
+import {
+  addTask,
+  allTasks,
+  commitTask,
+  deleteTask,
+  recentSessions,
+  setTaskDone,
+} from '../../src/db/repo';
 import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { returnMessage } from '../../src/domain/training';
+import {
+  backlog,
+  DEFAULT_TASK_MINUTES,
+  formatMinutes,
+  loadMessage,
+  stale,
+  type Task,
+} from '../../src/domain/tasks';
+import { todayKey } from '../../src/domain/date';
 import { TAB_BAR_CLEARANCE, color, font, radius, space, type } from '../../src/theme/tokens';
 
+/** Estimates you can pick without thinking. Typing a number is a decision too. */
+const MINUTE_CHIPS = [5, 15, 30, 60, 120];
+
 /**
- * 武装色 — Armament. The first real inhabitant of this tab.
+ * 武装色 — Armament. Everything you do on purpose.
  *
- * Three numbers and a list. No streak, no calendar of red squares, no verdict
- * on the week. Hardness is a rolling four-week figure that dips and recovers,
- * because a number that resets to nothing is what turns a missed week into a
- * missed month.
+ * Today's load sits at the top because that is the only part you act on. The
+ * backlog is below and deliberately quieter: a wall of undone things is what
+ * makes an ADHD brain close the app, so it is somewhere you go on purpose
+ * rather than the first thing you face.
  */
-export default function TrainingScreen() {
+export default function ArmamentScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, training, refresh } = useHaki();
+  const { t, training, load, refresh } = useHaki();
+
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
+  const [title, setTitle] = useState('');
+  const [minutes, setMinutes] = useState(DEFAULT_TASK_MINUTES);
+  const [showBacklog, setShowBacklog] = useState(false);
+
+  const reload = useCallback(async () => {
+    const [allT, recent] = await Promise.all([allTasks(db), recentSessions(db, 8)]);
+    setTasks(allT);
+    setSessions(recent);
+    await refresh();
+  }, [db, refresh]);
 
   useFocusEffect(
     useCallback(() => {
-      let cancelled = false;
-      void (async () => {
-        const rows = await recentSessions(db);
-        if (!cancelled) setSessions(rows);
-        await refresh();
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }, [db, refresh]),
+      void reload();
+    }, [reload]),
   );
 
+  async function add(commitToday: boolean) {
+    const name = title.trim();
+    if (!name) return;
+    void Haptics.selectionAsync();
+    await addTask(db, name, minutes, commitToday ? todayKey() : null);
+    setTitle('');
+    setMinutes(DEFAULT_TASK_MINUTES);
+    await reload();
+  }
+
+  async function toggleDone(taskItem: Task) {
+    const marking = taskItem.doneAt === null;
+    // Only on the way to done — an undo should not sound like an achievement.
+    if (marking) play('armamentStrike');
+    void Haptics.selectionAsync();
+    await setTaskDone(db, taskItem.id, marking);
+    await reload();
+  }
+
+  async function moveTo(taskItem: Task, day: string | null) {
+    await commitTask(db, taskItem.id, day);
+    await reload();
+  }
+
+  async function remove(taskItem: Task) {
+    await deleteTask(db, taskItem.id);
+    await reload();
+  }
+
+  const waiting = backlog(tasks);
+  const old = stale(tasks, todayKey());
+  const message = loadMessage(load);
   const since = training.daysSinceLast;
 
   return (
-    <View style={styles.screen}>
-      <FlatList
-        data={sessions}
-        keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <View style={styles.stats}>
-              <Stat
-                label={t.trainingThisWeek}
-                value={`${training.sessionsThisWeek}/${training.weeklyTarget}`}
-                tone={color.crimson}
-              />
-              <Stat
-                label={t.trainingConsistency}
-                value={training.consistency === null ? null : `${training.consistency}%`}
-                tone={color.violet}
-              />
-              <Stat
-                label={t.trainingSinceLast}
-                value={since === null ? null : String(since)}
-                tone={training.inGap ? color.warn : color.cyan}
-              />
-            </View>
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {/* ---------------------------------------------------------- today */}
+        <View style={styles.head}>
+          <Text style={styles.sectionLabel}>{t.todayLoad}</Text>
+          <Text style={[styles.carrying, load.read === 'over' && { color: color.warn }]}>
+            {formatMinutes(load.openMinutes)}
+          </Text>
+        </View>
 
-            {since === 0 ? <Text style={styles.today}>{t.trainingToday}</Text> : null}
+        {message ? (
+          <Text style={[styles.message, load.read === 'over' && styles.messageWarn]}>
+            {message}
+          </Text>
+        ) : null}
 
-            {training.inGap && since !== null ? (
-              <View style={styles.gap}>
-                <Text style={styles.gapLabel}>In a gap</Text>
-                <Text style={styles.gapBody}>
-                  {since} days since the last session. Logging one now lands as a Return.
+        {load.open.map((item) => (
+          <TaskRow
+            key={item.id}
+            task={item}
+            onToggle={() => toggleDone(item)}
+            onSecondary={() => moveTo(item, null)}
+            secondaryLabel="Later"
+          />
+        ))}
+
+        {load.doneToday.map((item) => (
+          <TaskRow key={item.id} task={item} onToggle={() => toggleDone(item)} done />
+        ))}
+
+        {/* ------------------------------------------------------ capture */}
+        <View style={styles.capture}>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder={t.taskPlaceholder}
+            placeholderTextColor={color.inkFaint}
+            style={styles.input}
+            returnKeyType="done"
+            onSubmitEditing={() => void add(true)}
+            accessibilityLabel={t.taskPlaceholder}
+          />
+
+          <View style={styles.chips}>
+            {MINUTE_CHIPS.map((m) => (
+              <Pressable
+                key={m}
+                onPress={() => setMinutes(m)}
+                accessibilityRole="button"
+                accessibilityLabel={`${m} minutes`}
+                style={({ pressed }) => [
+                  styles.chip,
+                  minutes === m && styles.chipOn,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={[styles.chipText, minutes === m && styles.chipTextOn]}>
+                  {formatMinutes(m)}
                 </Text>
-              </View>
-            ) : null}
+              </Pressable>
+            ))}
           </View>
-        }
-        ListEmptyComponent={<Text style={styles.empty}>{t.trainingEmpty}</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <View style={styles.rowHead}>
-              <Text style={styles.rowKind}>{item.kind}</Text>
-              <Text style={styles.rowDay}>{item.day}</Text>
+
+          <View style={styles.addRow}>
+            <Pressable
+              onPress={() => void add(true)}
+              disabled={!title.trim()}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.addToday,
+                !title.trim() && styles.addDisabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.addTodayText}>{t.addToToday}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => void add(false)}
+              disabled={!title.trim()}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.addLater,
+                !title.trim() && styles.addDisabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.addLaterText}>{t.addToLater}</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* ------------------------------------------------------ backlog */}
+        <Pressable
+          onPress={() => setShowBacklog((v) => !v)}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.disclosure, pressed && styles.pressed]}
+        >
+          <Text style={styles.disclosureText}>
+            {t.backlogLabel} · {waiting.length}
+            {old.length > 0 ? ` · ${old.length} sitting a while` : ''}
+          </Text>
+          <Text style={styles.chevron}>{showBacklog ? '−' : '+'}</Text>
+        </Pressable>
+
+        {showBacklog
+          ? waiting.map((item) => (
+              <TaskRow
+                key={item.id}
+                task={item}
+                onToggle={() => toggleDone(item)}
+                onSecondary={() => moveTo(item, todayKey())}
+                secondaryLabel="Today"
+                onRemove={() => remove(item)}
+              />
+            ))
+          : null}
+
+        {showBacklog && waiting.length === 0 ? (
+          <Text style={styles.emptyBacklog}>{t.backlogEmpty}</Text>
+        ) : null}
+
+        {/* ----------------------------------------------------- training */}
+        <Text style={[styles.sectionLabel, styles.trainingLabel]}>{t.trainingTitle}</Text>
+
+        <View style={styles.stats}>
+          <Stat
+            label={t.trainingThisWeek}
+            value={`${training.sessionsThisWeek}/${training.weeklyTarget}`}
+            tone={color.crimson}
+          />
+          <Stat
+            label={t.trainingConsistency}
+            value={training.consistency === null ? null : `${training.consistency}%`}
+            tone={color.violet}
+          />
+          <Stat
+            label={t.trainingSinceLast}
+            value={since === null ? null : String(since)}
+            tone={training.inGap ? color.warn : color.cyan}
+          />
+        </View>
+
+        {training.inGap && since !== null ? (
+          <View style={styles.gap}>
+            <Text style={styles.gapLabel}>In a gap</Text>
+            <Text style={styles.gapBody}>
+              {since} days since the last session. Logging one now lands as a Return.
+            </Text>
+          </View>
+        ) : null}
+
+        {sessions.slice(0, 4).map((item) => (
+          <View key={item.id} style={styles.session}>
+            <View style={styles.sessionHead}>
+              <Text style={styles.sessionKind}>{item.kind}</Text>
+              <Text style={styles.sessionDay}>{item.day}</Text>
             </View>
-            <Text style={styles.rowMeta}>
+            <Text style={styles.sessionMeta}>
               {[
                 item.minutes ? `${item.minutes} min` : null,
                 item.intensity ? `intensity ${item.intensity}/5` : null,
@@ -91,20 +273,82 @@ export default function TrainingScreen() {
                 .filter(Boolean)
                 .join(' · ')}
             </Text>
-            {item.note ? <Text style={styles.rowNote}>{item.note}</Text> : null}
             {item.closedGap > 0 ? (
-              <Text style={styles.rowReturn}>{returnMessage(item.closedGap)}</Text>
+              <Text style={styles.sessionReturn}>{returnMessage(item.closedGap)}</Text>
             ) : null}
           </View>
-        )}
-      />
+        ))}
 
+        <Pressable
+          onPress={() => router.push('/session')}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.logSession, pressed && styles.pressed]}
+        >
+          <Text style={styles.logSessionText}>{t.trainingLog}</Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function TaskRow({
+  task,
+  onToggle,
+  onSecondary,
+  secondaryLabel,
+  onRemove,
+  done,
+}: {
+  task: Task;
+  onToggle: () => void;
+  onSecondary?: () => void;
+  secondaryLabel?: string;
+  onRemove?: () => void;
+  done?: boolean;
+}) {
+  return (
+    <View style={[styles.task, done && styles.taskDone]}>
       <Pressable
-        onPress={() => router.push('/session')}
-        style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+        onPress={onToggle}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: !!done }}
+        accessibilityLabel={`${done ? 'Undo' : 'Done'}: ${task.title}`}
+        hitSlop={8}
+        style={({ pressed }) => [styles.box, done && styles.boxOn, pressed && styles.pressed]}
       >
-        <Text style={styles.fabText}>{t.trainingLog}</Text>
+        {done ? <Text style={styles.tick}>✓</Text> : null}
       </Pressable>
+
+      <View style={styles.taskBody}>
+        <Text style={[styles.taskTitle, done && styles.taskTitleDone]} numberOfLines={2}>
+          {task.title}
+        </Text>
+        <Text style={styles.taskMinutes}>{formatMinutes(task.minutes)}</Text>
+      </View>
+
+      {onSecondary && secondaryLabel ? (
+        <Pressable
+          onPress={onSecondary}
+          accessibilityRole="button"
+          accessibilityLabel={`${secondaryLabel}: ${task.title}`}
+          hitSlop={6}
+          style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
+        >
+          <Text style={styles.secondaryText}>{secondaryLabel}</Text>
+        </Pressable>
+      ) : null}
+
+      {onRemove ? (
+        <Pressable
+          onPress={onRemove}
+          accessibilityRole="button"
+          accessibilityLabel={`Remove: ${task.title}`}
+          hitSlop={6}
+          style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
+        >
+          <Text style={styles.removeText}>Drop</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -116,8 +360,6 @@ function Stat({ label, value, tone }: { label: string; value: string | null; ton
         {label}
       </Text>
       {value === null ? (
-        // An em-dash in the display face reads as a filled bar at this weight,
-        // which looks like data rather than the absence of it.
         <Text style={styles.statEmpty}>Not yet</Text>
       ) : (
         <Text style={[styles.statValue, { color: tone }]}>{value}</Text>
@@ -128,9 +370,125 @@ function Stat({ label, value, tone }: { label: string; value: string | null; ton
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  list: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE + 72 },
-  header: { gap: space.lg, marginBottom: space.sm },
+  content: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE },
 
+  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  sectionLabel: { ...type.label, color: color.inkFaint },
+  carrying: {
+    fontFamily: font.display,
+    fontSize: 22,
+    color: color.ink,
+    fontVariant: ['tabular-nums'],
+  },
+  message: { ...type.small, color: color.inkDim, lineHeight: 20, marginBottom: space.xs },
+  messageWarn: { color: color.warn },
+
+  /* ------------------------------------------------------------- a task */
+  task: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.md,
+    paddingVertical: space.md,
+    paddingHorizontal: space.md,
+  },
+  taskDone: { opacity: 0.45 },
+  box: {
+    width: 26,
+    height: 26,
+    borderRadius: radius.sm,
+    borderWidth: 1.5,
+    borderColor: color.inkFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boxOn: { backgroundColor: color.cyan, borderColor: color.cyan },
+  tick: { color: '#0A0B12', fontSize: 15, fontFamily: font.displayBold },
+  taskBody: { flex: 1, gap: 1 },
+  taskTitle: { ...type.body, fontSize: 16, color: color.ink },
+  taskTitleDone: { textDecorationLine: 'line-through', color: color.inkDim },
+  taskMinutes: { ...type.mono, fontSize: 11, color: color.inkFaint },
+  secondary: { paddingHorizontal: space.sm, paddingVertical: space.xs },
+  secondaryText: { ...type.mono, fontSize: 11, color: color.cyan },
+  removeText: { ...type.mono, fontSize: 11, color: color.inkFaint },
+
+  /* ------------------------------------------------------------ capture */
+  capture: {
+    gap: space.sm,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.md,
+    padding: space.md,
+    marginTop: space.sm,
+  },
+  input: {
+    ...type.body,
+    fontSize: 16,
+    color: color.ink,
+    backgroundColor: color.surface2,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.md,
+    height: 46,
+  },
+  chips: { flexDirection: 'row', gap: space.xs },
+  chip: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.pill,
+    paddingVertical: space.xs,
+    alignItems: 'center',
+  },
+  chipOn: { borderColor: color.cyan, backgroundColor: color.cyanSoft },
+  chipText: { ...type.mono, fontSize: 11, color: color.inkDim },
+  chipTextOn: { color: color.cyan },
+  addRow: { flexDirection: 'row', gap: space.sm },
+  addToday: {
+    flex: 2,
+    backgroundColor: color.cyan,
+    borderRadius: radius.sm,
+    paddingVertical: space.md,
+    alignItems: 'center',
+  },
+  addTodayText: { ...type.heading, color: '#0A0B12' },
+  addLater: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.sm,
+    paddingVertical: space.md,
+    alignItems: 'center',
+  },
+  addLaterText: { ...type.heading, color: color.inkDim },
+  addDisabled: { opacity: 0.4 },
+
+  /* ------------------------------------------------------------ backlog */
+  disclosure: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: space.md,
+    marginTop: space.sm,
+    borderTopWidth: 1,
+    borderTopColor: color.lineSoft,
+  },
+  disclosureText: { ...type.label, color: color.inkFaint },
+  chevron: { ...type.heading, color: color.inkFaint },
+  emptyBacklog: {
+    ...type.small,
+    color: color.inkFaint,
+    textAlign: 'center',
+    padding: space.md,
+  },
+
+  /* ----------------------------------------------------------- training */
+  trainingLabel: { marginTop: space.xl, marginBottom: space.xs },
   stats: { flexDirection: 'row', gap: space.sm },
   stat: {
     flex: 1,
@@ -142,15 +500,13 @@ const styles = StyleSheet.create({
     gap: space.xs,
   },
   statLabel: { ...type.label, color: color.inkFaint, fontSize: 9 },
-  statEmpty: { ...type.small, fontSize: 15, color: color.inkFaint, lineHeight: 30 },
   statValue: {
     fontFamily: font.display,
-    fontSize: 26,
+    fontSize: 24,
     letterSpacing: -1,
     fontVariant: ['tabular-nums'],
   },
-
-  today: { ...type.small, color: color.cyan, textAlign: 'center' },
+  statEmpty: { ...type.small, fontSize: 14, color: color.inkFaint, lineHeight: 28 },
 
   gap: {
     borderWidth: 1,
@@ -163,34 +519,32 @@ const styles = StyleSheet.create({
   gapLabel: { ...type.label, color: color.warn },
   gapBody: { ...type.body, color: color.ink, lineHeight: 21 },
 
-  empty: { ...type.body, color: color.inkDim, textAlign: 'center', marginTop: space.xl },
-
-  row: {
+  session: {
     backgroundColor: color.surface,
     borderWidth: 1,
     borderColor: color.line,
     borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.xs,
+    padding: space.md,
+    gap: 2,
   },
-  rowHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  rowKind: { ...type.heading, color: color.ink },
-  rowDay: { ...type.mono, color: color.inkFaint },
-  rowMeta: { ...type.small, color: color.inkDim },
-  rowNote: { ...type.small, color: color.inkDim, fontStyle: 'italic' },
-  rowReturn: { ...type.small, color: color.violet, marginTop: space.xs },
+  sessionHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  sessionKind: { ...type.heading, color: color.ink },
+  sessionDay: { ...type.mono, color: color.inkFaint },
+  sessionMeta: { ...type.small, fontSize: 13, color: color.inkDim },
+  sessionReturn: { ...type.small, fontSize: 13, color: color.violet },
 
-  fab: {
-    position: 'absolute',
-    left: space.lg,
-    right: space.lg,
-    // Stacked above the floating tab bar rather than under it.
-    bottom: TAB_BAR_CLEARANCE,
+  logSession: {
     backgroundColor: color.crimson,
     borderRadius: radius.md,
     paddingVertical: space.lg,
     alignItems: 'center',
+    marginTop: space.sm,
   },
-  fabText: { ...type.heading, color: '#0A0B12' },
+  logSessionText: { ...type.heading, color: '#0A0B12' },
+
   pressed: { opacity: 0.75 },
 });

@@ -103,7 +103,7 @@ app/                      expo-router routes
   (tabs)/
     index.tsx             Home — Will Reserve, keystone warning, training strip
     log.tsx               Ship's Log — entry list
-    training.tsx          武装色 Armament — sessions, hardness, gaps
+    training.tsx          武装色 Armament — tasks, today's load, sessions
     carried.tsx           Inherited Will
     settings.tsx          keystone + training config, plain mode
   read.tsx                Daily Read (modal)
@@ -116,8 +116,11 @@ public/                   copied verbatim into the web build
   _headers, _redirects    Netlify / Cloudflare Pages config
   pwa-*.png               PWA + iOS icons
 
+assets/sounds/            short effects, cut for UI use
+
 tools/
   make_icons.py           regenerates every icon from one glyph
+  make_sound.py           trims, folds to mono and normalises a source effect
   pwa-head.mjs            injects the PWA head into the exported index.html
   serve-web.mjs           local preview WITH the isolation headers
 
@@ -126,6 +129,8 @@ src/
     willReserve.ts        the gauge
     cascade.ts            keystone → downstream detection
     training.ts           sessions, rolling hardness, gaps and Returns
+    tasks.ts              today's load, capacity, the next strike
+    quotes.ts             one line a day, deterministic
     backup.ts             export format, validation, merge planning
     date.ts               local-timezone day keys
   db/
@@ -134,6 +139,7 @@ src/
     repo.ts               typed queries
     settings.ts           typed key/value accessors
   files/                  saving and picking files — one impl per platform
+  sound/                  the sound library and playback
   state/HakiProvider.tsx  today's read + reserve + cascade + training + intensity
   theme/                  tokens, and the one label map behind plain mode
   notifications/          Den Den Mushi channels
@@ -143,7 +149,7 @@ src/
 `src/domain` is deliberately free of React Native imports so it tests on plain
 Node. Every piece of real logic in v0 is verifiable without a simulator.
 
-### The five mechanics that are actually implemented
+### The six mechanics that are actually implemented
 
 **Keystone & Cascade** (`src/domain/cascade.ts`) — sleep is declared as a
 keystone with training wired downstream. One bad night is a watch; two
@@ -168,6 +174,15 @@ Note the ordering in `app/session.tsx`: the gap is computed _before_ the insert.
 Write first and the new session becomes its own "previous session", so every
 Return would read as a gap of zero.
 
+**Tasks** (`src/domain/tasks.ts`) — a to-do list built against one failure: an
+ADHD brain facing forty things does none of them. Every task carries a minute
+estimate, because time blindness is the core problem and a list with no
+durations cannot be planned against. Today is a small explicit set; the backlog
+is a separate place you visit on purpose. The home screen shows exactly **one**
+next thing, since starting is the hard part and a list of options is where
+starting dies. Going over capacity is named plainly and never punished — it is
+information about the plan, not a verdict on you.
+
 **Backup** (`src/domain/backup.ts`) — export and import, because the PWA and the
 native app are two separate databases and data does not cross on its own.
 Import **merges and never deletes**, and every table dedupes on a natural key so
@@ -191,7 +206,8 @@ here with a mute button, not two design systems. Keep it that way.
 ## Not built yet, on purpose
 
 The Break List, Gears, the Calm Belt, Log Pose, finish-or-abandon, Bounty, the
-Ship, mined Foresight. Hardness exists for training only — the general habit
+Ship, mined Foresight. Estimate-vs-actual calibration is designed for but not
+built — it needs the Gears timer to measure against. Hardness exists for training only — the general habit
 engine is still v1. Conqueror's (覇王色) has no tab because it has nothing in it
 yet; empty placeholder tabs are the classic unfinished-project smell.
 

@@ -43,12 +43,14 @@
       [
         "expo-notifications",
         {
-          "color": "#B14CFF"
+          "color": "#B14CFF",
+          "sounds": ["./assets/sounds/denden.wav"]
         }
       ],
       "expo-sharing",
       "expo-font",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-audio"
     ]
   }
 }

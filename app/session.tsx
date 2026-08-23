@@ -15,6 +15,7 @@ import { useStore } from '../src/db/client';
 import { allSessions, logSession } from '../src/db/repo';
 import { useHaki } from '../src/state/HakiProvider';
 import { gapClosedBy, returnMessage } from '../src/domain/training';
+import { play } from '../src/sound';
 import { todayKey } from '../src/domain/date';
 import { color, font, radius, space, type } from '../src/theme/tokens';
 
@@ -71,6 +72,7 @@ export default function SessionScreen() {
       const message = returnMessage(gap);
       if (message) {
         // A Return is the one moment in this app worth stopping on.
+        play('returnDrums');
         setReturned(message);
         setSaving(false);
         return;
@@ -90,7 +92,7 @@ export default function SessionScreen() {
         <Text style={styles.returnBody}>{returned}</Text>
         <Pressable
           onPress={() => router.back()}
-          style={({ pressed }) => [styles.save, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.save, styles.returnDone, pressed && styles.pressed]}
         >
           <Text style={styles.saveText}>Good</Text>
         </Pressable>
@@ -112,7 +114,10 @@ export default function SessionScreen() {
             placeholder="Push"
             placeholderTextColor={color.inkFaint}
             style={styles.input}
-            autoFocus
+            // Native only: iOS opens the keyboard for gesture-driven focus,
+            // never for programmatic focus, and an already-focused field
+            // fires no new focus event when tapped.
+            autoFocus={Platform.OS !== 'web'}
             accessibilityLabel={t.trainingKind}
           />
           <View style={styles.quick}>
@@ -216,8 +221,11 @@ const styles = StyleSheet.create({
     backgroundColor: color.crimson,
     borderRadius: radius.md,
     paddingVertical: space.lg,
+    paddingHorizontal: space.lg,
     alignItems: 'center',
   },
+  // Centred rather than stretched, so it needs a width of its own.
+  returnDone: { paddingHorizontal: space.xxxl, minWidth: 180, marginTop: space.sm },
   saveDisabled: { backgroundColor: color.surface2 },
   saveText: { ...type.heading, color: '#0A0B12' },
   pressed: { opacity: 0.75 },

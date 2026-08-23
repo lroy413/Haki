@@ -1,6 +1,7 @@
 import { todayKey, type DayKey } from '../domain/date';
 import { DEFAULT_KEYSTONE, type KeystoneConfig } from '../domain/cascade';
 import { DEFAULT_TRAINING, type TrainingConfig } from '../domain/training';
+import { DEFAULT_CAPACITY_MINUTES } from '../domain/tasks';
 import { readSetting, writeSetting, type Db } from './repo';
 
 /**
@@ -15,6 +16,9 @@ export type Settings = {
   plainMode: boolean;
   keystone: KeystoneConfig;
   training: TrainingConfig;
+  /** Minutes of intentional work a day can really hold. */
+  capacityMinutes: number;
+  soundOn: boolean;
 };
 
 const KEYS = {
@@ -22,14 +26,18 @@ const KEYS = {
   plainMode: 'ui.plainMode',
   keystone: 'keystone.config',
   training: 'training.config',
+  capacity: 'tasks.capacityMinutes',
+  sound: 'ui.soundOn',
 } as const;
 
 export async function loadSettings(db: Db): Promise<Settings> {
-  const [setSail, plain, keystoneRaw, trainingRaw] = await Promise.all([
+  const [setSail, plain, keystoneRaw, trainingRaw, capacityRaw, soundRaw] = await Promise.all([
     readSetting(db, KEYS.setSailAt),
     readSetting(db, KEYS.plainMode),
     readSetting(db, KEYS.keystone),
     readSetting(db, KEYS.training),
+    readSetting(db, KEYS.capacity),
+    readSetting(db, KEYS.sound),
   ]);
 
   // First launch is day one.
@@ -44,6 +52,9 @@ export async function loadSettings(db: Db): Promise<Settings> {
     plainMode: plain === 'true',
     keystone: parseKeystone(keystoneRaw),
     training: parseTraining(trainingRaw),
+    capacityMinutes: numberOr(Number(capacityRaw), DEFAULT_CAPACITY_MINUTES),
+    // Default on — it is one of the reasons to open the thing.
+    soundOn: soundRaw !== 'false',
   };
 }
 
@@ -95,4 +106,12 @@ export async function setKeystone(db: Db, config: KeystoneConfig): Promise<void>
 
 export async function setTraining(db: Db, config: TrainingConfig): Promise<void> {
   await writeSetting(db, KEYS.training, JSON.stringify(config));
+}
+
+export async function setCapacityMinutes(db: Db, minutes: number): Promise<void> {
+  await writeSetting(db, KEYS.capacity, String(minutes));
+}
+
+export async function setSoundOn(db: Db, on: boolean): Promise<void> {
+  await writeSetting(db, KEYS.sound, on ? 'true' : 'false');
 }
