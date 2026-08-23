@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  consistency,
   DEFAULT_TRAINING,
   gapClosedBy,
   lastSessionDay,
@@ -79,55 +78,6 @@ describe('lastSessionDay', () => {
   });
 });
 
-describe('consistency', () => {
-  it('is null before anything is logged', () => {
-    expect(consistency([], '2026-08-22', 4)).toBeNull();
-  });
-
-  it('is 100 when the trailing four weeks hit target', () => {
-    // 16 sessions across the 28-day window at a target of 4/week.
-    const sessions: Session[] = [];
-    for (let week = 0; week < 4; week += 1) {
-      for (let n = 0; n < 4; n += 1) {
-        sessions.push(session(`2026-08-${String(22 - week * 7 - n).padStart(2, '0')}`));
-      }
-    }
-    expect(consistency(sessions, '2026-08-22', 4)).toBe(100);
-  });
-
-  it('does not bank credit above 100', () => {
-    const sessions = Array.from({ length: 28 }, (_, i) =>
-      session(`2026-08-${String(22 - i).padStart(2, '0')}`),
-    );
-    expect(consistency(sessions, '2026-08-22', 4)).toBe(100);
-  });
-
-  it('dips rather than zeroing after a missed week', () => {
-    // Three solid weeks then nothing for seven days.
-    const sessions = [
-      session('2026-08-03'),
-      session('2026-08-05'),
-      session('2026-08-07'),
-      session('2026-08-10'),
-      session('2026-08-12'),
-      session('2026-08-14'),
-    ];
-    const value = consistency(sessions, '2026-08-22', 4)!;
-    expect(value).toBeGreaterThan(0);
-    expect(value).toBeLessThan(100);
-  });
-
-  it('never returns a negative or a zero-target division', () => {
-    expect(consistency([session('2026-08-22')], '2026-08-22', 0)).toBeNull();
-    expect(consistency([session('2026-08-22')], '2026-08-22', 4)!).toBeGreaterThanOrEqual(0);
-  });
-
-  it('drops old sessions out of the trailing window', () => {
-    const stale = [session('2026-01-01'), session('2026-01-02')];
-    expect(consistency(stale, '2026-08-22', 4)).toBe(0);
-  });
-});
-
 describe('gapClosedBy', () => {
   it('is zero for the very first session ever', () => {
     // There was nothing to return from.
@@ -181,7 +131,6 @@ describe('trainingStatus', () => {
   it('reports an untouched state before anything is logged', () => {
     const status = trainingStatus([], config, '2026-08-22');
     expect(status.daysSinceLast).toBeNull();
-    expect(status.consistency).toBeNull();
     expect(status.inGap).toBe(false); // nothing to be in a gap from
     expect(status.sessionsThisWeek).toBe(0);
   });
@@ -205,8 +154,9 @@ describe('trainingStatus', () => {
     expect(status.daysSinceLast).toBe(7);
     expect(status.inGap).toBe(true);
     expect(status.sessionsThisWeek).toBe(0);
-    // Crucially: not zero. Three weeks of work is still on the board.
-    expect(status.consistency!).toBeGreaterThan(0);
+    // What is *not* asserted here any more: that three weeks of work is still
+    // on the board. That property moved with Hardness to `armament.test.ts`,
+    // where it is measured over every act rather than over workouts.
   });
 
   it('ships a sane default config', () => {

@@ -271,10 +271,44 @@ photosensitive-seizure guidance draws, and a future level that wanted to be
 exciting has to argue with a test. And it stays decoration: plain mode,
 reduced motion, and a low Will Reserve each turn it off completely.
 
+## Two corrections, and a lens that was missing
+
+Both came from the owner using the thing, and both were right.
+
+**"The Armament system is weird — it shouldn't be working off just workouts. I
+only work out one major time a day."** Correct, and worse than it sounds. The
+Hardness figure was sessions-per-week over four weeks, which meant the lens for
+_everything you do on purpose_ was measuring the gym — and for somebody who
+trains once a day it is a number with about two useful values. Hardness now
+reads every act of doing: a task struck, a block of focus, a session logged. It
+counts **days that had any**, never how much, because three tasks is not a
+better day than one and a measure that said so would pay for busywork. Training
+kept its own honest section underneath: sessions, gaps, Returns. One input
+among several rather than the whole of a lens.
+
+**"Stillness and meditation are part of the Observation system, as Observation
+Haki only works in times of mental clarity."** This one exposed a category
+error: sitting was hardening the app, and hardening was framed as Armament
+coating. So Observation got built — the lens that had a practice feeding it and
+nowhere for it to go.
+
+The design is in the second half of that sentence. Sitting is the **practice**
+and clarity is the **condition**, and they are deliberately not stirred into
+one number: they are reported separately so the state can name whichever is
+doing the limiting. Which means the app can say _"the practice is there — today
+is loud, and that is a day, not a verdict"_. Most habit apps can only tell you
+that you missed something.
+
+Hardening itself was reframed rather than changed. It reads the whole day
+across every lens, and sitting still darkens the app — because a day with
+stillness in it is a day that got used, and a mental-health app withholding its
+one piece of visual feedback from meditation would be punishing somebody for
+meditating.
+
 ## Where it stands
 
 **Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Thirteen pull
-requests merged, 404 tests, one principle held everywhere: the app rewards the
+requests merged, 430 tests, one principle held everywhere: the app rewards the
 act and never punishes the absence.
 
 What is actually in it:

@@ -113,11 +113,13 @@ export default function Home() {
       <Pressable
         onPress={() => router.push('/training')}
         accessibilityRole="button"
-        accessibilityLabel={t.trainingTitle}
+        accessibilityLabel={t.trainingSection}
         style={({ pressed }) => [styles.strip, pressed && styles.ctaPressed]}
       >
         <View>
-          <Text style={styles.stripLabel}>{t.trainingTitle}</Text>
+          {/* The gym, honestly labelled. This strip shows sessions, and
+              calling it Armament was what made the lens look like one. */}
+          <Text style={styles.stripLabel}>{t.trainingSection}</Text>
           <Text style={styles.stripValue}>
             {training.daysSinceLast === null
               ? t.trainingNever

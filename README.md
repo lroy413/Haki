@@ -131,7 +131,9 @@ src/
   domain/                 pure logic, no React Native imports — this is the part that matters
     willReserve.ts        the gauge
     cascade.ts            keystone → downstream detection
-    training.ts           sessions, rolling hardness, gaps and Returns
+    training.ts           sessions, gaps and Returns — the gym, and only the gym
+    armament.ts           武装色 — Hardness, read over every act of doing
+    observation.ts        見聞色 — the practice, and the clarity to use it
     tasks.ts              today's load, capacity, the next strike
     gears.ts              focus blocks and their honest costs
     stillness.ts          sits, and the breath the ring is drawn to
@@ -188,12 +190,24 @@ asks you to make it go up. Weights live in one place at the top of the file so
 tuning it is a one-line edit. When there's no read yet it returns `null` and
 says so, rather than showing a stale number as though it were current.
 
-**Training** (`src/domain/training.ts`) — no streak counter and no target you
-can fail. Hardness is sessions over a trailing four weeks against what four
-weeks of your target would be; it dips when you miss and climbs when you come
-back, and it cannot be zeroed. A gap of three days or more makes the next
-session a **Return** — logged, named, and given its own screen, because coming
-back is the skill that decides whether a gap costs a week or a year.
+**Armament** (`src/domain/armament.ts`) — Hardness, read over **every act of
+doing**: a task struck, a block of focus, a session logged. It counts _days
+that had any_, never how much, so three tasks is not a better day than one. It
+dips when you miss, climbs when you come back, and cannot be zeroed. It used to
+be sessions-per-week, which quietly redefined the lens for everything you do on
+purpose as a workout tracker — and gave a figure with two useful values to
+somebody who trains once a day.
+
+**Observation** (`src/domain/observation.ts`) — sitting is the practice,
+clarity is what lets you use it. Canon's rule and the owner's: Observation only
+works in times of mental clarity. So the two are reported separately and the
+state names whichever is limiting — _"the practice is there, today is loud"_ is
+a thing this app can say and most cannot.
+
+**Training** (`src/domain/training.ts`) — the gym, and only the gym: sessions,
+gaps, and Returns. A gap of three days or more makes the next session a
+**Return** — logged, named, and given its own screen, because coming back is
+the skill that decides whether a gap costs a week or a year.
 
 Note the ordering in `app/session.tsx`: the gap is computed _before_ the insert.
 Write first and the new session becomes its own "previous session", so every

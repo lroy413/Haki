@@ -231,6 +231,26 @@ export async function gearSessionsOn(db: Db, day: DayKey = todayKey()): Promise<
 }
 
 /**
+ * Every gear session across a window, for the Armament figure.
+ *
+ * Grouped by day at the call site rather than here: the domain wants days, the
+ * database only knows rows, and the seam between those two belongs above this
+ * function rather than inside it.
+ */
+export async function gearSessionsBetween(
+  db: Db,
+  from: DayKey,
+  to: DayKey,
+): Promise<GearSession[]> {
+  const rows = await db
+    .select()
+    .from(gearSession)
+    .where(and(gte(gearSession.day, from), lte(gearSession.day, to)))
+    .orderBy(gearSession.startedAt);
+  return rows.map(toGearSession);
+}
+
+/**
  * The session still open, if there is one — searched across yesterday too.
  *
  * A gear started at 11:40pm belongs to the day it started on, but it is still
@@ -289,6 +309,20 @@ export async function sitSessionsOn(db: Db, day: DayKey = todayKey()): Promise<S
     .select()
     .from(sitSession)
     .where(eq(sitSession.day, day))
+    .orderBy(sitSession.startedAt);
+  return rows.map(toSitSession);
+}
+
+/** Every sit across a window, for the Observation figure. */
+export async function sitSessionsBetween(
+  db: Db,
+  from: DayKey,
+  to: DayKey,
+): Promise<SitSession[]> {
+  const rows = await db
+    .select()
+    .from(sitSession)
+    .where(and(gte(sitSession.day, from), lte(sitSession.day, to)))
     .orderBy(sitSession.startedAt);
   return rows.map(toSitSession);
 }

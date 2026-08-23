@@ -4,11 +4,13 @@ import {
   allSessions,
   allTasks,
   entriesOn,
+  gearSessionsBetween,
   gearSessionsOn,
   getCourse,
   getRead,
   readSetting,
   recentSleep,
+  sitSessionsBetween,
   sitSessionsOn,
 } from '../db/repo';
 import { setHardeningMark } from '../db/settings';
@@ -18,11 +20,18 @@ import { nextStrike, todaysLoad, type Load, type Task } from '../domain/tasks';
 import { quoteForDay, type Quote } from '../domain/quotes';
 import { minutesToday } from '../domain/gears';
 import { minutesToday as sitMinutesToday } from '../domain/stillness';
+import {
+  WINDOW_DAYS as ARMAMENT_WINDOW,
+  hardness,
+  hardDays,
+  type ArmamentDay,
+} from '../domain/armament';
+import { observation, type Observation, type ObservationDay } from '../domain/observation';
 import type { Course } from '../domain/course';
 import { reachDays, reachFor, tierFor, type RyuoTier } from '../domain/ryuo';
 import { NO_ACTS, settleLevel, type Acts, type HardeningLevel } from '../domain/hardening';
 import { paletteFor, type Palette } from '../theme/palettes';
-import { daysAtSea, todayKey } from '../domain/date';
+import { addDays, daysAtSea, todayKey } from '../domain/date';
 import {
   computeReserve,
   effectIntensity,
@@ -51,6 +60,13 @@ type HakiState = {
   ryuo: { tier: RyuoTier; days: number; reach: number };
   /** Today's heading, or null. See `domain/course.ts`. */
   course: Course | null;
+  /**
+   * 武装色 — the share of the trailing window that had any act of doing in it.
+   * Null before anything has ever been done. See `domain/armament.ts`.
+   */
+  hardness: { value: number | null; days: number };
+  /** 見聞色 — the practice, and whether today is clear enough to use it. */
+  observation: Observation;
   day: number;
   t: Strings;
   plainMode: boolean;
@@ -70,7 +86,6 @@ const EMPTY_TRAINING: TrainingStatus = {
   weeklyTarget: 0,
   daysSinceLast: null,
   lastSessionDay: null,
-  consistency: null,
   inGap: false,
 };
 
@@ -87,6 +102,17 @@ const EMPTY_LOAD: Load = {
 /** Where the day's high-water mark lives. Derived state, not a user setting. */
 const HARDENING_DAY = 'hardening.day';
 const HARDENING_LEVEL = 'hardening.level';
+
+/** Rows to days. Both lens figures want the same shape out of the database. */
+function groupByDay<T extends { day: string }>(rows: T[]): Map<string, T[]> {
+  const out = new Map<string, T[]>();
+  for (const row of rows) {
+    const bucket = out.get(row.day);
+    if (bucket) bucket.push(row);
+    else out.set(row.day, [row]);
+  }
+  return out;
+}
 
 const EMPTY_RESERVE: Reserve = {
   value: null,
@@ -116,6 +142,13 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   const [acts, setActs] = useState<Acts>(NO_ACTS);
   const [ryuoDays, setRyuoDays] = useState(0);
   const [course, setCourse] = useState<Course | null>(null);
+  const [armament, setArmament] = useState<{ value: number | null; days: number }>({
+    value: null,
+    days: 0,
+  });
+  const [seeing, setSeeing] = useState<Observation>(() =>
+    observation([], null, todayKey(), ARMAMENT_WINDOW),
+  );
 
   const refresh = useCallback(async () => {
     const today = todayKey();
@@ -128,6 +161,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       gears,
       sits,
       todayCourse,
+      gearWindow,
+      sitWindow,
       markDay,
       markLevel,
     ] = await Promise.all([
@@ -139,6 +174,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       gearSessionsOn(db, today),
       sitSessionsOn(db, today),
       getCourse(db, today),
+      gearSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
+      sitSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
     ]);
@@ -175,6 +212,41 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       satMinutes: sitMinutesToday(sits, Date.now()),
     };
     setActs(nextActs);
+
+    // 武装色 and 見聞色, each read over the same trailing window. Grouped into
+    // days here because the domain wants days and the database only has rows.
+    const now = Date.now();
+    const armamentDays = new Map<string, ArmamentDay>();
+    const dayOf = (key: string): ArmamentDay => {
+      const existing = armamentDays.get(key);
+      if (existing) return existing;
+      const fresh: ArmamentDay = {
+        day: key as typeof today,
+        struck: 0,
+        gearMinutes: 0,
+        sessions: 0,
+      };
+      armamentDays.set(key, fresh);
+      return fresh;
+    };
+    for (const t of tasks) {
+      if (t.committedFor && t.doneAt !== null) dayOf(t.committedFor).struck += 1;
+    }
+    for (const session of sessions) dayOf(session.day).sessions += 1;
+    for (const [key, group] of groupByDay(gearWindow)) {
+      dayOf(key).gearMinutes = minutesToday(group, now);
+    }
+    const armamentHistory = [...armamentDays.values()];
+    setArmament({
+      value: hardness(armamentHistory, today, ARMAMENT_WINDOW),
+      days: hardDays(armamentHistory, today, ARMAMENT_WINDOW),
+    });
+
+    const sitHistory: ObservationDay[] = [...groupByDay(sitWindow)].map(([key, group]) => ({
+      day: key as typeof today,
+      satMinutes: sitMinutesToday(group, now),
+    }));
+    setSeeing(observation(sitHistory, todayRead?.clarity ?? null, today, ARMAMENT_WINDOW));
 
     const recorded =
       markDay && markLevel !== null
@@ -231,6 +303,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
         return { tier, days: ryuoDays, reach: reachFor(tier) };
       })(),
       course,
+      hardness: armament,
+      observation: seeing,
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,
@@ -246,6 +320,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       acts,
       ryuoDays,
       course,
+      armament,
+      seeing,
       settings.plainMode,
       settings.setSailAt,
       refresh,

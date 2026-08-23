@@ -137,6 +137,31 @@ user_version` in `bootstrap.ts`. **Append migrations, never edit a shipped
   one**; it has already run on a device holding real journal entries.
 - `src/files/` — one implementation per platform, both `satisfies Transfer`.
 
+## The three lenses
+
+Each act belongs to exactly one, and getting this wrong is easy — it has been
+got wrong once already, by measuring 武装色 from workouts alone.
+
+| Lens               | Reads                           | Fed by                        | Lives in                |
+| ------------------ | ------------------------------- | ----------------------------- | ----------------------- |
+| 見聞色 Observation | your own state                  | the Daily Read, Stillness     | `domain/observation.ts` |
+| 武装色 Armament    | what you did on purpose         | struck tasks, gears, training | `domain/armament.ts`    |
+| 覇王色 Conqueror's | the will that affects the world | —                             | unbuilt                 |
+
+Two rules fall out of that:
+
+- **A workout is one input to Armament, never the measure of it.** The owner
+  trains once a day, so a figure built on session count has about two useful
+  values. Hardness reads every act of doing, and counts **days that had any**
+  rather than how much — three tasks is not a better day than one.
+- **Observation only works in clarity.** Sitting is the practice and clarity is
+  what lets you use it, so `observation.ts` reports the two separately and
+  names whichever is limiting. "The practice is there, today is loud" is a
+  sentence this app should be able to say.
+
+Hardening is not one of the lenses. It reads the whole day across all of them —
+see `domain/hardening.ts`.
+
 ## Tone
 
 This is a mental-health app for someone whose stated problem is consistency.

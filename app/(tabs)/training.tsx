@@ -48,6 +48,7 @@ import {
   type GearSession,
 } from '../../src/domain/gears';
 import { todayKey } from '../../src/domain/date';
+import { hardnessMessage, hardnessName } from '../../src/domain/armament';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
@@ -65,7 +66,7 @@ const MINUTE_CHIPS = [5, 15, 30, 60, 120];
 export default function ArmamentScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, training, load, refresh, plainMode, palette } = useHaki();
+  const { t, training, load, hardness, refresh, plainMode, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
 
@@ -157,6 +158,20 @@ export default function ArmamentScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <PageHeading title={t.trainingTitle} />
+
+        {/*
+          The lens, read over four weeks — and read from *everything* you do
+          on purpose, not from workouts. It used to be sessions-per-week, which
+          made Armament look like a gym tracker and gave a figure with about
+          two useful values to somebody who trains once a day.
+        */}
+        <View style={styles.head}>
+          <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
+          <Text style={styles.carrying}>
+            {hardness.value === null ? hardnessName(null) : `${hardness.value}%`}
+          </Text>
+        </View>
+        <Text style={styles.message}>{hardnessMessage(hardness.value, hardness.days)}</Text>
 
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
@@ -330,18 +345,15 @@ export default function ArmamentScreen() {
         )}
 
         {/* ----------------------------------------------------- training */}
-        <Text style={[styles.sectionLabel, styles.trainingLabel]}>{t.trainingTitle}</Text>
+        {/* The gym, under its own name. It is one input to the figure at the
+            top of this screen, not the whole of it. */}
+        <Text style={[styles.sectionLabel, styles.trainingLabel]}>{t.trainingSection}</Text>
 
         <View style={styles.stats}>
           <Stat
             label={t.trainingThisWeek}
             value={`${training.sessionsThisWeek}/${training.weeklyTarget}`}
             tone={palette.crimson}
-          />
-          <Stat
-            label={t.trainingConsistency}
-            value={training.consistency === null ? null : `${training.consistency}%`}
-            tone={palette.violet}
           />
           <Stat
             label={t.trainingSinceLast}

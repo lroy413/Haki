@@ -5,12 +5,19 @@
  * keystone that carries this — now there is something real on the other end
  * of that link.
  *
- * Two deliberate absences:
+ * **This is the gym, and only the gym.** It used to carry a rolling
+ * "Hardness" figure that the app displayed as the Armament measure — which
+ * quietly redefined the lens for *everything you do on purpose* as a workout
+ * tracker, and gave a figure with about two useful values to somebody who
+ * trains once a day. Hardness moved to `domain/armament.ts`, where it reads
+ * every act. What is left here is sessions, gaps and Returns: real, useful,
+ * and one input among several rather than the whole of a lens.
  *
- * No streak counter. Consistency is a rolling figure over a trailing window,
- * so it dips when you miss and climbs when you return. It cannot be zeroed,
- * because a number that resets to nothing is what turns one missed week into
- * three.
+ * Two deliberate absences, and they are why the figure that replaced it is
+ * shaped the way it is:
+ *
+ * No streak counter. A number that resets to nothing is what turns one missed
+ * week into three.
  *
  * No target you can fail. The weekly target is a line to read against, never a
  * verdict. Nothing in here returns a pass or a fail.
@@ -39,17 +46,12 @@ export const DEFAULT_TRAINING: TrainingConfig = {
   gapDaysForReturn: 3,
 };
 
-/** Trailing window for the consistency figure. Four weeks. */
-const CONSISTENCY_WINDOW_DAYS = 28;
-
 export type TrainingStatus = {
   sessionsThisWeek: number;
   weeklyTarget: number;
   /** 0 when you trained today. Null when nothing has ever been logged. */
   daysSinceLast: number | null;
   lastSessionDay: DayKey | null;
-  /** 0..100 over the trailing four weeks. Null before anything is logged. */
-  consistency: number | null;
   /** True when a session logged now would land as a Return. */
   inGap: boolean;
 };
@@ -77,26 +79,6 @@ export function lastSessionDay(sessions: Session[], onOrBefore: DayKey): DayKey 
   return latest;
 }
 
-/**
- * Sessions logged over the trailing four weeks against what four weeks of the
- * target would be. Capped at 100 — training more than target does not bank
- * credit against a future gap.
- */
-export function consistency(
-  sessions: Session[],
-  today: DayKey,
-  weeklyTarget: number,
-): number | null {
-  if (weeklyTarget <= 0) return null;
-  if (sessions.length === 0) return null;
-
-  const since = addDays(today, -(CONSISTENCY_WINDOW_DAYS - 1));
-  const actual = sessionsBetween(sessions, since, today).length;
-  const expected = (weeklyTarget * CONSISTENCY_WINDOW_DAYS) / 7;
-
-  return Math.min(100, Math.round((actual / expected) * 100));
-}
-
 export function trainingStatus(
   sessions: Session[],
   config: TrainingConfig = DEFAULT_TRAINING,
@@ -110,7 +92,6 @@ export function trainingStatus(
     weeklyTarget: config.weeklyTarget,
     daysSinceLast: since,
     lastSessionDay: last,
-    consistency: consistency(sessions, today, config.weeklyTarget),
     inGap: since !== null && since >= config.gapDaysForReturn,
   };
 }
