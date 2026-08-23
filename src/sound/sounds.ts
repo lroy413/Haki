@@ -8,7 +8,7 @@
  * Keep them short. Anything that fires on a tap should be under a second.
  */
 
-export type SoundName = 'armamentStrike' | 'observationRead';
+export type SoundName = 'armamentStrike' | 'observationRead' | 'returnDrums';
 
 /**
  * `require` is deliberate: Metro resolves these at build time so the asset is
@@ -19,4 +19,8 @@ export const SOUNDS: Record<SoundName, number> = {
   armamentStrike: require('../../assets/sounds/armament-strike.wav'),
   // 見聞色 — sensing rather than striking. Plays when the Daily Read is saved.
   observationRead: require('../../assets/sounds/observation-read.wav'),
+  // 帰 — the Return, and the only music here. Six seconds, and rare by
+  // construction: it needs a real gap to have been closed. mp3 rather than
+  // wav because the same cue as PCM would be a third of a megabyte.
+  returnDrums: require('../../assets/sounds/return-drums.mp3'),
 };
