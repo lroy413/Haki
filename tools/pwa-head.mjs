@@ -40,6 +40,20 @@ const HEAD = `${MARKER}
       html, body, #root { background-color: #0A0B12; }
       body { overscroll-behavior-y: contain; }
       ::selection { background: #B14CFF; color: #0A0B12; }
+      /* iOS standalone with a translucent status bar lies about percentage
+         heights: the page paints under the clock, but html's 100% resolves
+         to the screen minus the status bar, so the whole app stopped 62pt
+         short at the *bottom* on an iPhone 16 Pro — a dead band under the
+         tab bar, measured off a device screenshot as exactly the top inset.
+         The modern viewport units measure the real screen. min-height keeps
+         100% as the floor, so on any browser where these units are the
+         smaller lie the worst case is what shipped before, never shorter. */
+      @supports (-webkit-touch-callout: none) {
+        html, body, #root { height: -webkit-fill-available; min-height: 100%; }
+      }
+      @supports (height: 100dvh) {
+        html, body, #root { height: 100dvh; min-height: 100%; }
+      }
     </style>
     <script>
       if ('serviceWorker' in navigator) {
