@@ -255,6 +255,14 @@ describe('key hygiene', () => {
         closedGap: 0,
         createdAt: 1,
       },
+      gearSession: {
+        gear: 'second',
+        day: '2026-08-22',
+        startedAt: 1,
+        endedAt: null,
+        completed: 0,
+        createdAt: 1,
+      },
       carried: {
         name: 'Someone',
         relationship: null,

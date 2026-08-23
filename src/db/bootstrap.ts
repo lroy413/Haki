@@ -103,6 +103,21 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS task_committed_idx ON task (committed_for);
     `,
   },
+  {
+    version: 4,
+    up: `
+      CREATE TABLE IF NOT EXISTS gear_session (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        gear        TEXT    NOT NULL,
+        day         TEXT    NOT NULL,
+        started_at  INTEGER NOT NULL,
+        ended_at    INTEGER,
+        completed   INTEGER NOT NULL DEFAULT 0,
+        created_at  INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS gear_session_day_idx ON gear_session (day);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

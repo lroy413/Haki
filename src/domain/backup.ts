@@ -78,11 +78,21 @@ export type SettingBackup = {
   value: string;
 };
 
+export type GearSessionBackup = {
+  gear: string;
+  day: string;
+  startedAt: number;
+  endedAt: number | null;
+  completed: number;
+  createdAt: number;
+};
+
 export type BackupTables = {
   dailyRead: DailyReadBackup[];
   sleepLog: SleepBackup[];
   entry: EntryBackup[];
   trainingSession: SessionBackup[];
+  gearSession: GearSessionBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
   setting: SettingBackup[];
@@ -101,6 +111,7 @@ export const EMPTY_TABLES: BackupTables = {
   sleepLog: [],
   entry: [],
   trainingSession: [],
+  gearSession: [],
   carried: [],
   task: [],
   setting: [],
@@ -160,6 +171,13 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     nullableNum(r.intensity) &&
     nullableStr(r.note) &&
     num(r.closedGap) &&
+    num(r.createdAt),
+  gearSession: (r) =>
+    str(r.gear) &&
+    str(r.day) &&
+    num(r.startedAt) &&
+    nullableNum(r.endedAt) &&
+    num(r.completed) &&
     num(r.createdAt),
   carried: (r) =>
     str(r.name) &&
@@ -258,6 +276,7 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   sleepLog: (r) => r.day,
   entry: (r) => String(r.createdAt),
   trainingSession: (r) => String(r.createdAt),
+  gearSession: (r) => String(r.startedAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),
   setting: (r) => r.key,
