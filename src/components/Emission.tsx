@@ -37,7 +37,7 @@ export function Emission({
   children?: React.ReactNode;
   style?: ViewStyle;
 }) {
-  const { palette, intensity } = useHaki();
+  const { palette, intensity, ryuo } = useHaki();
   const inner = useRef(new Animated.Value(0)).current;
   const outer = useRef(new Animated.Value(0)).current;
   // Its own value, on its own driver: a shadow cannot be animated natively,
@@ -88,14 +88,17 @@ export function Emission({
    * the 0.6 intensity of an unknown reserve, which is the state the home
    * screen is in most mornings.
    */
-  const rings = useMemo(
-    () => [
-      { value: inner, colour: palette.warn, to: 1.05, peak: 1, width: 3 },
-      { value: inner, colour: palette.crimson, to: 1.13, peak: 0.95, width: 5 },
-      { value: outer, colour: palette.crimson, to: 1.22, peak: 0.55, width: 3 },
-    ],
-    [inner, outer, palette.warn, palette.crimson],
-  );
+  const rings = useMemo(() => {
+    // Reach only ever scales the distance travelled, never the starting size,
+    // so tier 0 is exactly the corona everyone gets and every tier above it
+    // pushes the same shape further out.
+    const far = (to: number) => 1 + (to - 1) * ryuo.reach;
+    return [
+      { value: inner, colour: palette.warn, to: far(1.05), peak: 1, width: 3 },
+      { value: inner, colour: palette.crimson, to: far(1.13), peak: 0.95, width: 5 },
+      { value: outer, colour: palette.crimson, to: far(1.22), peak: 0.55, width: 3 },
+    ];
+  }, [inner, outer, palette.warn, palette.crimson, ryuo.reach]);
 
   return (
     <View style={style}>

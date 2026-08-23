@@ -15,6 +15,7 @@ import { trainingStatus, type TrainingStatus } from '../domain/training';
 import { nextStrike, todaysLoad, type Load, type Task } from '../domain/tasks';
 import { quoteForDay, type Quote } from '../domain/quotes';
 import { minutesToday } from '../domain/gears';
+import { reachDays, reachFor, tierFor, type RyuoTier } from '../domain/ryuo';
 import { NO_ACTS, settleLevel, type Acts, type HardeningLevel } from '../domain/hardening';
 import { paletteFor, type Palette } from '../theme/palettes';
 import { daysAtSea, todayKey } from '../domain/date';
@@ -42,6 +43,8 @@ type HakiState = {
   hardening: HardeningLevel;
   acts: Acts;
   palette: Palette;
+  /** How far the emission reaches — see `domain/ryuo.ts`. */
+  ryuo: { tier: RyuoTier; days: number; reach: number };
   day: number;
   t: Strings;
   plainMode: boolean;
@@ -105,6 +108,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     settleLevel(NO_ACTS, todayKey(), settings.hardening),
   );
   const [acts, setActs] = useState<Acts>(NO_ACTS);
+  const [ryuoDays, setRyuoDays] = useState(0);
 
   const refresh = useCallback(async () => {
     const today = todayKey();
@@ -134,6 +138,10 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
 
     const nextLoad = todaysLoad(tasks, today, settings.capacityMinutes);
     setLoad(nextLoad);
+
+    // Reach is read over a trailing window, so it is recomputed with the rest
+    // rather than tracked incrementally — there is no state to drift.
+    setRyuoDays(reachDays(tasks, today));
 
     const nextActs: Acts = {
       read: todayRead !== null,
@@ -194,6 +202,11 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       hardening: settings.plainMode ? 3 : hardening,
       acts,
       palette: paletteFor(settings.plainMode ? 3 : hardening),
+      ryuo: (() => {
+        // Plain mode turns the effects off, and reach is entirely an effect.
+        const tier = settings.plainMode ? 0 : tierFor(ryuoDays);
+        return { tier, days: ryuoDays, reach: reachFor(tier) };
+      })(),
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,
@@ -207,6 +220,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       load,
       hardening,
       acts,
+      ryuoDays,
       settings.plainMode,
       settings.setSailAt,
       refresh,
