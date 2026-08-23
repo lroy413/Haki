@@ -1,9 +1,10 @@
 import { useHaki } from '../state/HakiProvider';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { formatMinutes, type Task } from '../domain/tasks';
 import { play } from '../sound';
+import { Emission } from './Emission';
 import { font, radius, space, type } from '../theme/tokens';
 import type { Palette } from '../theme/palettes';
 
@@ -29,23 +30,30 @@ export function NextStrike({
   emptyLabel: string;
 }) {
   const { palette } = useHaki();
-
   const styles = useMemo(() => makeStyles(palette), [palette]);
+
+  // Striking the last task swaps this card for the empty one. Counting the
+  // strikes here and wrapping *both* branches in one Emission keeps that
+  // element mounted across the swap, so the corona is never cut off halfway.
+  const [strikes, setStrikes] = useState(0);
+
   if (!task) {
     return (
-      <Pressable
-        onPress={onOpenList}
-        accessibilityRole="button"
-        style={({ pressed }) => [styles.card, styles.empty, pressed && styles.pressed]}
-      >
-        <Text style={styles.label}>Next strike</Text>
-        <Text style={styles.emptyText}>{emptyLabel}</Text>
-      </Pressable>
+      <Emission trigger={strikes} radius={radius.md}>
+        <Pressable
+          onPress={onOpenList}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.card, styles.empty, pressed && styles.pressed]}
+        >
+          <Text style={styles.label}>Next strike</Text>
+          <Text style={styles.emptyText}>{emptyLabel}</Text>
+        </Pressable>
+      </Emission>
     );
   }
 
   return (
-    <View style={styles.card}>
+    <Emission trigger={strikes} radius={radius.md} style={styles.card}>
       <View style={styles.head}>
         <Text style={styles.label}>Next strike</Text>
         <Text style={styles.minutes}>{formatMinutes(task.minutes)}</Text>
@@ -58,6 +66,7 @@ export function NextStrike({
           onPress={() => {
             play('armamentStrike');
             void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            setStrikes((n) => n + 1);
             onDone(task);
           }}
           accessibilityRole="button"
@@ -76,7 +85,7 @@ export function NextStrike({
           <Text style={styles.moreText}>List</Text>
         </Pressable>
       </View>
-    </View>
+    </Emission>
   );
 }
 

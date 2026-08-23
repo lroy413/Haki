@@ -12,6 +12,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { play } from '../../src/sound';
+import { Emission } from '../../src/components/Emission';
 import { useStore } from '../../src/db/client';
 import {
   addTask,
@@ -130,6 +131,10 @@ export default function ArmamentScreen() {
   const nowMs = Date.now();
   const running = runningSession(gears, nowMs);
   const inGear = minutesToday(gears, nowMs);
+  const today = [
+    ...load.open.map((item) => ({ item, done: false })),
+    ...load.doneToday.map((item) => ({ item, done: true })),
+  ];
   const waiting = backlog(tasks);
   const old = stale(tasks, todayKey());
   const message = loadMessage(load);
@@ -155,18 +160,23 @@ export default function ArmamentScreen() {
           </Text>
         ) : null}
 
-        {load.open.map((item) => (
+        {/*
+          One list, not two. Striking a task moves it from `open` to
+          `doneToday`, and across two separate maps React sees that as an
+          unmount and a remount — which throws away the row's own state and
+          swallows the emission before a frame of it renders. Rendering both
+          from one array keeps the component identity, so the row is reordered
+          in place and the corona survives the move.
+        */}
+        {today.map(({ item, done }) => (
           <TaskRow
             key={item.id}
             task={item}
+            done={done}
             onToggle={() => toggleDone(item)}
-            onSecondary={() => moveTo(item, null)}
-            secondaryLabel="Later"
+            onSecondary={done ? undefined : () => moveTo(item, null)}
+            secondaryLabel={done ? undefined : 'Later'}
           />
-        ))}
-
-        {load.doneToday.map((item) => (
-          <TaskRow key={item.id} task={item} onToggle={() => toggleDone(item)} done />
         ))}
 
         {/* ------------------------------------------------------ capture */}
@@ -386,10 +396,20 @@ function TaskRow({
 }) {
   const { palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  // Only on the way to done. Undoing something is not an act of will.
+  const [strikes, setStrikes] = useState(0);
+
   return (
-    <View style={[styles.task, done && styles.taskDone]}>
+    <Emission
+      trigger={strikes}
+      radius={radius.md}
+      style={StyleSheet.flatten([styles.task, done && styles.taskDone])}
+    >
       <Pressable
-        onPress={onToggle}
+        onPress={() => {
+          if (!done) setStrikes((n) => n + 1);
+          onToggle();
+        }}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: !!done }}
         accessibilityLabel={`${done ? 'Undo' : 'Done'}: ${task.title}`}
@@ -429,7 +449,7 @@ function TaskRow({
           <Text style={styles.removeText}>Drop</Text>
         </Pressable>
       ) : null}
-    </View>
+    </Emission>
   );
 }
 
