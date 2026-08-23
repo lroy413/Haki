@@ -175,15 +175,62 @@ broken, got tapped again, and a second tap on a checkbox is a perfectly good
 undo. The fix is now a standing rule: the screen answers the finger, not the
 write.
 
+## The ship, the lightning, and the second door
+
+Three from the charted list, in one pass.
+
+**The Logbook got a second door.** The editor was the only way in: a full
+screen with a cursor blinking in an empty document, which is a demand for a
+subject, a length and a reason to have opened it. So the tab now carries a
+one-line field that asks for none of that. Type a line, tap once, it folds into
+today's entry and you have not left the screen. Lines through a day accumulate
+into one entry rather than one each, because that is what a day's log is — and
+because the practice card counts entries, so three lines on a Tuesday is one
+Tuesday.
+
+**The black lightning landed on the impact frame**, which is where the
+reference puts it: bolts crackling off the contact point around the coated
+fist, thrown further the longer the top of the list has been getting struck.
+Two things had to be got right and both took a screenshot to see. The bolts
+were first drawn round-capped and four units wide, and rendered as fat pink
+tubes; lightning has corners, so they are mitred and butt-capped now. And the
+core was taking the fist's colour — but the frame _inverts_, so on the flash
+where the fist is pale the black lightning came out white. The core is now the
+darkest colour the palette owns, whichever frame is up: black with a hot rim
+against the light frame, and against the dark one the core sinks into the
+ground and the rim is all you see, exactly as the animators draw it.
+
+Catching it at all needed a lesson about the tooling: `clock.install()` fakes
+the timers but leaves them ticking with real time, and a screenshot takes
+longer than a 110ms flash. `clock.pauseAt()` freezes it. Both frames
+photographed on the first try after that.
+
+**The Thousand Sunny sails the top of the home screen** — and never moves. The
+obvious hardening meter is a bar with a boat on it, which is a progress bar in
+fancy dress, and the rule against scoring hardening binds the thing that draws
+it. So the ship stays where it is and its _state_ changes: at anchor with the
+canvas furled, then under way, then making way, then running with spray off the
+bow. At anchor, not adrift — a ship at anchor at seven in the morning is a ship
+about to leave, and this app does not own a picture of failure.
+
+It took five drawing passes, every fault invisible in the code and obvious in a
+screenshot: a figurehead that was unmistakably a duck (a circle with a pointed
+muzzle is a beak; the mane spikes are what make it a lion, and they are also a
+sun), sails drawn as lenses that rendered as leaves, then sails so wide they
+merged into a deckhouse, a hull four units deep that read as a canoe, and a
+wake of three level rules that read as a barcode. The band is full-bleed to
+both screen edges, which is what the previous session's edge-to-edge work
+bought.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twelve PRs
-merged, 330 tests, four palettes, seven sounds, sixty quotes, one
-principle held everywhere: the app rewards the act and never punishes the
-absence.
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** 390 tests,
+four palettes, seven sounds, sixty quotes, one principle held everywhere: the
+app rewards the act and never punishes the absence.
 
-**Charted next:** a way into the Logbook that asks nothing, the two lightnings (small black bolts on
-Armament impact; Conqueror's leaking colour that grows with will), the
-Thousand Sunny sailing the top of the home screen as the hardening meter,
-the Log Pose as the finish-one-thing mechanic, Conqueror's
-unlock-then-master, and the Zoro theme.
+**Charted next:** the second lightning — Conqueror's, which leaks colour
+continuously and grows with the will behind it, and which needs the
+Conqueror's unlock before it means anything; that unlock itself, rare to have
+and rarer to master; the Log Pose as the finish-one-thing mechanic; and the
+Zoro theme, where the field keeps the violence and the instrument becomes a
+sword.

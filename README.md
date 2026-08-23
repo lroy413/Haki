@@ -136,6 +136,7 @@ src/
     gears.ts              focus blocks and their honest costs
     stillness.ts          sits, and the breath the ring is drawn to
     course.ts             the day's heading
+    logbook.ts            folding one captured line into today's entry
     hardening.ts          what the day has had in it, and how dark that makes it
     practice.ts           the six, and what each one says
     ryuo.ts               how far the emission reaches
@@ -217,6 +218,12 @@ like a gear, ending early costs nothing and the minutes still count.
 pointed, settable for today or for tomorrow. It is never marked: nothing asks
 at the end of the day whether it was held, because a graded intention is just a
 task you failed to finish.
+
+**The Logbook's second door** (`src/domain/logbook.ts`) — the editor is a full
+screen with a cursor in an empty document, and an empty document is a demand.
+So the Logbook tab carries a one-line field that asks for nothing and folds
+what you type into today's entry. Lines through a day accumulate into one
+entry, because that is what a day's log is.
 
 **The app loses its power when you do** (`effectIntensity`) — the reserve drives
 a 0–1 intensity that fades the glow and flattens the gauge. It only ever touches

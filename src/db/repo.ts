@@ -8,6 +8,7 @@ import type { Task } from '../domain/tasks';
 import type { GearName, GearSession } from '../domain/gears';
 import type { SitDepth, SitSession } from '../domain/stillness';
 import { normaliseHeading, type Course } from '../domain/course';
+import { appendLine, isWritable } from '../domain/logbook';
 import {
   carried,
   course,
@@ -414,6 +415,39 @@ export async function createEntry(db: Db, body = ''): Promise<number> {
     .values({ body, day: todayKey(), createdAt: t, updatedAt: t })
     .returning({ id: entry.id });
   return rows[0].id;
+}
+
+/**
+ * The entry today's lines go into — the most recent one, if there is one.
+ *
+ * Several entries in a day are legitimate (the editor makes a new row every
+ * time), so a capture joins the latest rather than inventing a fourth.
+ */
+export async function todaysEntry(db: Db, day: DayKey = todayKey()): Promise<EntryRow | null> {
+  const rows = await db
+    .select()
+    .from(entry)
+    .where(eq(entry.day, day))
+    .orderBy(desc(entry.createdAt))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/**
+ * The way in that asks nothing: one line, folded into today.
+ *
+ * Returns the row it landed in, or null when the line was blank — the caller
+ * hands over whatever is in the field and this decides whether that is
+ * anything, so an empty field can never create an empty entry.
+ */
+export async function logLine(db: Db, line: string): Promise<number | null> {
+  if (!isWritable(line)) return null;
+  const existing = await todaysEntry(db);
+  if (existing) {
+    await updateEntry(db, existing.id, appendLine(existing.body, line));
+    return existing.id;
+  }
+  return createEntry(db, appendLine('', line));
 }
 
 export async function updateEntry(db: Db, id: number, body: string): Promise<void> {

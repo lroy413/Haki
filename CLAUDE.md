@@ -142,7 +142,10 @@ This is a mental-health app for someone whose stated problem is consistency.
   row, and it is the whole feature.
 - **Hardening is never displayed as a score.** No count, no percentage, no
   bar, no "2 of 6" — the rule in `domain/hardening.ts` binds anything that
-  renders it too, or displaying it undoes it.
+  renders it too, or displaying it undoes it. The Sunny at the top of the home
+  screen obeys it by never moving: it is **at anchor** and then under way, a
+  state and not a position. A ship travelling toward somewhere is a progress
+  bar in fancy dress, and a ship adrift is a picture of failure.
 
 ## Before pushing
 

@@ -6,6 +6,7 @@ import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
 import { QuoteLine } from '../../src/components/QuoteLine';
+import { SeaBand } from '../../src/components/SeaBand';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
 import { setTaskDone } from '../../src/db/repo';
@@ -44,6 +45,10 @@ export default function Home() {
           date. Two stacked rows for six words was the header's habit, not a
           layout. */}
       <PageHeading title={t.appName} trailing={t.daysAtSea(day)} />
+
+      {/* The day, as a ship. It never moves along anything — see
+          `domain/practice.ts`. */}
+      <SeaBand />
 
       <QuoteLine quote={quote} />
 

@@ -32,6 +32,7 @@ export type Strings = {
 
   logTitle: string;
   logEmpty: string;
+  logLine: string;
   newEntry: string;
 
   courseTitle: string;
@@ -96,6 +97,7 @@ const haki: Strings = {
 
   logTitle: 'Logbook',
   logEmpty: 'Nothing logged yet. The first entry is the hardest.',
+  logLine: 'Log it',
   newEntry: 'New entry',
 
   courseTitle: 'Course',

@@ -3,6 +3,7 @@ import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 import { onImpact } from '../impact';
 import { useHaki } from '../state/HakiProvider';
 import { Fist } from './instruments/Fist';
+import { Lightning } from './Lightning';
 import { ScratchField } from './ScratchField';
 
 /**
@@ -17,6 +18,9 @@ import { ScratchField } from './ScratchField';
  *
  *   1. the ground inverts, the fist in the old ground's colour, Haki rim hot
  *   2. everything flips — dark ground, pale fist, crimson rim
+ *
+ * with black lightning crackling off the contact point across both, thrown
+ * further the longer the top of the list has been getting struck.
  *
  * and out, inside 110ms. The corona and the sound carry on underneath; this
  * is the frame *between* them.
@@ -33,7 +37,7 @@ const FRAME_ONE_MS = 55;
 const FRAME_TWO_MS = 110;
 
 export function ImpactLayer() {
-  const { palette, intensity, plainMode } = useHaki();
+  const { palette, intensity, plainMode, ryuo } = useHaki();
   const [phase, setPhase] = useState<0 | 1 | 2>(0);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const reduceMotion = useRef(false);
@@ -78,6 +82,10 @@ export function ImpactLayer() {
   const ground = phase === 1 ? palette.ink : palette.bg;
   const body = phase === 1 ? palette.bg : palette.ink;
   const rim = phase === 1 ? palette.warn : palette.crimson;
+  // The darkest colour this palette owns, whichever frame is up: on paper that
+  // is the ink, on the dark palettes it is the ground itself. The lightning is
+  // black in both, and does not invert with everything else.
+  const black = palette.lightSurface ? palette.ink : palette.bg;
 
   return (
     <View pointerEvents="none" style={[styles.layer, { backgroundColor: ground }]}>
@@ -89,6 +97,13 @@ export function ImpactLayer() {
           the real frames shake between cels. */}
       <View style={[StyleSheet.absoluteFill, phase === 2 && styles.kick]}>
         <Fist fill={body} rim={rim} sheen={ground} />
+      </View>
+      {/* Over the fist, never under it: the crackle is on the outside of the
+          coating. Its core is the fist's own colour so it inverts with
+          everything else, and Ryuo throws it as far as it throws the
+          corona. */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Lightning core={black} halo={rim} reach={ryuo.reach} />
       </View>
     </View>
   );

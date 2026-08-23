@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayMessage, practice, type PracticeKey } from '../practice';
+import { dayMessage, practice, seaState, type PracticeKey } from '../practice';
 import { NO_ACTS, type Acts, type HardeningLevel } from '../hardening';
 
 const acts = (over: Partial<Acts> = {}): Acts => ({ ...NO_ACTS, ...over });
@@ -128,6 +128,29 @@ describe('dayMessage', () => {
       for (const word of ['failed', 'should', 'lazy', 'behind', 'finally', 'wasted']) {
         expect(lower).not.toContain(word);
       }
+    }
+  });
+});
+
+describe('seaState', () => {
+  it('names every level', () => {
+    for (const level of LEVELS) expect(seaState(level).length).toBeGreaterThan(0);
+  });
+
+  it('reads an unused morning as a ship about to leave, not one that failed', () => {
+    expect(seaState(0)).toBe('At anchor');
+    for (const level of LEVELS) {
+      const lower = seaState(level).toLowerCase();
+      for (const word of ['adrift', 'becalmed', 'stuck', 'sinking', 'stranded', 'lost']) {
+        expect(lower).not.toContain(word);
+      }
+    }
+  });
+
+  it('never turns the ship into a score', () => {
+    for (const level of LEVELS) {
+      expect(seaState(level)).not.toMatch(/\d/);
+      expect(seaState(level)).not.toContain('%');
     }
   });
 });

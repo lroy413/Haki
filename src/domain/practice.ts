@@ -107,6 +107,24 @@ export function practice(acts: Acts, plain = false): Practice[] {
 }
 
 /**
+ * What the ship at the top of the home screen is doing.
+ *
+ * The obvious version of a hardening meter is a bar with a boat on it, and
+ * that is a progress bar wearing a hat — the rule in `domain/hardening.ts`
+ * forbids it and is right to. So the Sunny never moves along anything. It sits
+ * where it sits and its *state* changes: furled and anchored at dawn, under
+ * way once the day has something in it, running by the end of one that had a
+ * lot.
+ *
+ * "At anchor" rather than "becalmed" or "adrift", and the distinction is the
+ * entire reason this list was written carefully. A ship at anchor at seven in
+ * the morning is a ship about to leave. A ship adrift has failed at something.
+ */
+export function seaState(level: HardeningLevel): string {
+  return (['At anchor', 'Under way', 'Making way', 'Running'] as const)[level];
+}
+
+/**
  * The one line above the grid.
  *
  * Describes the state of the day and stops. Level 0 says what would change it
