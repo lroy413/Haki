@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -36,6 +37,22 @@ void SplashScreen.preventAutoHideAsync();
  */
 function Chrome() {
   const { palette, t } = useHaki();
+
+  /**
+   * Keep the browser's own chrome on the same ground as the app.
+   *
+   * `theme-color` is baked into the exported HTML as the settled black, which
+   * is right for eleven hours of the day and wrong for the paper the app opens
+   * on — an installed PWA would sit a black status bar on top of parchment.
+   * Following the palette closes the last seam at the top of the display.
+   *
+   * Web only, and entirely cosmetic: a missing tag is simply left alone.
+   */
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', palette.bg);
+  }, [palette.bg]);
+
   return (
     <>
       {/* On paper the status-bar icons have to be dark or they vanish. */}

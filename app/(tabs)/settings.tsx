@@ -20,14 +20,16 @@ import {
   setTraining,
 } from '../../src/db/settings';
 import { describeDayStart } from '../../src/domain/date';
+import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useHaki } from '../../src/state/HakiProvider';
-import { TAB_BAR_CLEARANCE, radius, space, type } from '../../src/theme/tokens';
+import { radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
 export default function SettingsScreen() {
   const { db, settings, refreshSettings } = useStore();
   const { t, refresh, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  const pad = useTabInsets();
 
   const [threshold, setThreshold] = useState(String(settings.keystone.thresholdHours));
   const [target, setTarget] = useState(String(settings.keystone.targetHours));
@@ -100,7 +102,12 @@ export default function SettingsScreen() {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[styles.content, pad]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <PageHeading title={t.tabs.settings.label} />
+
         <View style={styles.card}>
           <View style={styles.switchRow}>
             <View style={styles.switchText}>
@@ -266,7 +273,7 @@ function Field({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
-    content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
+    content: { padding: space.lg, gap: space.lg },
 
     card: {
       backgroundColor: c.surface,

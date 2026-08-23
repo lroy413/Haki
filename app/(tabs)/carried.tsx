@@ -13,8 +13,9 @@ import { useFocusEffect } from 'expo-router';
 import { useStore } from '../../src/db/client';
 import { listCarried, upsertCarried } from '../../src/db/repo';
 import type { CarriedRow } from '../../src/db/schema';
+import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useHaki } from '../../src/state/HakiProvider';
-import { TAB_BAR_CLEARANCE, radius, space, type } from '../../src/theme/tokens';
+import { radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
 /**
@@ -31,6 +32,7 @@ export default function CarriedScreen() {
   const { db } = useStore();
   const { t, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  const pad = useTabInsets();
 
   const [people, setPeople] = useState<CarriedRow[]>([]);
   const [adding, setAdding] = useState(false);
@@ -70,7 +72,12 @@ export default function CarriedScreen() {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[styles.content, pad]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <PageHeading title={t.carriedTitle} />
+
         <Text style={styles.blurb}>{t.carriedBlurb}</Text>
 
         {people.length === 0 && !adding ? (
@@ -186,7 +193,7 @@ function Input({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
-    content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
+    content: { padding: space.lg, gap: space.lg },
     blurb: { ...type.small, color: c.inkDim, lineHeight: 20 },
     empty: { ...type.body, color: c.inkFaint, textAlign: 'center', marginVertical: space.xl },
 

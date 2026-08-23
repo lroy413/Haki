@@ -13,6 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { play } from '../../src/sound';
 import { Emission } from '../../src/components/Emission';
+import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { fireImpact } from '../../src/impact';
 import { useStore } from '../../src/db/client';
 import {
@@ -47,7 +48,7 @@ import {
   type GearSession,
 } from '../../src/domain/gears';
 import { todayKey } from '../../src/domain/date';
-import { TAB_BAR_CLEARANCE, font, radius, space, type } from '../../src/theme/tokens';
+import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
 /** Estimates you can pick without thinking. Typing a number is a decision too. */
@@ -66,6 +67,7 @@ export default function ArmamentScreen() {
   const { db } = useStore();
   const { t, training, load, refresh, plainMode, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  const pad = useTabInsets();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
@@ -150,7 +152,12 @@ export default function ArmamentScreen() {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[styles.content, pad]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <PageHeading title={t.trainingTitle} />
+
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
           <Text style={styles.sectionLabel}>{t.todayLoad}</Text>
@@ -512,7 +519,7 @@ function Stat({ label, value, tone }: { label: string; value: string | null; ton
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
-    content: { padding: space.lg, gap: space.sm, paddingBottom: TAB_BAR_CLEARANCE },
+    content: { padding: space.lg, gap: space.sm },
 
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sectionLabel: { ...type.label, color: c.inkFaint },

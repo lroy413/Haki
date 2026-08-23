@@ -75,10 +75,21 @@ flash of the system font on a cold start.
 
 ## Chrome
 
+**The app runs edge to edge.** The tabs have no navigation header — a fixed
+band across the top cost 64pt on the web and about 103 on an iPhone, on every
+screen, to hold one word. Each tab draws its own title inside its scroll view
+(`PageHeading`) so it scrolls away, and takes its padding from `useTabInsets`,
+which adds the notch at the top and `TAB_BAR_CLEARANCE` plus the home indicator
+at the bottom. **Use that hook rather than padding a tab screen by hand**, or
+the scene starts in the wrong place on exactly one class of phone.
+
 The tab bar floats: `src/components/GlassTabBar.tsx`, blurred and translucent,
-inset from the edges. Anything scrollable must leave `TAB_BAR_CLEARANCE` at the
-bottom or its last item ends up underneath. Floating buttons stack _above_ the
-bar, never behind it.
+inset from the edges. Anything scrollable must clear it at the bottom or its
+last item ends up underneath. Floating buttons stack _above_ the bar, never
+behind it.
+
+Screens pushed on top of the tabs — the Daily Read, a session, the course, an
+entry — keep their headers: they need a way back.
 
 ## Sound
 

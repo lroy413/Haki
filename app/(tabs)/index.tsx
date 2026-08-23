@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { CourseLine } from '../../src/components/CourseLine';
+import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
 import { QuoteLine } from '../../src/components/QuoteLine';
@@ -9,13 +10,14 @@ import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
 import { setTaskDone } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
-import { TAB_BAR_CLEARANCE, font, radius, space, type } from '../../src/theme/tokens';
+import { font, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
 
 export default function Home() {
   const { palette } = useHaki();
 
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  const pad = useTabInsets();
   const router = useRouter();
   const { db } = useStore();
   const { reserve, cascade, intensity, day, t, read, training, next, quote, course, refresh } =
@@ -33,12 +35,15 @@ export default function Home() {
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, pad]}
       refreshControl={
         <RefreshControl refreshing={false} onRefresh={refresh} tintColor={palette.inkDim} />
       }
     >
-      <Text style={styles.days}>{t.daysAtSea(day)}</Text>
+      {/* Wordmark and day count on one line, the way a masthead carries its
+          date. Two stacked rows for six words was the header's habit, not a
+          layout. */}
+      <PageHeading title={t.appName} trailing={t.daysAtSea(day)} />
 
       <QuoteLine quote={quote} />
 
@@ -132,8 +137,7 @@ export default function Home() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
-    content: { padding: space.lg, gap: space.lg, paddingBottom: TAB_BAR_CLEARANCE },
-    days: { ...type.label, color: c.inkFaint },
+    content: { padding: space.lg, gap: space.lg },
 
     warning: { borderWidth: 1, borderRadius: radius.md, padding: space.lg, gap: space.xs },
     warningBreach: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
