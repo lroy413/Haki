@@ -35,7 +35,7 @@ void SplashScreen.preventAutoHideAsync();
  * a context it is itself rendering.
  */
 function Chrome() {
-  const { palette } = useHaki();
+  const { palette, t } = useHaki();
   return (
     <>
       {/* On paper the status-bar icons have to be dark or they vanish. */}
@@ -61,8 +61,8 @@ function Chrome() {
         <Stack.Screen name="gear" options={{ headerShown: false, gestureEnabled: false }} />
         {/* A sit keeps its header: unlike a gear it has no cost to abandon,
             so backing out of one needs no ceremony. */}
-        <Stack.Screen name="sit" options={{ title: 'Stillness' }} />
-        <Stack.Screen name="course" options={{ presentation: 'modal', title: 'Course' }} />
+        <Stack.Screen name="sit" options={{ title: t.stillnessTitle }} />
+        <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />
       </Stack>
       {/* Above everything, including the tab bar: an impact frame is the whole
           screen or it is nothing. */}

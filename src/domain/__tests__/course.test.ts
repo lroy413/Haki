@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   COURSE_PROMPT,
   MAX_HEADING,
-  NO_COURSE,
   courseFor,
+  noCourse,
   normaliseHeading,
   tomorrowNote,
   type Course,
@@ -67,15 +67,22 @@ describe('tomorrowNote', () => {
 });
 
 describe('what it says', () => {
+  it('agrees with whatever the card calls it', () => {
+    expect(noCourse('Course')).toBe('No course set');
+    expect(noCourse('Intention')).toBe('No intention set');
+  });
+
   it('never turns an unset course into a reproach', () => {
-    const copy = [NO_COURSE, COURSE_PROMPT].join(' ').toLowerCase();
+    const copy = [noCourse('Course'), noCourse('Intention'), COURSE_PROMPT]
+      .join(' ')
+      .toLowerCase();
     for (const word of ['failed', 'should', 'lazy', 'behind', 'finally', 'forgot', 'missed']) {
       expect(copy).not.toContain(word);
     }
   });
 
   it('does not ask a question, because an empty morning is not a prompt', () => {
-    expect(NO_COURSE).not.toContain('?');
+    expect(noCourse('Course')).not.toContain('?');
     expect(COURSE_PROMPT).not.toContain('?');
   });
 });

@@ -36,6 +36,7 @@ export type Strings = {
 
   courseTitle: string;
   coursePlaceholder: string;
+  stillnessTitle: string;
 
   carriedTitle: string;
   carriedBlurb: string;
@@ -99,6 +100,7 @@ const haki: Strings = {
 
   courseTitle: 'Course',
   coursePlaceholder: 'What today is for.',
+  stillnessTitle: 'Stillness',
 
   carriedTitle: 'Inherited Will',
   carriedBlurb:
@@ -160,6 +162,7 @@ const plain: Strings = {
 
   logTitle: 'Journal',
   courseTitle: 'Intention',
+  stillnessTitle: 'Meditation',
   carriedTitle: 'People I carry',
   trainingTitle: 'Training',
   gearsTitle: 'Focus',

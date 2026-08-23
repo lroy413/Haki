@@ -95,15 +95,9 @@ export default function SitScreen() {
 
   async function begin(depth: SitDepth) {
     void Haptics.selectionAsync();
-    const id = await startSit(db, depth);
-    setRowId(id);
-    setSession({
-      depth,
-      day: '' as SitSession['day'],
-      startedAt: Date.now(),
-      endedAt: null,
-      completed: false,
-    });
+    const started = await startSit(db, depth);
+    setRowId(started.id);
+    setSession(started.session);
     setNow(Date.now());
     await refresh();
   }
@@ -135,7 +129,11 @@ export default function SitScreen() {
     const elapsed = durationMs(session.depth) - left;
     return (
       <View style={styles.centred}>
-        <BreathRing color={palette.violet} size={248} active={!plainMode} />
+        {/* Still breathes in plain mode. Plain mode kills the app's Haki —
+            the glow, the corona, the sound — and this is not that: it is the
+            face of the timer, and a frozen circle would make the screen
+            useless in the one place someone might most want to use it. */}
+        <BreathRing color={palette.violet} size={248} />
 
         {/* Quieter than the gear screen's clock on purpose: there the number
             is the thing you are working against, here it is the thing you are

@@ -46,8 +46,16 @@ export function courseFor(courses: Course[], day: DayKey): Course | null {
   return courses.find((c) => c.day === day) ?? null;
 }
 
-/** What the home screen shows when no heading is set. Never a reproach. */
-export const NO_COURSE = 'No course set';
+/**
+ * What the home screen shows when no heading is set. Never a reproach.
+ *
+ * Built from the label rather than written out, because plain mode calls this
+ * an Intention and a card reading "INTENTION / No course set" is the app
+ * talking to itself.
+ */
+export function noCourse(label: string): string {
+  return `No ${label.toLowerCase()} set`;
+}
 
 /** The prompt above the field. */
 export const COURSE_PROMPT = 'One line. Where today is pointed.';

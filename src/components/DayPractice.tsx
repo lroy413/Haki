@@ -74,21 +74,32 @@ export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
                 accessibilityLabel={`${item.label}: ${item.line}`}
                 style={({ pressed }) => [
                   styles.tile,
+                  // Plain mode drops the glyph, so the tile does not need to
+                  // reserve a corner for it.
+                  item.kanji ? styles.tileGlyph : styles.tilePlain,
                   item.done && { borderColor: tone.on, backgroundColor: tone.soft },
                   pressed && styles.pressed,
                 ]}
               >
+                {/* The glyph floats in the corner rather than sitting in the
+                    flow. Plain mode drops it, and a tile laid out around a
+                    glyph that is not there opens a hole in the middle. */}
                 {item.kanji ? (
                   <Text style={[styles.kanji, item.done && { color: tone.on }]}>
                     {item.kanji}
                   </Text>
                 ) : null}
-                <Text style={styles.tileLabel} numberOfLines={1}>
-                  {item.label}
-                </Text>
-                <Text style={[styles.line, item.done && { color: tone.on }]} numberOfLines={2}>
-                  {item.line}
-                </Text>
+                <View style={styles.words}>
+                  <Text style={styles.tileLabel} numberOfLines={1}>
+                    {item.label}
+                  </Text>
+                  <Text
+                    style={[styles.line, item.done && { color: tone.on }]}
+                    numberOfLines={2}
+                  >
+                    {item.line}
+                  </Text>
+                </View>
               </Pressable>
             );
           })}
@@ -117,20 +128,26 @@ const makeStyles = (c: Palette) =>
     row: { flexDirection: 'row', gap: space.sm },
     tile: {
       flex: 1,
-      // Fixed, so the two tiles in a row match whatever their labels do.
-      minHeight: 92,
-      // Glyph in the top corner, words on the base line — bottom-aligning all
-      // three left the kanji floating in the middle of the tile.
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       backgroundColor: c.surface2,
       borderWidth: 1,
       borderColor: c.line,
       borderRadius: radius.sm,
       paddingVertical: space.sm,
       paddingHorizontal: space.sm,
-      gap: 1,
     },
-    kanji: { fontFamily: font.display, fontSize: 15, color: c.inkFaint, marginBottom: 2 },
+    // Fixed heights, so the two tiles in a row match whatever their labels do.
+    tileGlyph: { minHeight: 92 },
+    tilePlain: { minHeight: 68 },
+    kanji: {
+      position: 'absolute',
+      top: space.sm,
+      left: space.sm,
+      fontFamily: font.display,
+      fontSize: 15,
+      color: c.inkFaint,
+    },
+    words: { gap: 1 },
     tileLabel: { ...type.heading, fontSize: 14, color: c.ink },
     line: { ...type.mono, fontSize: 10, color: c.inkFaint, lineHeight: 14 },
     pressed: { opacity: 0.75 },

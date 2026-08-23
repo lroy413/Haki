@@ -309,13 +309,27 @@ export async function openSitSession(
   return row ? { id: row.id, session: toSitSession(row) } : null;
 }
 
-export async function startSit(db: Db, depth: SitDepth): Promise<number> {
+/**
+ * Start a sit, and hand back the session as well as its id.
+ *
+ * `/sit` is both the picker and the clock, so it needs the running session in
+ * hand the moment it starts one — returning it here saves a read-back, and
+ * saves the screen from assembling a stand-in row of its own.
+ */
+export async function startSit(
+  db: Db,
+  depth: SitDepth,
+): Promise<{ id: number; session: SitSession }> {
   const stamp = now();
+  const day = todayKey();
   const inserted = await db
     .insert(sitSession)
-    .values({ depth, day: todayKey(), startedAt: stamp, createdAt: stamp })
+    .values({ depth, day, startedAt: stamp, createdAt: stamp })
     .returning({ id: sitSession.id });
-  return inserted[0].id;
+  return {
+    id: inserted[0].id,
+    session: { depth, day, startedAt: stamp, endedAt: null, completed: false },
+  };
 }
 
 /**

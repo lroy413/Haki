@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
-import { NO_COURSE, type Course } from '../domain/course';
+import { noCourse, type Course } from '../domain/course';
 import { font, radius, space, type } from '../theme/tokens';
 import type { Palette } from '../theme/palettes';
 
@@ -42,7 +42,7 @@ export function CourseLine({
     >
       <Text style={styles.label}>{label}</Text>
       <Text style={course ? styles.heading : styles.placeholder}>
-        {course ? course.heading : NO_COURSE}
+        {course ? course.heading : noCourse(label)}
       </Text>
     </Pressable>
   );
