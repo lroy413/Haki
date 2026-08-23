@@ -48,7 +48,11 @@ landed as one. Three taps to check a box, none of them missed.
 - **Never read-modify-write from a row the screen is holding.** Pass the value
   you want (`onToggle(next)`), not "flip whatever is there" — two quick taps
   both read the stale row and both write the same thing.
-- **44pt is the floor for anything you tap.** A 26pt box with `hitSlop={8}` is 42. Prefer making the whole row the target over growing the hit slop.
+- **44pt is the floor for anything you tap.** A 26pt box with `hitSlop={8}`
+  comes to 42, which is under it. Prefer making the whole row the target over
+  growing the hit slop.
+- **Every `Pressable` carries an `accessibilityRole`.** Without one it renders
+  as a plain `div` and a screen reader walks straight past it. There is a test.
 
 ## Type
 
@@ -80,7 +84,8 @@ bar, never behind it.
 
 Effects live in `assets/sounds/` and are declared in `src/sound/sounds.ts` —
 adding one is a line there plus a file. Play with `play('name')` from
-`src/sound`.
+`src/sound`. `docs/SOUNDS.md` records what each one was cut from; **add a row
+there when you cut a new one**, or the next person re-cutting it is guessing.
 
 - **Cut every source with `tools/make_sound.py`.** Raw sound-effect exports are
   mastered for video: stereo, 48kHz, several seconds, often with leading
@@ -119,6 +124,14 @@ This is a mental-health app for someone whose stated problem is consistency.
 - **Never congratulate a frictionless week.** Coasting is the thing to notice.
 - **Memory is a source, never a stick.** Nothing in Inherited Will may nag,
   score, or appear on a failure screen.
+- **An untouched practice shows its offer, not its absence.** The day's
+  practice card (`src/domain/practice.ts`) says "5, 10 or 15" under a sit that
+  has not happened, never "not yet". Six things you have not done is a
+  checklist; six things available is a card. That difference is one string per
+  row, and it is the whole feature.
+- **Hardening is never displayed as a score.** No count, no percentage, no
+  bar, no "2 of 6" — the rule in `domain/hardening.ts` binds anything that
+  renders it too, or displaying it undoes it.
 
 ## Before pushing
 

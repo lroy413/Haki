@@ -11,10 +11,12 @@ import { LATEST_VERSION } from './bootstrap';
 import type { Db } from './repo';
 import {
   carried,
+  course,
   dailyRead,
   entry,
   gearSession,
   setting,
+  sitSession,
   sleepLog,
   task,
   trainingSession,
@@ -30,16 +32,19 @@ import {
  */
 
 export async function readAllTables(db: Db): Promise<BackupTables> {
-  const [reads, sleeps, entries, sessions, gears, people, tasks, settings] = await Promise.all([
-    db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
-    db.select().from(sleepLog).orderBy(desc(sleepLog.day)),
-    db.select().from(entry).orderBy(desc(entry.createdAt)),
-    db.select().from(trainingSession).orderBy(desc(trainingSession.day)),
-    db.select().from(gearSession).orderBy(desc(gearSession.startedAt)),
-    db.select().from(carried).orderBy(desc(carried.createdAt)),
-    db.select().from(task).orderBy(desc(task.createdAt)),
-    db.select().from(setting),
-  ]);
+  const [reads, sleeps, entries, sessions, gears, sits, courses, people, tasks, settings] =
+    await Promise.all([
+      db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
+      db.select().from(sleepLog).orderBy(desc(sleepLog.day)),
+      db.select().from(entry).orderBy(desc(entry.createdAt)),
+      db.select().from(trainingSession).orderBy(desc(trainingSession.day)),
+      db.select().from(gearSession).orderBy(desc(gearSession.startedAt)),
+      db.select().from(sitSession).orderBy(desc(sitSession.startedAt)),
+      db.select().from(course).orderBy(desc(course.day)),
+      db.select().from(carried).orderBy(desc(carried.createdAt)),
+      db.select().from(task).orderBy(desc(task.createdAt)),
+      db.select().from(setting),
+    ]);
 
   return {
     dailyRead: reads.map((r) => ({
@@ -79,6 +84,20 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       endedAt: r.endedAt,
       completed: r.completed,
       createdAt: r.createdAt,
+    })),
+    sitSession: sits.map((r) => ({
+      depth: r.depth,
+      day: r.day,
+      startedAt: r.startedAt,
+      endedAt: r.endedAt,
+      completed: r.completed,
+      createdAt: r.createdAt,
+    })),
+    course: courses.map((r) => ({
+      day: r.day,
+      heading: r.heading,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
     })),
     carried: people.map((r) => ({
       name: r.name,
@@ -184,6 +203,16 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
           break;
         case 'gearSession':
           tx.insert(gearSession)
+            .values(plan.insert as never)
+            .run();
+          break;
+        case 'sitSession':
+          tx.insert(sitSession)
+            .values(plan.insert as never)
+            .run();
+          break;
+        case 'course':
+          tx.insert(course)
             .values(plan.insert as never)
             .run();
           break;

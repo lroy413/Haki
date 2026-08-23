@@ -128,15 +128,61 @@ code and obvious in a screenshot.
 The architecture is the theme system's seam: the field owns the violence,
 the instrument owns the shape. Luffy's is a fist. Zoro's will be a sword.
 
+## The day, said out loud
+
+The next session opened on a real problem, stated plainly: _"Anything I do
+should count toward some tracking… journaling once in the morning or at night,
+a 5 or 10 or 15 minute meditation, and setting the day's intention. Not sure
+how to tie it in to our system."_
+
+The answer was already half-built and completely invisible. Hardening had been
+counting every act since the day it shipped — and you could watch the app go
+black without ever learning what had done it. So the three new practices got
+built, and the mechanic got a face.
+
+**The course** is one line saying where the day is pointed, set in the morning
+or the night before (two buttons, because the night-before version is the one
+that actually works). It is never marked. Nothing asks at the end of the day
+whether it was held, because the moment an intention is graded it becomes a
+task you failed to finish.
+
+**Stillness** is 見聞色 sat down — the other lens, five, ten or fifteen minutes,
+named for what Observation gives you as it deepens: Presence, Intent, and A
+moment ahead. Where the Gears carry honest costs, this carries none: nobody has
+ever been harmed by sitting quietly a second time. A ring breathes at four
+seconds out, one held, six back in, with no words on it. The Den Den Mushi,
+uploaded weeks earlier and never given a home, became the bell.
+
+**The day** is the card that makes hardening legible — six practices, two to a
+row, each a way in. The one rule that took the longest to find: an untouched
+practice shows its **offer**, not its absence. Not "not yet" — _"5, 10 or 15"_.
+Six things you have not done is a checklist, which is a machine for producing
+six small failures every morning. Six things available is a card. That
+difference is one string per row, and it is the entire feature. At the top
+level it says there is nothing left to darken, because the failure mode of
+making a mechanic visible is that someone starts farming it.
+
+The weights were set so the daily practice alone reaches the settled black —
+course, read, a sit, an entry, one struck task — with no training and no gears
+in it. A day made entirely of small things is a full day, and the palette had
+to agree or the card would have been lying.
+
+The same session fixed a bug that had been quietly eating the habit it was
+supposed to build: **the checkbox took three taps.** Not one of them missed. A
+strike writes one row and then reloads eleven queries down a single synchronous
+channel, and until all of it landed the tick was not drawn — so the box read as
+broken, got tapped again, and a second tap on a checkbox is a perfectly good
+undo. The fix is now a standing rule: the screen answers the finger, not the
+write.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Eleven PRs
-merged, 273 tests, four palettes, seven sounds, sixty quotes, one
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twelve PRs
+merged, 330 tests, four palettes, seven sounds, sixty quotes, one
 principle held everywhere: the app rewards the act and never punishes the
 absence.
 
-**Charted next:** the Logbook (Oden kept one — journaling renamed, plus a
-way in that asks nothing), the two lightnings (small black bolts on
+**Charted next:** a way into the Logbook that asks nothing, the two lightnings (small black bolts on
 Armament impact; Conqueror's leaking colour that grows with will), the
 Thousand Sunny sailing the top of the home screen as the hardening meter,
 the Log Pose as the finish-one-thing mechanic, Conqueror's

@@ -101,13 +101,16 @@ transitive `react-dom` wants 19.2.8; without it a fresh `npm install` fails.
 ```
 app/                      expo-router routes
   (tabs)/
-    index.tsx             Home — Will Reserve, keystone warning, training strip
-    log.tsx               Ship's Log — entry list
-    training.tsx          武装色 Armament — tasks, today's load, sessions
+    index.tsx             Home — course, reserve, next strike, the day's practice
+    log.tsx               Logbook — entry list
+    training.tsx          武装色 Armament — tasks, today's load, gears, sessions
     carried.tsx           Inherited Will
-    settings.tsx          keystone + training config, plain mode
+    settings.tsx          keystone + training config, day boundary, plain mode
   read.tsx                Daily Read (modal)
   session.tsx             log a training session (modal)
+  course.tsx              set the day's heading — today or tomorrow (modal)
+  gear.tsx                a focus block, running
+  sit.tsx                 見聞色 Stillness — pick a length, then the breath ring
   entry/[id].tsx          entry editor
 
 public/                   copied verbatim into the web build
@@ -130,9 +133,15 @@ src/
     cascade.ts            keystone → downstream detection
     training.ts           sessions, rolling hardness, gaps and Returns
     tasks.ts              today's load, capacity, the next strike
+    gears.ts              focus blocks and their honest costs
+    stillness.ts          sits, and the breath the ring is drawn to
+    course.ts             the day's heading
+    hardening.ts          what the day has had in it, and how dark that makes it
+    practice.ts           the six, and what each one says
+    ryuo.ts               how far the emission reaches
     quotes.ts             one line a day, deterministic
     backup.ts             export format, validation, merge planning
-    date.ts               local-timezone day keys
+    date.ts               day keys, honouring a configurable day boundary
   db/
     schema.ts             Drizzle schema
     bootstrap.ts          versioned DDL via PRAGMA user_version
@@ -149,7 +158,7 @@ src/
 `src/domain` is deliberately free of React Native imports so it tests on plain
 Node. Every piece of real logic in v0 is verifiable without a simulator.
 
-### The six mechanics that are actually implemented
+### The mechanics that are actually implemented
 
 **Keystone & Cascade** (`src/domain/cascade.ts`) — sleep is declared as a
 keystone with training wired downstream. One bad night is a watch; two
@@ -190,6 +199,24 @@ importing twice is a no-op. A malformed file is rejected at the envelope; a
 single corrupt row is dropped and counted rather than costing you the other two
 thousand. Row `id`s are never exported — they are autoincrement values that mean
 nothing in another database.
+
+**Hardening and the day's practice** (`src/domain/hardening.ts`,
+`practice.ts`) — the app opens pale and goes dark as the day gets used, through
+four hand-set palettes. Everything counts toward it: a heading set, the Daily
+Read, a sit, an entry, a struck task, a gear. The card that displays it shows
+each practice's **offer** when it has not happened yet ("5, 10 or 15") rather
+than its absence, because six things you have not done is a checklist and six
+things available is a card. Never a count, never a percentage, never a bar.
+
+**Stillness** (`src/domain/stillness.ts`) — 見聞色 as the counterpart to the
+Gears: five, ten or fifteen minutes, named Presence, Intent and A moment ahead.
+Unlike a gear it costs nothing at all — no cooldown, no daily maximum — and
+like a gear, ending early costs nothing and the minutes still count.
+
+**The course** (`src/domain/course.ts`) — one line saying where the day is
+pointed, settable for today or for tomorrow. It is never marked: nothing asks
+at the end of the day whether it was held, because a graded intention is just a
+task you failed to finish.
 
 **The app loses its power when you do** (`effectIntensity`) — the reserve drives
 a 0–1 intensity that fades the glow and flattens the gauge. It only ever touches

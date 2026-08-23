@@ -6,11 +6,15 @@ import type { SleepNight } from '../domain/cascade';
 import type { Session } from '../domain/training';
 import type { Task } from '../domain/tasks';
 import type { GearName, GearSession } from '../domain/gears';
+import type { SitDepth, SitSession } from '../domain/stillness';
+import { normaliseHeading, type Course } from '../domain/course';
 import {
   carried,
+  course,
   dailyRead,
   entry,
   gearSession,
+  sitSession,
   setting,
   sleepLog,
   task,
@@ -266,7 +270,119 @@ export async function endGear(db: Db, id: number, completed: boolean): Promise<v
     .where(eq(gearSession.id, id));
 }
 
+/* -------------------------------------------------------------- stillness */
+
+function toSitSession(row: typeof sitSession.$inferSelect): SitSession {
+  return {
+    depth: row.depth as SitDepth,
+    day: row.day as DayKey,
+    startedAt: row.startedAt,
+    endedAt: row.endedAt,
+    completed: row.completed === 1,
+  };
+}
+
+/** Every sit for a day. Several is ordinary — sitting has no daily maximum. */
+export async function sitSessionsOn(db: Db, day: DayKey = todayKey()): Promise<SitSession[]> {
+  const rows = await db
+    .select()
+    .from(sitSession)
+    .where(eq(sitSession.day, day))
+    .orderBy(sitSession.startedAt);
+  return rows.map(toSitSession);
+}
+
+/**
+ * The sit still open, if there is one — searched across yesterday too, for the
+ * same reason a gear is: one started at 11:55pm is still running at midnight.
+ */
+export async function openSitSession(
+  db: Db,
+): Promise<{ id: number; session: SitSession } | null> {
+  const today = todayKey();
+  const rows = await db
+    .select()
+    .from(sitSession)
+    .where(and(gte(sitSession.day, addDays(today, -1)), lte(sitSession.day, today)))
+    .orderBy(desc(sitSession.startedAt));
+  const row = rows.find((r) => r.endedAt === null);
+  return row ? { id: row.id, session: toSitSession(row) } : null;
+}
+
+export async function startSit(db: Db, depth: SitDepth): Promise<number> {
+  const stamp = now();
+  const inserted = await db
+    .insert(sitSession)
+    .values({ depth, day: todayKey(), startedAt: stamp, createdAt: stamp })
+    .returning({ id: sitSession.id });
+  return inserted[0].id;
+}
+
+/**
+ * Close a sit.
+ *
+ * `completed` costs nothing either way — nothing in stillness has a cost. It
+ * is recorded so the screen can tell the difference between running out and
+ * getting up, which are different things to say.
+ */
+export async function endSit(db: Db, id: number, completed: boolean): Promise<void> {
+  await db
+    .update(sitSession)
+    .set({ endedAt: now(), completed: completed ? 1 : 0 })
+    .where(eq(sitSession.id, id));
+}
+
+/* ----------------------------------------------------------------- course */
+
+export async function getCourse(db: Db, day: DayKey = todayKey()): Promise<Course | null> {
+  const rows = await db.select().from(course).where(eq(course.day, day)).limit(1);
+  const row = rows[0];
+  return row ? { day: row.day as DayKey, heading: row.heading } : null;
+}
+
+/** Today's and tomorrow's, which is every heading a screen ever shows at once. */
+export async function upcomingCourses(db: Db, from: DayKey = todayKey()): Promise<Course[]> {
+  const rows = await db
+    .select()
+    .from(course)
+    .where(and(gte(course.day, from), lte(course.day, addDays(from, 1))))
+    .orderBy(course.day);
+  return rows.map((row) => ({ day: row.day as DayKey, heading: row.heading }));
+}
+
+/**
+ * Set — or clear — a day's heading.
+ *
+ * An empty heading deletes the row rather than storing a blank one, so "is
+ * there a course" stays a single question with a single answer.
+ */
+export async function setCourse(db: Db, day: DayKey, heading: string): Promise<void> {
+  const text = normaliseHeading(heading);
+  if (!text) {
+    await db.delete(course).where(eq(course.day, day));
+    return;
+  }
+  const t = now();
+  await db
+    .insert(course)
+    .values({ day, heading: text, createdAt: t, updatedAt: t })
+    .onConflictDoUpdate({ target: course.day, set: { heading: text, updatedAt: t } });
+}
+
 /* ------------------------------------------------------------------ the log */
+
+/**
+ * Today's entry bodies, and nothing else.
+ *
+ * The provider only ever wanted a count of non-empty entries for one day, and
+ * was getting it by pulling two hundred full entries and filtering in memory —
+ * on the web that is the single heaviest thing in a refresh, and a refresh
+ * happens on every screen focus and every task struck.
+ */
+export async function entriesOn(db: Db, day: DayKey = todayKey()): Promise<string[]> {
+  const rows = await db.select({ body: entry.body }).from(entry).where(eq(entry.day, day));
+  return rows.map((row) => row.body);
+}
 
 export async function listEntries(db: Db, limit = 100): Promise<EntryRow[]> {
   return db.select().from(entry).orderBy(desc(entry.createdAt)).limit(limit);

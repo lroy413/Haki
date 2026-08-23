@@ -59,6 +59,10 @@ function Chrome() {
         {/* No header and no back arrow: leaving is the Ease off button, which
             has to be a deliberate press rather than a stray swipe. */}
         <Stack.Screen name="gear" options={{ headerShown: false, gestureEnabled: false }} />
+        {/* A sit keeps its header: unlike a gear it has no cost to abandon,
+            so backing out of one needs no ceremony. */}
+        <Stack.Screen name="sit" options={{ title: 'Stillness' }} />
+        <Stack.Screen name="course" options={{ presentation: 'modal', title: 'Course' }} />
       </Stack>
       {/* Above everything, including the tab bar: an impact frame is the whole
           screen or it is nothing. */}

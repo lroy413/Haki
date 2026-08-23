@@ -34,6 +34,9 @@ export type Strings = {
   logEmpty: string;
   newEntry: string;
 
+  courseTitle: string;
+  coursePlaceholder: string;
+
   carriedTitle: string;
   carriedBlurb: string;
   carriedEmpty: string;
@@ -78,7 +81,7 @@ const haki: Strings = {
   appName: 'Haki',
   tabs: {
     home: { glyph: '覇気', label: 'Home' },
-    log: { glyph: '見聞色', label: 'Log' },
+    log: { glyph: '日誌', label: 'Logbook' },
     training: { glyph: '武装色', label: 'Do' },
     carried: { glyph: '継承', label: 'Carried' },
     settings: { glyph: '設定', label: 'Settings' },
@@ -90,9 +93,12 @@ const haki: Strings = {
   dailyReadCta: 'Daily Read',
   dailyReadDone: 'Read logged',
 
-  logTitle: "Ship's Log",
+  logTitle: 'Logbook',
   logEmpty: 'Nothing logged yet. The first entry is the hardest.',
   newEntry: 'New entry',
+
+  courseTitle: 'Course',
+  coursePlaceholder: 'What today is for.',
 
   carriedTitle: 'Inherited Will',
   carriedBlurb:
@@ -153,6 +159,7 @@ const plain: Strings = {
   dailyReadDone: 'Checked in',
 
   logTitle: 'Journal',
+  courseTitle: 'Intention',
   carriedTitle: 'People I carry',
   trainingTitle: 'Training',
   gearsTitle: 'Focus',

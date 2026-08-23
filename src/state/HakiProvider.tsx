@@ -3,11 +3,13 @@ import { useStore } from '../db/client';
 import {
   allSessions,
   allTasks,
+  entriesOn,
   gearSessionsOn,
+  getCourse,
   getRead,
-  listEntries,
   readSetting,
   recentSleep,
+  sitSessionsOn,
 } from '../db/repo';
 import { setHardeningMark } from '../db/settings';
 import { assessCascade, type CascadeVerdict } from '../domain/cascade';
@@ -15,6 +17,8 @@ import { trainingStatus, type TrainingStatus } from '../domain/training';
 import { nextStrike, todaysLoad, type Load, type Task } from '../domain/tasks';
 import { quoteForDay, type Quote } from '../domain/quotes';
 import { minutesToday } from '../domain/gears';
+import { minutesToday as sitMinutesToday } from '../domain/stillness';
+import type { Course } from '../domain/course';
 import { reachDays, reachFor, tierFor, type RyuoTier } from '../domain/ryuo';
 import { NO_ACTS, settleLevel, type Acts, type HardeningLevel } from '../domain/hardening';
 import { paletteFor, type Palette } from '../theme/palettes';
@@ -45,6 +49,8 @@ type HakiState = {
   palette: Palette;
   /** How far the emission reaches — see `domain/ryuo.ts`. */
   ryuo: { tier: RyuoTier; days: number; reach: number };
+  /** Today's heading, or null. See `domain/course.ts`. */
+  course: Course | null;
   day: number;
   t: Strings;
   plainMode: boolean;
@@ -109,20 +115,33 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   );
   const [acts, setActs] = useState<Acts>(NO_ACTS);
   const [ryuoDays, setRyuoDays] = useState(0);
+  const [course, setCourse] = useState<Course | null>(null);
 
   const refresh = useCallback(async () => {
     const today = todayKey();
-    const [todayRead, nights, sessions, tasks, entries, gears, markDay, markLevel] =
-      await Promise.all([
-        getRead(db, today),
-        recentSleep(db, 7, today),
-        allSessions(db),
-        allTasks(db),
-        listEntries(db, 200),
-        gearSessionsOn(db, today),
-        readSetting(db, HARDENING_DAY),
-        readSetting(db, HARDENING_LEVEL),
-      ]);
+    const [
+      todayRead,
+      nights,
+      sessions,
+      tasks,
+      entries,
+      gears,
+      sits,
+      todayCourse,
+      markDay,
+      markLevel,
+    ] = await Promise.all([
+      getRead(db, today),
+      recentSleep(db, 7, today),
+      allSessions(db),
+      allTasks(db),
+      entriesOn(db, today),
+      gearSessionsOn(db, today),
+      sitSessionsOn(db, today),
+      getCourse(db, today),
+      readSetting(db, HARDENING_DAY),
+      readSetting(db, HARDENING_LEVEL),
+    ]);
 
     const nextReserve = computeReserve({
       read: todayRead,
@@ -143,13 +162,17 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     // rather than tracked incrementally — there is no state to drift.
     setRyuoDays(reachDays(tasks, today));
 
+    setCourse(todayCourse);
+
     const nextActs: Acts = {
+      course: todayCourse !== null,
       read: todayRead !== null,
       // A blank row created by opening the editor and leaving is not an entry.
-      entries: entries.filter((e) => e.day === today && e.body.trim().length > 0).length,
+      entries: entries.filter((body) => body.trim().length > 0).length,
       struck: nextLoad.doneToday.length,
       trained: sessions.filter((s) => s.day === today).length,
       gearMinutes: minutesToday(gears, Date.now()),
+      satMinutes: sitMinutesToday(sits, Date.now()),
     };
     setActs(nextActs);
 
@@ -207,6 +230,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
         const tier = settings.plainMode ? 0 : tierFor(ryuoDays);
         return { tier, days: ryuoDays, reach: reachFor(tier) };
       })(),
+      course,
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,
@@ -221,6 +245,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       hardening,
       acts,
       ryuoDays,
+      course,
       settings.plainMode,
       settings.setSailAt,
       refresh,
