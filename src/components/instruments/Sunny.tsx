@@ -1,4 +1,4 @@
-import Svg, { Circle, Ellipse, G, Line, Path, Polygon } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native-svg';
 import type { HardeningLevel } from '../../domain/hardening';
 
 /**
@@ -19,12 +19,21 @@ import type { HardeningLevel } from '../../domain/hardening';
  * about to leave; a ship adrift has failed at something, and this app does not
  * own a picture of failure.
  *
- * Drawn as a silhouette. At around fifty points of ship on a phone, three
- * things carry it and nothing else does: a crescent hull, square sails, and
- * the lion at the bow. The first pass proved the last one is the whole job —
- * a circle with a pointed muzzle is a duck, and a duck is what it looked like.
- * The mane spikes are what make it a lion, and they are also, conveniently,
- * a sun.
+ * Drawn against silhouette references, which settled four things the earlier
+ * passes had wrong:
+ *
+ * 1. **She faces left**, lion at the bow, stern to the right. Every reference
+ *    draws her that way, and it is the view the shape is recognised from.
+ * 2. **The hull is a deep bowl**, and the heaviest thing on the page. Three
+ *    passes drew it shallow and every one read as a canoe.
+ * 3. **Crow's nests.** A round platform partway up each mast is the detail
+ *    that says *this* ship rather than any ship, and no amount of hull is a
+ *    substitute for it.
+ * 4. **A railing along the deck**, which is what gives the hull a scale.
+ *
+ * The lion is still the whole job at the bow: a circle with a pointed muzzle
+ * is a duck, and a duck is what an earlier pass looked like. The mane spikes
+ * are what make it a lion — and they are also, conveniently, a sun.
  */
 
 type Sea = { waves: number; wake: number; spray: boolean; sail: number; anchored: boolean };
@@ -38,28 +47,30 @@ const STATE: Record<HardeningLevel, Sea> = {
 };
 
 /**
- * Two masts, well apart.
+ * Two masts, well apart, each with its platform and its flag.
  *
- * The second pass set them 26 units apart with sails half again as wide, and
- * the two sails merged into one grey block that read as a deckhouse. Canvas
- * needs sky around it or it stops being canvas.
+ * `nest` is where the crow's nest rides, above the yard the sail hangs from.
+ * Two earlier passes got the balance wrong in opposite directions: sails so
+ * wide they merged into a deckhouse, then sails so short the masts stood bare
+ * above them and the whole thing read as a barge. The rig is most of the
+ * drawing's height, as it is in every reference.
  */
 const MASTS = [
-  { x: 86, top: 6, foot: 43, sailTop: 11 },
-  { x: 118, top: 14, foot: 43, sailTop: 19 },
+  { x: 76, top: 3, nest: 11, yard: 16, half: 11 },
+  { x: 114, top: 1, nest: 9, yard: 14, half: 13 },
 ];
 
-const SAIL_FOOT = 37;
-const WATERLINE = 56;
-
+const DECK = 42;
 /**
- * Where the crests sit, in the order they arrive.
+ * The sail's foot, and the number that took the longest to get right.
  *
- * A list rather than an even division: five wave marks spaced identically read
- * as a dotted rule, and the sea fills in around the ship as the day does
- * rather than marching outward from it.
+ * It has to clear the deck by a good margin. Set flush to it, the canvas and
+ * the hull merge into one mass and the rig reads as two buildings on a barge —
+ * which is exactly what the pass before this looked like. Sky between the foot
+ * of a sail and the deck is what makes it a hanging sail.
  */
-const WAVE_X = [40, 76, 112, 150, 6, 182, -30, 216, -66, 250];
+const SAIL_FOOT = 33;
+const WATERLINE = 58;
 
 /**
  * The sea runs past both ends of the viewBox on purpose.
@@ -74,20 +85,37 @@ const SEA_FROM = -150;
 const SEA_TO = 350;
 
 /**
- * A square sail on its yard, bellied at the foot.
+ * Where the crests sit, in the order they arrive.
  *
- * The first pass drew a lens between two points on the mast, which renders as
- * a leaf. A brig's sail is a broad trapezoid hung from a yard, and the belly
- * lives in the curve along the bottom.
+ * A list rather than an even division: crests spaced identically read as a
+ * dotted rule, and the sea fills in around the ship as the day does rather
+ * than marching outward from it.
  */
-function sailPath(x: number, top: number, foot: number, fullness: number): string {
-  const half = 5 + 4 * fullness;
-  const belly = 2 + 3 * fullness;
+const WAVE_X = [22, 176, 60, 210, -14, 132, -52, 244, -88, 278];
+
+/**
+ * A square sail on its yard, bellied at the foot and trailing aft.
+ *
+ * She sails left, so the canvas bellies right — which is also what makes the
+ * rig read as being pushed rather than parked.
+ */
+function sailPath(
+  x: number,
+  top: number,
+  foot: number,
+  half: number,
+  fullness: number,
+): string {
+  const w = half * (0.62 + 0.38 * fullness);
+  const belly = 2 + 4 * fullness;
+  // Narrower at the foot than at the yard. Widening downward is a roof, and a
+  // roof on a mast is a building.
+  const foot_w = w * 0.78;
   return [
-    `M ${x - half} ${top}`,
-    `L ${x + half} ${top}`,
-    `L ${x + half + belly} ${foot}`,
-    `Q ${x} ${foot + 5} ${x - half - belly * 0.4} ${foot}`,
+    `M ${x - w} ${top}`,
+    `L ${x + w} ${top}`,
+    `L ${x + foot_w + belly} ${foot}`,
+    `Q ${x + belly * 0.3} ${foot + 3.5} ${x - foot_w + belly * 0.3} ${foot}`,
     'Z',
   ].join(' ');
 }
@@ -106,7 +134,7 @@ function mane(cx: number, cy: number, inner: number, outer: number): string[] {
 
 export function Sunny({
   level,
-  /** The hull, the masts, the lion: the solid silhouette. */
+  /** The hull, the rig, the lion: the whole silhouette, in one colour. */
   ink,
   /** The sea, the wake, the spray, the anchor cable. */
   faint,
@@ -135,7 +163,7 @@ export function Sunny({
         const x = WAVE_X[i % WAVE_X.length];
         // Alternating depth *and* width. A single row of identical crests is
         // a scalloped border, not a sea.
-        const y = WATERLINE + (i % 3 === 0 ? 3 : i % 3 === 1 ? 8 : 12);
+        const y = WATERLINE + (i % 3 === 0 ? 3 : i % 3 === 1 ? 7 : 11);
         const w = i % 2 === 0 ? 15 : 10;
         return (
           <Path
@@ -148,16 +176,15 @@ export function Sunny({
           />
         );
       })}
-      {/* The wake tears back from the stern, never forward from the bow. */}
+      {/* The wake tears back from the stern — she sails left, so it runs
+          right. Angled and widening: three level rules read as a barcode. */}
       {Array.from({ length: sea.wake }).map((_, i) => (
-        // Angled, and widening away from the stern: three level rules read as
-        // a barcode under the ship rather than as water being pushed aside.
         <Line
           key={`k${i}`}
-          x1={54 - i * 5}
-          y1={WATERLINE - 4 + i * 3}
-          x2={-14 - i * 26}
-          y2={WATERLINE + 2 + i * 5}
+          x1={162 + i * 5}
+          y1={WATERLINE - 3 + i * 3}
+          x2={230 + i * 26}
+          y2={WATERLINE + 3 + i * 5}
           stroke={faint}
           strokeWidth={1.2}
           strokeLinecap="round"
@@ -169,9 +196,9 @@ export function Sunny({
         {/* Anchor cable, on the only morning it is down. */}
         {sea.anchored ? (
           <Line
-            x1="141"
-            y1="44"
-            x2="152"
+            x1="44"
+            y1="47"
+            x2="34"
             y2={WATERLINE + 8}
             stroke={faint}
             strokeWidth={1.2}
@@ -179,91 +206,99 @@ export function Sunny({
           />
         ) : null}
 
-        {/* Canvas first, masts over it: one silhouette in one colour, with the
-            spars reading as the lines *through* the sails rather than beside
-            them. Two tones here turned the rig into a building. */}
+        {/* Canvas first, spars over it: one silhouette in one colour, with the
+            masts reading as the lines *through* the sails. */}
         {MASTS.map((mast) =>
           sea.sail > 0 ? (
             <Path
               key={`s${mast.x}`}
-              d={sailPath(mast.x, mast.sailTop, SAIL_FOOT, sea.sail)}
+              d={sailPath(mast.x, mast.yard, SAIL_FOOT, mast.half, sea.sail)}
               fill={ink}
             />
-          ) : (
-            // Furled: the canvas is gathered along the yard in a bundle.
-            <Ellipse
-              key={`s${mast.x}`}
-              cx={mast.x}
-              cy={mast.sailTop + 1}
-              rx={9}
-              ry={2.2}
-              fill={ink}
-            />
-          ),
+          ) : null,
         )}
+
         {MASTS.map((mast) => (
           <G key={mast.x}>
             <Line
               x1={mast.x}
               y1={mast.top}
               x2={mast.x}
-              y2={mast.foot}
+              y2={DECK + 2}
               stroke={ink}
               strokeWidth={1.8}
               strokeLinecap="round"
             />
-            {/* The yard, always: it is what a furled sail hangs from. */}
+            {/*
+              The yard. Furled, it is simply thicker — canvas gathered along a
+              spar *is* a fatter spar, and the bundle this used to draw as its
+              own ellipse blobbed into the crow's nest above it.
+            */}
             <Line
-              x1={mast.x - 10}
-              y1={mast.sailTop}
-              x2={mast.x + 10}
-              y2={mast.sailTop}
+              x1={mast.x - mast.half}
+              y1={mast.yard}
+              x2={mast.x + mast.half}
+              y2={mast.yard}
               stroke={ink}
-              strokeWidth={1.4}
+              strokeWidth={sea.sail > 0 ? 1.4 : 4.5}
               strokeLinecap="round"
+            />
+            {/* The crow's nest: a round platform riding partway up. This is
+                the reference detail that makes her this ship and not a ship. */}
+            <Rect
+              x={mast.x - 5}
+              y={mast.nest - 3}
+              width={10}
+              height={5.5}
+              rx={2.2}
+              fill={ink}
+            />
+            {/* Every masthead carries a flag; only the main flies the Roger. */}
+            <Polygon
+              points={
+                sea.sail > 0
+                  ? `${mast.x},${mast.top - 1} ${mast.x + 11},${mast.top + 1.5} ${mast.x},${mast.top + 4}`
+                  : `${mast.x},${mast.top - 1} ${mast.x + 3.5},${mast.top + 1.5} ${mast.x + 2},${mast.top + 4.5} ${mast.x},${mast.top + 4.5}`
+              }
+              fill={mast === MASTS[1] ? flag : ink}
             />
           </G>
         ))}
 
-        {/* The Jolly Roger. It streams once there is way on to stream it, and
-            hangs down the mast when there is not. */}
-        <Polygon
-          points={
-            sea.sail > 0
-              ? `${MASTS[0].x},${MASTS[0].top} ${MASTS[0].x + 14},${MASTS[0].top + 2.5} ${MASTS[0].x},${MASTS[0].top + 5}`
-              : `${MASTS[0].x},${MASTS[0].top} ${MASTS[0].x + 4},${MASTS[0].top + 2} ${MASTS[0].x + 2.5},${MASTS[0].top + 7} ${MASTS[0].x},${MASTS[0].top + 7}`
+        {/*
+          The hull: deep, and a crescent — both ends swept up above the deck
+          line. A bowl with straight ends is a hovercraft, which is what it
+          looked like for two passes.
+        */}
+        <Path
+          d={
+            `M 40 33 Q 50 41 64 43 L 148 43 Q 162 42 168 33 ` +
+            `Q 168 50 138 57 Q 96 62 64 55 Q 44 48 40 33 Z`
           }
-          fill={flag}
+          fill={ink}
         />
 
-        {/*
-          Hull: a crescent, and a deep one. The deck sags amidships and lifts
-          at both ends, which is the line that says "ship" before any of the
-          detail does — but the third pass drew it four units deep and it read
-          as a canoe. Fifteen units, sitting *on* the waterline rather than
-          through it, is a ship.
-        */}
-        <Path d={`M 56 41 Q 102 46 148 40 L 144 49 Q 102 56 60 49 Z`} fill={ink} />
-        {/* The aftercastle, standing at the stern and overlapping the deck so
-            the two read as one shape rather than a box alongside a boat. */}
-        <Path d={`M 56 32 L 73 35 L 73 44 L 57 42 Z`} fill={ink} />
-        {/* The prow, rising to carry the figurehead. */}
-        <Path d={`M 136 40 L 157 29 L 163 36 L 145 45 Z`} fill={ink} />
+        {/* The aftercastle, standing at the stern and stepped. */}
+        <Path d={`M 142 29 L 160 29 L 160 44 L 142 44 Z`} fill={ink} />
+        <Rect x="147" y="24" width="7" height="6" rx="1.5" fill={ink} />
+
+        {/* The bow, carrying the figurehead out over the water. */}
+        <Path d={`M 50 31 L 37 28 L 33 40 L 48 43 Z`} fill={ink} />
 
         {/* The lion. Spikes first, so the head sits on top of its own mane. */}
-        {mane(164, 29, 5, 10).map((points, i) => (
+        {mane(30, 31, 5.5, 11).map((points, i) => (
           <Polygon key={`m${i}`} points={points} fill={ink} />
         ))}
-        <Circle cx="164" cy="29" r="5.4" fill={ink} />
-        {/* A blunt snout, never a point: a point is a beak. */}
-        <Ellipse cx="170.5" cy="30.5" rx="4.2" ry="3.2" fill={ink} />
+        <Circle cx="30" cy="31" r="6" fill={ink} />
+        {/* A blunt muzzle, never a point: a point is a beak. */}
+        <Ellipse cx="22.5" cy="32.5" rx="4.6" ry="3.4" fill={ink} />
 
         {/* Spray off the forefoot, at the only speed that throws any. */}
         {sea.spray
           ? [0, 1, 2].map((i) => (
               <Path
-                key={`s${i}`}
-                d={`M ${150 + i * 6} ${50 - i * 4} q 5 -5 11 -3`}
+                key={`p${i}`}
+                d={`M ${40 - i * 6} ${52 - i * 4} q -5 -5 -11 -3`}
                 fill="none"
                 stroke={faint}
                 strokeWidth={1.2}

@@ -213,12 +213,23 @@ canvas furled, then under way, then making way, then running with spray off the
 bow. At anchor, not adrift — a ship at anchor at seven in the morning is a ship
 about to leave, and this app does not own a picture of failure.
 
-It took five drawing passes, every fault invisible in the code and obvious in a
-screenshot: a figurehead that was unmistakably a duck (a circle with a pointed
-muzzle is a beak; the mane spikes are what make it a lion, and they are also a
-sun), sails drawn as lenses that rendered as leaves, then sails so wide they
-merged into a deckhouse, a hull four units deep that read as a canoe, and a
-wake of three level rules that read as a barcode. The band is full-bleed to
+It took nine drawing passes, and the ones that mattered came after the owner
+sent silhouette references mid-build. Those settled four things every earlier
+pass had wrong: **she faces left**, lion at the bow; the hull is a **deep
+crescent** with both ends swept up, not a bowl and certainly not the four-unit
+canoe of the third pass; the sails hang **clear of the deck**, because canvas
+set flush to a hull merges with it and the rig reads as two buildings on a
+barge; and she has **crow's nests**, the one detail that says _this_ ship
+rather than any ship.
+
+Everything else was faults invisible in the code and obvious in a screenshot: a
+figurehead that was unmistakably a duck (a circle with a pointed muzzle is a
+beak — the mane spikes are what make it a lion, and they are also a sun), sails
+drawn as lenses that rendered as leaves, sails so wide they merged into a
+deckhouse, furled canvas drawn as its own ellipse that blobbed into the
+platform above it, and a wake of three level rules that read as a barcode. One
+pass silently did nothing at all: a string replacement whose target prettier
+had reflowed, applied without checking it matched. The band is full-bleed to
 both screen edges, which is what the previous session's edge-to-edge work
 bought.
 
