@@ -1,4 +1,4 @@
-import Svg, { G, Line, Path } from 'react-native-svg';
+import Svg, { G, Path } from 'react-native-svg';
 
 /**
  * The fist. Luffy's instrument, and the shape of the default impact frame.
@@ -24,13 +24,11 @@ export function Fist({
   size,
   fill,
   rim,
-  lines,
   sheen,
 }: {
   size: number;
   fill: string;
   rim: string;
-  lines: string;
   /** Glints on the knuckles — hardened Armament is glossy, so the frame is. */
   sheen: string;
 }) {
@@ -49,20 +47,6 @@ export function Fist({
         fill={rim}
         fillOpacity={0.32}
       />
-
-      {/* Radial burst: the intensity comes off the fist, so every line points
-          away from its centre and none of them touch it. */}
-      <G stroke={lines} strokeWidth={1.6} strokeLinecap="round">
-        <Line x1={50} y1={13} x2={50} y2={3} />
-        <Line x1={71} y1={18} x2={77} y2={9} />
-        <Line x1={86} y1={33} x2={95} y2={27} />
-        <Line x1={91} y1={54} x2={99} y2={54} />
-        <Line x1={86} y1={73} x2={94} y2={79} />
-        <Line x1={29} y1={18} x2={23} y2={9} />
-        <Line x1={14} y1={33} x2={5} y2={27} />
-        <Line x1={9} y1={54} x2={1} y2={54} />
-        <Line x1={14} y1={73} x2={6} y2={79} />
-      </G>
 
       {/* Wrist, entering from the bottom. */}
       <Path d="M36 78 L64 78 L66 100 L34 100 Z" fill={fill} />

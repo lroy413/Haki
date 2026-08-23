@@ -3,6 +3,7 @@ import { AccessibilityInfo, StyleSheet, View, useWindowDimensions } from 'react-
 import { onImpact } from '../impact';
 import { useHaki } from '../state/HakiProvider';
 import { Fist } from './instruments/Fist';
+import { ScratchField } from './ScratchField';
 
 /**
  * The impact frame.
@@ -79,16 +80,25 @@ export function ImpactLayer() {
   const body = phase === 1 ? palette.bg : palette.ink;
   const rim = phase === 1 ? palette.warn : palette.crimson;
 
-  const size = Math.min(width, height) * 0.92;
+  const size = Math.min(width, height) * 0.98;
 
   return (
     <View pointerEvents="none" style={[styles.layer, { backgroundColor: ground }]}>
-      <Fist size={size} fill={body} rim={rim} lines={body} sheen={ground} />
+      {/* The scratch-field tears edge to edge underneath the instrument. */}
+      <View style={StyleSheet.absoluteFill}>
+        <ScratchField color={body} />
+      </View>
+      {/* The second frame kicks: slightly bigger, slightly off-true, the way
+          the real frames shake between cels. */}
+      <View style={phase === 2 ? styles.kick : undefined}>
+        <Fist size={size} fill={body} rim={rim} sheen={ground} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  kick: { transform: [{ scale: 1.06 }, { rotate: '-2deg' }] },
   layer: {
     position: 'absolute',
     top: 0,
