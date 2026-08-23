@@ -5,10 +5,12 @@ import type { DailyRead } from '../domain/willReserve';
 import type { SleepNight } from '../domain/cascade';
 import type { Session } from '../domain/training';
 import type { Task } from '../domain/tasks';
+import type { GearName, GearSession } from '../domain/gears';
 import {
   carried,
   dailyRead,
   entry,
+  gearSession,
   setting,
   sleepLog,
   task,
@@ -187,6 +189,81 @@ export async function logSession(
 
 export async function deleteSession(db: Db, id: number): Promise<void> {
   await db.delete(trainingSession).where(eq(trainingSession.id, id));
+}
+
+/* ---------------------------------------------------------------- gears */
+
+function toGearSession(row: {
+  gear: string;
+  day: string;
+  startedAt: number;
+  endedAt: number | null;
+  completed: number;
+}): GearSession {
+  return {
+    gear: row.gear as GearName,
+    day: row.day as DayKey,
+    startedAt: row.startedAt,
+    endedAt: row.endedAt,
+    completed: row.completed === 1,
+  };
+}
+
+/**
+ * Every gear session for a day.
+ *
+ * Availability is decided across the whole day rather than from the latest
+ * row, because both costs — the Gear 3 cooldown and the Gear 4 lockout — reach
+ * forward from whenever they were paid.
+ */
+export async function gearSessionsOn(db: Db, day: DayKey = todayKey()): Promise<GearSession[]> {
+  const rows = await db
+    .select()
+    .from(gearSession)
+    .where(eq(gearSession.day, day))
+    .orderBy(gearSession.startedAt);
+  return rows.map(toGearSession);
+}
+
+/**
+ * The session still open, if there is one — searched across yesterday too.
+ *
+ * A gear started at 11:40pm belongs to the day it started on, but it is still
+ * running after midnight and the app has to be able to find it.
+ */
+export async function openGearSession(
+  db: Db,
+): Promise<{ id: number; session: GearSession } | null> {
+  const today = todayKey();
+  const rows = await db
+    .select()
+    .from(gearSession)
+    .where(and(gte(gearSession.day, addDays(today, -1)), lte(gearSession.day, today)))
+    .orderBy(desc(gearSession.startedAt));
+  const row = rows.find((r) => r.endedAt === null);
+  return row ? { id: row.id, session: toGearSession(row) } : null;
+}
+
+export async function startGear(db: Db, gear: GearName): Promise<number> {
+  const stamp = now();
+  const inserted = await db
+    .insert(gearSession)
+    .values({ gear, day: todayKey(), startedAt: stamp, createdAt: stamp })
+    .returning({ id: gearSession.id });
+  return inserted[0].id;
+}
+
+/**
+ * Close a session.
+ *
+ * `completed` is passed in rather than worked out here, so that running out
+ * and stopping early are never confused: only the first one costs anything.
+ */
+export async function endGear(db: Db, id: number, completed: boolean): Promise<void> {
+  await db
+    .update(gearSession)
+    .set({ endedAt: now(), completed: completed ? 1 : 0 })
+    .where(eq(gearSession.id, id));
 }
 
 /* ------------------------------------------------------------------ the log */

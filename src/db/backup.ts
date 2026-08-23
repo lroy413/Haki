@@ -9,7 +9,16 @@ import {
 } from '../domain/backup';
 import { LATEST_VERSION } from './bootstrap';
 import type { Db } from './repo';
-import { carried, dailyRead, entry, setting, sleepLog, task, trainingSession } from './schema';
+import {
+  carried,
+  dailyRead,
+  entry,
+  gearSession,
+  setting,
+  sleepLog,
+  task,
+  trainingSession,
+} from './schema';
 
 /**
  * Reading every table out, and merging one back in.
@@ -21,11 +30,12 @@ import { carried, dailyRead, entry, setting, sleepLog, task, trainingSession } f
  */
 
 export async function readAllTables(db: Db): Promise<BackupTables> {
-  const [reads, sleeps, entries, sessions, people, tasks, settings] = await Promise.all([
+  const [reads, sleeps, entries, sessions, gears, people, tasks, settings] = await Promise.all([
     db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
     db.select().from(sleepLog).orderBy(desc(sleepLog.day)),
     db.select().from(entry).orderBy(desc(entry.createdAt)),
     db.select().from(trainingSession).orderBy(desc(trainingSession.day)),
+    db.select().from(gearSession).orderBy(desc(gearSession.startedAt)),
     db.select().from(carried).orderBy(desc(carried.createdAt)),
     db.select().from(task).orderBy(desc(task.createdAt)),
     db.select().from(setting),
@@ -60,6 +70,14 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       intensity: r.intensity,
       note: r.note,
       closedGap: r.closedGap,
+      createdAt: r.createdAt,
+    })),
+    gearSession: gears.map((r) => ({
+      gear: r.gear,
+      day: r.day,
+      startedAt: r.startedAt,
+      endedAt: r.endedAt,
+      completed: r.completed,
       createdAt: r.createdAt,
     })),
     carried: people.map((r) => ({
@@ -141,6 +159,9 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
           break;
         case 'trainingSession':
           await tx.insert(trainingSession).values(plan.insert as never);
+          break;
+        case 'gearSession':
+          await tx.insert(gearSession).values(plan.insert as never);
           break;
         case 'carried':
           await tx.insert(carried).values(plan.insert as never);

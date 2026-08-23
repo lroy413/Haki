@@ -105,6 +105,27 @@ export const task = sqliteTable(
  * weekly Setting Sail) lands in v2. Until then it is somewhere to write it
  * down, opened only on the days you choose to open it.
  */
+/**
+ * One row per focus session. `started_at` is the source of truth for elapsed
+ * time — nothing ticks, so closing the app mid-gear loses nothing.
+ *
+ * `completed` is the flag the costs hang off: only a finished session triggers
+ * the Gear 3 cooldown or the Gear 4 lockout.
+ */
+export const gearSession = sqliteTable(
+  'gear_session',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    gear: text('gear').notNull(),
+    day: text('day').notNull(),
+    startedAt: integer('started_at').notNull(),
+    endedAt: integer('ended_at'),
+    completed: integer('completed').notNull().default(0),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('gear_session_day_idx').on(t.day)],
+);
+
 export const carried = sqliteTable('carried', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -130,3 +151,4 @@ export type HabitRow = typeof habit.$inferSelect;
 export type CarriedRow = typeof carried.$inferSelect;
 export type TrainingSessionRow = typeof trainingSession.$inferSelect;
 export type TaskRow = typeof task.$inferSelect;
+export type GearSessionRow = typeof gearSession.$inferSelect;

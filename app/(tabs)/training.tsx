@@ -18,8 +18,10 @@ import {
   allTasks,
   commitTask,
   deleteTask,
+  gearSessionsOn,
   recentSessions,
   setTaskDone,
+  startGear,
 } from '../../src/db/repo';
 import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
@@ -32,6 +34,16 @@ import {
   stale,
   type Task,
 } from '../../src/domain/tasks';
+import {
+  GEARS,
+  GEAR_ORDER,
+  GEAR_SOUND,
+  availability,
+  minutesToday,
+  runningSession,
+  type GearName,
+  type GearSession,
+} from '../../src/domain/gears';
 import { todayKey } from '../../src/domain/date';
 import { TAB_BAR_CLEARANCE, color, font, radius, space, type } from '../../src/theme/tokens';
 
@@ -49,18 +61,24 @@ const MINUTE_CHIPS = [5, 15, 30, 60, 120];
 export default function ArmamentScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, training, load, refresh } = useHaki();
+  const { t, training, load, refresh, plainMode } = useHaki();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
   const [title, setTitle] = useState('');
   const [minutes, setMinutes] = useState(DEFAULT_TASK_MINUTES);
   const [showBacklog, setShowBacklog] = useState(false);
+  const [gears, setGears] = useState<GearSession[]>([]);
 
   const reload = useCallback(async () => {
-    const [allT, recent] = await Promise.all([allTasks(db), recentSessions(db, 8)]);
+    const [allT, recent, todaysGears] = await Promise.all([
+      allTasks(db),
+      recentSessions(db, 8),
+      gearSessionsOn(db),
+    ]);
     setTasks(allT);
     setSessions(recent);
+    setGears(todaysGears);
     await refresh();
   }, [db, refresh]);
 
@@ -99,6 +117,17 @@ export default function ArmamentScreen() {
     await reload();
   }
 
+  async function shiftInto(gear: GearName) {
+    play(GEAR_SOUND[gear]);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await startGear(db, gear);
+    await reload();
+    router.push({ pathname: '/gear', params: { gear } });
+  }
+
+  const nowMs = Date.now();
+  const running = runningSession(gears, nowMs);
+  const inGear = minutesToday(gears, nowMs);
   const waiting = backlog(tasks);
   const old = stale(tasks, todayKey());
   const message = loadMessage(load);
@@ -228,6 +257,53 @@ export default function ArmamentScreen() {
         {showBacklog && waiting.length === 0 ? (
           <Text style={styles.emptyBacklog}>{t.backlogEmpty}</Text>
         ) : null}
+
+        {/* ------------------------------------------------------- gears */}
+        <Text style={[styles.sectionLabel, styles.trainingLabel]}>
+          {t.gearsTitle}
+          {inGear > 0 ? ` · ${formatMinutes(inGear)} today` : ''}
+        </Text>
+
+        {running ? (
+          <Pressable
+            onPress={() => router.push({ pathname: '/gear', params: { gear: running.gear } })}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.gearRunning, pressed && styles.pressed]}
+          >
+            <Text style={styles.gearRunningLabel}>{GEARS[running.gear].label} is running</Text>
+            <Text style={styles.gearRunningHint}>Tap to go back to it</Text>
+          </Pressable>
+        ) : (
+          GEAR_ORDER.map((name) => {
+            const gear = GEARS[name];
+            const state = availability(name, gears, nowMs);
+            return (
+              <Pressable
+                key={name}
+                onPress={() => void shiftInto(name)}
+                disabled={!state.ready}
+                accessibilityRole="button"
+                accessibilityLabel={`${gear.label}, ${gear.minutes} minutes`}
+                style={({ pressed }) => [
+                  styles.gear,
+                  !state.ready && styles.gearLocked,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.gearHead}>
+                  <Text style={styles.gearName}>
+                    {plainMode ? gear.label : `${gear.kanji}  ${gear.label}`}
+                  </Text>
+                  <Text style={styles.gearMinutes}>{formatMinutes(gear.minutes)}</Text>
+                </View>
+                <Text style={styles.gearBlurb}>{state.ready ? gear.blurb : state.reason}</Text>
+                {state.ready && gear.cost ? (
+                  <Text style={styles.gearCost}>{gear.cost}</Text>
+                ) : null}
+              </Pressable>
+            );
+          })
+        )}
 
         {/* ----------------------------------------------------- training */}
         <Text style={[styles.sectionLabel, styles.trainingLabel]}>{t.trainingTitle}</Text>
@@ -547,4 +623,32 @@ const styles = StyleSheet.create({
   logSessionText: { ...type.heading, color: '#0A0B12' },
 
   pressed: { opacity: 0.75 },
+
+  gear: {
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.md,
+    padding: space.lg,
+    gap: space.xs,
+  },
+  // Still legible, still readable — a locked gear explains itself, so it must
+  // not be dimmed to the point where the reason cannot be read.
+  gearLocked: { backgroundColor: color.bg, borderColor: color.lineSoft },
+  gearHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  gearName: { fontFamily: font.displayBold, fontSize: 18, color: color.ink },
+  gearMinutes: { ...type.mono, color: color.inkDim },
+  gearBlurb: { ...type.body, color: color.inkDim, lineHeight: 21 },
+  gearCost: { ...type.mono, fontSize: 11, color: color.inkFaint },
+
+  gearRunning: {
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.cyan,
+    borderRadius: radius.md,
+    padding: space.lg,
+    gap: space.xs,
+  },
+  gearRunningLabel: { fontFamily: font.displayBold, fontSize: 18, color: color.ink },
+  gearRunningHint: { ...type.mono, color: color.inkDim },
 });

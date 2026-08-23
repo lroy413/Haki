@@ -70,6 +70,9 @@ export default function RootLayout() {
               options={{ presentation: 'modal', title: 'Log a session' }}
             />
             <Stack.Screen name="entry/[id]" options={{ title: '' }} />
+            {/* No header and no back arrow: leaving is the Ease off button,
+                which has to be a deliberate press rather than a stray swipe. */}
+            <Stack.Screen name="gear" options={{ headerShown: false, gestureEnabled: false }} />
           </Stack>
         </HakiProvider>
       </StoreProvider>

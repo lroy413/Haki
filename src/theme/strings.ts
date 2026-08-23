@@ -52,6 +52,7 @@ export type Strings = {
   nextStrikeEmpty: string;
 
   trainingTitle: string;
+  gearsTitle: string;
   trainingLog: string;
   trainingEmpty: string;
   trainingThisWeek: string;
@@ -112,6 +113,7 @@ const haki: Strings = {
   nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
 
   trainingTitle: 'Armament',
+  gearsTitle: 'Gears',
   trainingLog: 'Log a session',
   trainingEmpty: 'Nothing logged yet.',
   trainingThisWeek: 'This week',
@@ -153,6 +155,7 @@ const plain: Strings = {
   logTitle: 'Journal',
   carriedTitle: 'People I carry',
   trainingTitle: 'Training',
+  gearsTitle: 'Focus',
   trainingConsistency: 'Consistency',
   todayLoad: "Today's list",
 
