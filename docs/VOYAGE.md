@@ -233,9 +233,47 @@ had reflowed, applied without checking it matched. The band is full-bleed to
 both screen edges, which is what the previous session's edge-to-edge work
 bought.
 
+## The weather, and a seam for a better hand
+
+The owner's verdict on the ship and the fist was fair: _"I may draw the SVGs
+myself in Illustrator and add them later, because no offense but you're
+struggling with accurate renderings."_ True, and worth building for rather
+than arguing with. Both drawings now carry a **REPLACING THIS DRAWING** block
+naming the viewBox, the aspect, the colour props and what the composition has
+to keep — so a proper redraw drops in without touching a line above it.
+
+The more useful half of that was separating what is a _drawing_ from what is a
+_system_. The Sunny's water moved into its own file, because swell,
+wavelength, phase and how much of it is running are not things anyone redraws
+by hand — and because throwing away a working sea to replace a boat would be
+absurd. The two stack in one coordinate system and align exactly.
+
+Which freed the sea to get good. It is three runs of swell now, at different
+depths and wavelengths and opposed phases, so they never line up into stripes —
+shorter and deeper as they come toward you, which is the whole of perspective
+at this size. At zero amplitude every segment is flat, so **calm water is the
+same code with the wind taken out of it** rather than a special case. Caps ride
+on the runs instead of floating between them, which is where they were reading
+as clutter.
+
+And the lightning came inside. It leaks now, as the day hardens: nothing at all
+on an unhardened morning, a flicker every half-minute or so once there is
+something in the day, something closer to a storm by the end of one that had a
+lot. Thin bolts thrown from somewhere different each time, over the content
+rather than behind it — every screen paints its own opaque ground, so behind
+would be invisible — at an opacity low enough to read as distant sky rather
+than as interface.
+
+Two limits are in the domain with tests behind them, because this is the one
+effect in the app that could genuinely hurt somebody. It is **never a strobe**:
+a floor on the interval sits far above the three-flashes-a-second line that
+photosensitive-seizure guidance draws, and a future level that wanted to be
+exciting has to argue with a test. And it stays decoration: plain mode,
+reduced motion, and a low Will Reserve each turn it off completely.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** 390 tests,
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** 404 tests,
 four palettes, seven sounds, sixty quotes, one principle held everywhere: the
 app rewards the act and never punishes the absence.
 

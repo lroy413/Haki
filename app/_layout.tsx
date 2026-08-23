@@ -21,6 +21,7 @@ import {
 } from '@expo-google-fonts/ibm-plex-mono';
 import { StoreProvider } from '../src/db/client';
 import { HakiProvider, useHaki } from '../src/state/HakiProvider';
+import { AmbientHaki } from '../src/components/AmbientHaki';
 import { ImpactLayer } from '../src/components/ImpactLayer';
 import { font } from '../src/theme/tokens';
 
@@ -81,6 +82,9 @@ function Chrome() {
         <Stack.Screen name="sit" options={{ title: t.stillnessTitle }} />
         <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />
       </Stack>
+      {/* The weather, over the content and under the frame: distant sky
+          rather than interface. Silent until the day hardens. */}
+      <AmbientHaki />
       {/* Above everything, including the tab bar: an impact frame is the whole
           screen or it is nothing. */}
       <ImpactLayer />

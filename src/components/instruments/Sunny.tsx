@@ -1,49 +1,67 @@
 import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native-svg';
 import type { HardeningLevel } from '../../domain/hardening';
+import { SEA_VIEWBOX, WATERLINE } from './Sea';
 
 /**
- * The Thousand Sunny, on the water at the top of the home screen.
+ * The Thousand Sunny.
  *
- * It is the hardening readout with a face on it — and the one thing it must
- * never be is a bar with a boat on it. A ship travelling along a track toward
- * somewhere is a progress bar in fancy dress, and `domain/hardening.ts` forbids
- * that for good reasons. So the Sunny does not move. It sits where it sits,
- * and what changes is what the ship and the water are *doing*:
+ * ---------------------------------------------------------------------------
+ * REPLACING THIS DRAWING
  *
- *   0  at anchor — canvas furled, anchor down, flag hanging, water flat
- *   1  under way — sails set, the first crests, a short wake
- *   2  making way — full canvas, more sea running
- *   3  running    — sails hard, spray off the bow, wake tearing behind
+ * This is a hand-plotted silhouette and it is the weakest thing in the app. If
+ * you draw a better one — in Illustrator or anywhere else — swapping it in is
+ * meant to be easy, and nothing outside this file needs to change. The
+ * contract is:
+ *
+ *   - Export to `viewBox="0 0 200 72"` with `preserveAspectRatio="xMidYMax
+ *     meet"`. Those live in `Sea.tsx` as `SEA_VIEWBOX` and are imported here
+ *     so the two can never drift apart.
+ *   - Sit the hull on `WATERLINE` (y = 58). The sea is drawn separately and
+ *     underneath, so anything below that line will be crossed by water.
+ *   - She faces **left**: lion at the bow on the left, stern on the right. The
+ *     wake in `Sea.tsx` trails right from `STERN_X`; nudge that if the stern
+ *     moves.
+ *   - Fill every part of the ship with the `ink` prop and the flag with
+ *     `flag`. No colour literals — the ground moves through four palettes and
+ *     a baked-in hex is right in exactly one of them. There is a test.
+ *   - Keep the four `sail` states. `STATE` below is the only thing that reads
+ *     the hardening level: furled at 0, then progressively more canvas. If a
+ *     new drawing has a different rig, change the shapes and leave the table.
+ *
+ * The water is not here. It is a system rather than a drawing and it lives in
+ * `Sea.tsx`, so redrawing the ship never means redrawing the sea.
+ * ---------------------------------------------------------------------------
+ *
+ * The ship is the hardening readout with a face on it — and the one thing it
+ * must never be is a bar with a boat on it. A ship travelling along a track
+ * toward somewhere is a progress bar in fancy dress, and
+ * `domain/hardening.ts` forbids that for good reasons. So the Sunny does not
+ * move. She sits where she sits, and what changes is what she is doing: at
+ * anchor with the canvas furled, then under way, making way, and running.
  *
  * At anchor, not adrift. A ship at anchor at seven in the morning is a ship
  * about to leave; a ship adrift has failed at something, and this app does not
  * own a picture of failure.
  *
- * Drawn against silhouette references, which settled four things the earlier
- * passes had wrong:
- *
- * 1. **She faces left**, lion at the bow, stern to the right. Every reference
- *    draws her that way, and it is the view the shape is recognised from.
- * 2. **The hull is a deep bowl**, and the heaviest thing on the page. Three
- *    passes drew it shallow and every one read as a canoe.
- * 3. **Crow's nests.** A round platform partway up each mast is the detail
- *    that says *this* ship rather than any ship, and no amount of hull is a
- *    substitute for it.
- * 4. **A railing along the deck**, which is what gives the hull a scale.
- *
- * The lion is still the whole job at the bow: a circle with a pointed muzzle
- * is a duck, and a duck is what an earlier pass looked like. The mane spikes
- * are what make it a lion — and they are also, conveniently, a sun.
+ * Drawn against silhouette references, which settled four things earlier
+ * passes had wrong: she faces left; the hull is a deep crescent with both ends
+ * swept up, not a bowl and not the shallow canoe of the third pass; the sails
+ * hang clear of the deck, because canvas set flush to a hull merges with it
+ * and the rig reads as buildings on a barge; and she has crow's nests, the one
+ * detail that says *this* ship rather than any ship. The lion is still the
+ * whole job at the bow — a circle with a pointed muzzle is a duck, and a duck
+ * is what an earlier pass looked like. The mane spikes are what make it a
+ * lion, and they are also, conveniently, a sun.
  */
 
-type Sea = { waves: number; wake: number; spray: boolean; sail: number; anchored: boolean };
+type Rig = { spray: boolean; sail: number; anchored: boolean };
 
 /** What each level is doing. `sail` is how much canvas is drawn, 0 to 1. */
-const STATE: Record<HardeningLevel, Sea> = {
-  0: { waves: 0, wake: 0, spray: false, sail: 0, anchored: true },
-  1: { waves: 3, wake: 1, spray: false, sail: 0.55, anchored: false },
-  2: { waves: 6, wake: 2, spray: false, sail: 0.8, anchored: false },
-  3: { waves: 10, wake: 3, spray: true, sail: 1, anchored: false },
+const STATE: Record<HardeningLevel, Rig> = {
+  0: { spray: false, sail: 0, anchored: true },
+  1: { spray: false, sail: 0.55, anchored: false },
+  2: { spray: false, sail: 0.8, anchored: false },
+  3: { spray: true, sail: 1, anchored: false },
 };
 
 /**
@@ -70,28 +88,6 @@ const DECK = 42;
  * of a sail and the deck is what makes it a hanging sail.
  */
 const SAIL_FOOT = 33;
-const WATERLINE = 58;
-
-/**
- * The sea runs past both ends of the viewBox on purpose.
- *
- * The band is far wider than this drawing's aspect, so `meet` centres a
- * 200-unit ship in it and leaves air either side. Geometry outside the viewBox
- * still paints — it is clipped to the viewport, not the box — so a waterline
- * drawn from -150 to 350 reaches the edge of any screen while the ship stays
- * its own size in the middle of it.
- */
-const SEA_FROM = -150;
-const SEA_TO = 350;
-
-/**
- * Where the crests sit, in the order they arrive.
- *
- * A list rather than an even division: crests spaced identically read as a
- * dotted rule, and the sea fills in around the ship as the day does rather
- * than marching outward from it.
- */
-const WAVE_X = [22, 176, 60, 210, -14, 132, -52, 244, -88, 278];
 
 /**
  * A square sail on its yard, bellied at the foot and trailing aft.
@@ -136,7 +132,7 @@ export function Sunny({
   level,
   /** The hull, the rig, the lion: the whole silhouette, in one colour. */
   ink,
-  /** The sea, the wake, the spray, the anchor cable. */
+  /** The spray and the anchor cable — the ship's own marks on the water. */
   faint,
   /** The Jolly Roger. */
   flag,
@@ -149,49 +145,7 @@ export function Sunny({
   const sea = STATE[level];
 
   return (
-    <Svg width="100%" height="100%" viewBox="0 0 200 72" preserveAspectRatio="xMidYMax meet">
-      {/* ------------------------------------------------------------ sea */}
-      <Line
-        x1={SEA_FROM}
-        y1={WATERLINE}
-        x2={SEA_TO}
-        y2={WATERLINE}
-        stroke={faint}
-        strokeWidth={1}
-      />
-      {Array.from({ length: sea.waves }).map((_, i) => {
-        const x = WAVE_X[i % WAVE_X.length];
-        // Alternating depth *and* width. A single row of identical crests is
-        // a scalloped border, not a sea.
-        const y = WATERLINE + (i % 3 === 0 ? 3 : i % 3 === 1 ? 7 : 11);
-        const w = i % 2 === 0 ? 15 : 10;
-        return (
-          <Path
-            key={`w${i}`}
-            d={`M ${x} ${y} q ${w / 2} -4 ${w} 0`}
-            fill="none"
-            stroke={faint}
-            strokeWidth={1.2}
-            strokeLinecap="round"
-          />
-        );
-      })}
-      {/* The wake tears back from the stern — she sails left, so it runs
-          right. Angled and widening: three level rules read as a barcode. */}
-      {Array.from({ length: sea.wake }).map((_, i) => (
-        <Line
-          key={`k${i}`}
-          x1={162 + i * 5}
-          y1={WATERLINE - 3 + i * 3}
-          x2={230 + i * 26}
-          y2={WATERLINE + 3 + i * 5}
-          stroke={faint}
-          strokeWidth={1.2}
-          strokeLinecap="round"
-        />
-      ))}
-
-      {/* ----------------------------------------------------------- ship */}
+    <Svg width="100%" height="100%" viewBox={SEA_VIEWBOX} preserveAspectRatio="xMidYMax meet">
       <G>
         {/* Anchor cable, on the only morning it is down. */}
         {sea.anchored ? (

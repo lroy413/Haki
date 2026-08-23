@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
 import { seaState } from '../domain/practice';
+import { Sea } from './instruments/Sea';
 import { Sunny } from './instruments/Sunny';
 import { space } from '../theme/tokens';
 
@@ -37,12 +38,19 @@ export function SeaBand() {
       // not an effect — but stops narrating a metaphor nobody asked for.
       importantForAccessibility={plainMode ? 'no-hide-descendants' : 'yes'}
     >
-      <Sunny
-        level={hardening}
-        ink={palette.ink}
-        faint={palette.inkFaint}
-        flag={palette.crimson}
-      />
+      {/* Water first, ship on top. Two drawings in one coordinate system,
+          stacked — so redrawing either one never touches the other. */}
+      <View style={StyleSheet.absoluteFill}>
+        <Sea level={hardening} colour={palette.inkFaint} />
+      </View>
+      <View style={StyleSheet.absoluteFill}>
+        <Sunny
+          level={hardening}
+          ink={palette.ink}
+          faint={palette.inkFaint}
+          flag={palette.crimson}
+        />
+      </View>
     </View>
   );
 }

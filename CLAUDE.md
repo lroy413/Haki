@@ -91,6 +91,18 @@ behind it.
 Screens pushed on top of the tabs — the Daily Read, a session, the course, an
 entry — keep their headers: they need a way back.
 
+## Drawings are replaceable; systems are not
+
+`src/components/instruments/` holds the two hand-plotted SVGs — the Sunny and
+the fist. Both carry a **REPLACING THIS DRAWING** block at the top naming the
+viewBox, the aspect, the colour props and what the composition has to keep, so
+a proper redraw drops in without touching anything above them.
+
+Keep that seam clean. The Sunny's _water_ lives in `instruments/Sea.tsx`
+because it is a system — swell, wavelength, phase, how much is running — and
+systems do not get thrown away when someone redraws the boat. Same rule for
+the impact frame: the field owns the violence, the instrument owns the shape.
+
 ## Sound
 
 Effects live in `assets/sounds/` and are declared in `src/sound/sounds.ts` —
