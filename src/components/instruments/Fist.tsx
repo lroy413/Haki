@@ -3,71 +3,93 @@ import Svg, { Ellipse, G, Path } from 'react-native-svg';
 /**
  * The fist. Luffy's instrument, and the shape of the default impact frame.
  *
- * A punch, not a fist bump: every reference panel is a side profile with the
- * forearm driving in from the panel's edge, because direction is what makes
- * it a blow. So the drawing is horizontal — knuckles leading, forearm running
- * off the frame — rotated into a diagonal and sliced to the screen, entering
- * from the bottom-right corner the way Oda crops it at the panel border.
+ * A punch seen from the receiving end — the four curled fingers fill the
+ * face, the thumb locks across beneath them, the back of the hand recedes to
+ * a wrist that runs off the frame. That is the composition of every graphic
+ * punch in the references, and the view an impact frame is always drawn from.
  *
- * The rendering rule stays the manga's: no outline. A solid black mass whose
- * forms are carried by licks of light — the long streak down the forearm's
- * top edge is the signature in every panel — inside a soft envelope of aura.
+ * The rendering is the black-fist idiom from the line-art sheets: a solid
+ * mass with **complete interior contours** in the ground's colour — full
+ * finger separations, the jagged fold where the fingers curl in, the thumb
+ * with its nail, the knuckle ridge, wrist creases. Sparse licks read as a
+ * glove; contour drawing is what reads as a hand.
  *
- * `fill` is the body, `rim` is the aura, `sheen` is the light. All from the
+ * `fill` is the body, `rim` is the aura, `sheen` is the line. All from the
  * palette at the call site so the frame inverts on both grounds; nothing
  * here owns a colour.
  */
 export function Fist({ fill, rim, sheen }: { fill: string; rim: string; sheen: string }) {
   return (
-    <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-      <G transform="translate(4 2) rotate(47 45 42)">
-        {/* The aura, hugging the fist and wrist — two shells faking falloff,
+    <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+      <G transform="rotate(-8 50 50)">
+        {/* The aura, wrapping the whole hand — two shells faking falloff,
             since native SVG has no blur to lean on. */}
-        <Ellipse cx={42} cy={42} rx={30} ry={26} fill={rim} fillOpacity={0.2} />
-        <Ellipse cx={42} cy={42} rx={23} ry={20} fill={rim} fillOpacity={0.32} />
+        <Ellipse cx={52} cy={50} rx={40} ry={34} fill={rim} fillOpacity={0.2} />
+        <Ellipse cx={52} cy={50} rx={32} ry={27} fill={rim} fillOpacity={0.32} />
 
-        {/* The fist, side on: the leading face is the stack of curled
-            fingers, so the silhouette itself carries the bumps. */}
+        {/* One mass: four scalloped finger columns, the back of the hand
+            receding top-right, the thumb closing the bottom. */}
         <Path
-          d="M38 26
-             Q30 26 28 31
-             Q23 32 24 37
-             Q20.5 39 22 43
-             Q20 46 23 49
-             Q23 54 28 56
-             Q31 59 38 59
-             L48 59 Q54 58 56 54
-             L56 31 Q52 26 46 26 Z"
+          d="M24 42
+             Q24 30.5 30 27.2
+             Q33.5 25.4 36 27.6
+             Q39.5 24.6 43 25.6
+             Q47 24.4 49.5 26.6
+             Q52.5 24.6 55.5 25.8
+             Q59 24.8 61 27.4
+             Q64 26 66 27.6
+             Q80 28 91 33.5
+             Q100 37 106 36.5
+             L106 61
+             Q97 60.5 89 62.5
+             Q80 66 73 69
+             Q66 74 56 75.5
+             Q44 77 34 73.5
+             Q27 71 24.5 63
+             Z"
           fill={fill}
         />
 
-        {/* The forearm, driving in from past the frame — slimmer than the
-            fist, the way every panel tapers it, and overlapping the wrist so
-            no seam of ground can show through. */}
-        <Path
-          d="M52 31 Q70 27 84 29 Q98 31 112 28
-             L112 58 Q96 62 80 60 Q66 58 52 55 Z"
-          fill={fill}
-        />
+        {/* The contours: what makes it a hand instead of a mitt. */}
+        <G stroke={sheen} fill="none" strokeLinecap="round" strokeLinejoin="round">
+          {/* full-length separations between the four fingers */}
+          <Path d="M36.5 28 Q34.8 43 36.8 59" strokeWidth={2} />
+          <Path d="M49.5 27 Q47.8 43 49.8 60" strokeWidth={2} />
+          <Path d="M61.5 28 Q60 43 61.5 59" strokeWidth={1.9} />
+          {/* each finger's mid-joint crease */}
+          <Path d="M28.5 45 Q31.5 43.8 34.5 45" strokeWidth={1} strokeOpacity={0.65} />
+          <Path d="M41 44.5 Q44 43.2 47 44.5" strokeWidth={1} strokeOpacity={0.65} />
+          <Path d="M53.5 44.5 Q56.5 43.4 59 44.5" strokeWidth={1} strokeOpacity={0.6} />
+          <Path d="M64.5 45 Q67 44 69 45" strokeWidth={0.9} strokeOpacity={0.55} />
+          {/* the fold: a jagged line with a wedge where each finger turns in */}
+          <Path
+            d="M25.5 60 L34 61.5 L36.8 58.5 L39 62 L47 62.5 L49.8 59.5 L52 63 L59.5 63 L61.5 60 L63.5 63.5 L69 62.5"
+            strokeWidth={2.4}
+          />
+          {/* the thumb, locked across beneath the fingers, and its nail */}
+          <Path d="M26.5 66 Q38 72.5 52 71.5 Q62 70.5 68.5 65.5" strokeWidth={2.2} />
+          <Path d="M47.5 67 Q47.5 70.2 50.8 70.4 Q54.4 70.4 54.6 66.8" strokeWidth={1.4} />
+          <Path d="M31 68.5 Q34.5 70.3 38.5 70.8" strokeWidth={1} strokeOpacity={0.6} />
+          {/* the knuckle ridge, where the face turns into the back of the hand */}
+          <Path d="M67.5 30 Q70 29 71.5 31" strokeWidth={1.5} />
+          <Path d="M73 33.5 Q75.5 33 77 35.5" strokeWidth={1.5} />
+          <Path d="M78.5 38.5 Q80.8 38.5 82 41" strokeWidth={1.4} />
+          {/* the back of the hand: two tendons and the wrist creases */}
+          <Path d="M70 34 Q74 42 74.5 52" strokeWidth={0.9} strokeOpacity={0.55} />
+          <Path d="M76 38 Q79.5 45 79 54" strokeWidth={0.9} strokeOpacity={0.5} />
+          <Path d="M92 40 Q94 47 92.5 55" strokeWidth={1.2} />
+          <Path d="M97 39.5 Q99 47 97.5 56" strokeWidth={1} strokeOpacity={0.7} />
+        </G>
 
-        {/* The light. The long streak down the forearm's top edge is the
-            signature of every panel; the rest is a lick per form. */}
+        {/* The lit plane along the knuckle tops — the third value that turns
+            a poster into a form; ground-colour washes model correctly on
+            both frames. */}
         <G stroke={sheen} fill="none" strokeLinecap="round">
-          <Path d="M56 31.5 Q75 28 96 30" strokeWidth={2.6} />
-          <Path d="M63 35 Q78 32.5 90 34" strokeWidth={1.1} />
-          {/* the knuckle stack, one lick per bump */}
-          <Path d="M30.5 30.5 Q27.5 31.5 27.8 34.5" strokeWidth={2.2} />
-          <Path d="M26 36.5 Q23.8 38 24.3 41" strokeWidth={2} />
-          <Path d="M23.5 44 Q22.5 45.8 24 48" strokeWidth={2} />
-          <Path d="M25.5 51 Q26 53.5 28.5 55" strokeWidth={1.8} />
-          {/* the back of the hand */}
-          <Path d="M39 27.5 Q45 26.8 51 28" strokeWidth={2} />
-          {/* the thumb, wrapped across the near side */}
-          <Path d="M31 50 Q36 46 42 47.5" strokeWidth={2.2} />
-          <Path d="M33 54.5 Q38 52.5 43 53.5" strokeWidth={1.3} />
-          {/* the wrist creases */}
-          <Path d="M55 33 L54.5 39" strokeWidth={1.1} />
-          <Path d="M55.5 45 L55 52" strokeWidth={1.1} />
+          <Path d="M27 33 Q30.5 30.5 34 32" strokeWidth={3.6} strokeOpacity={0.11} />
+          <Path d="M40 31 Q43.5 29 47 30.5" strokeWidth={3.6} strokeOpacity={0.11} />
+          <Path d="M52.5 31 Q55.5 29.5 58.5 31" strokeWidth={3.4} strokeOpacity={0.1} />
+          <Path d="M63.5 32 Q65.5 31 67.5 32.5" strokeWidth={3} strokeOpacity={0.12} />
+          <Path d="M74 34 Q84 36 93 37.5" strokeWidth={4} strokeOpacity={0.1} />
         </G>
       </G>
     </Svg>
