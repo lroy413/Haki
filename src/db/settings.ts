@@ -1,4 +1,5 @@
-import { todayKey, type DayKey } from '../domain/date';
+import { clampHour, configureDayStart, todayKey, type DayKey } from '../domain/date';
+import type { HardeningLevel } from '../domain/hardening';
 import { DEFAULT_KEYSTONE, type KeystoneConfig } from '../domain/cascade';
 import { DEFAULT_TRAINING, type TrainingConfig } from '../domain/training';
 import { DEFAULT_CAPACITY_MINUTES } from '../domain/tasks';
@@ -19,6 +20,18 @@ export type Settings = {
   /** Minutes of intentional work a day can really hold. */
   capacityMinutes: number;
   soundOn: boolean;
+  /**
+   * The hour the day rolls over, 0–23. Production hours do not end at
+   * midnight, and rolling over underneath someone still working splits one
+   * day's work across two.
+   */
+  dayStartHour: number;
+  /**
+   * The day's hardening high-water mark, carried here rather than read
+   * separately so it is known before the first frame. Read it late and the app
+   * paints paper and then snaps to black on every cold start.
+   */
+  hardening: { day: DayKey; level: HardeningLevel } | null;
 };
 
 const KEYS = {
@@ -28,17 +41,30 @@ const KEYS = {
   training: 'training.config',
   capacity: 'tasks.capacityMinutes',
   sound: 'ui.soundOn',
+  dayStart: 'voyage.dayStartHour',
+  hardeningDay: 'hardening.day',
+  hardeningLevel: 'hardening.level',
 } as const;
 
 export async function loadSettings(db: Db): Promise<Settings> {
-  const [setSail, plain, keystoneRaw, trainingRaw, capacityRaw, soundRaw] = await Promise.all([
-    readSetting(db, KEYS.setSailAt),
-    readSetting(db, KEYS.plainMode),
-    readSetting(db, KEYS.keystone),
-    readSetting(db, KEYS.training),
-    readSetting(db, KEYS.capacity),
-    readSetting(db, KEYS.sound),
-  ]);
+  // The boundary is read first and applied before anything else, because
+  // `todayKey()` is wrong until it is — including the first-launch default
+  // three lines down.
+  const dayStartRaw = await readSetting(db, KEYS.dayStart);
+  const dayStartHour = clampHour(Number(dayStartRaw ?? 0));
+  configureDayStart(dayStartHour);
+
+  const [setSail, plain, keystoneRaw, trainingRaw, capacityRaw, soundRaw, hardDay, hardLevel] =
+    await Promise.all([
+      readSetting(db, KEYS.setSailAt),
+      readSetting(db, KEYS.plainMode),
+      readSetting(db, KEYS.keystone),
+      readSetting(db, KEYS.training),
+      readSetting(db, KEYS.capacity),
+      readSetting(db, KEYS.sound),
+      readSetting(db, KEYS.hardeningDay),
+      readSetting(db, KEYS.hardeningLevel),
+    ]);
 
   // First launch is day one.
   let setSailAt = setSail;
@@ -55,7 +81,39 @@ export async function loadSettings(db: Db): Promise<Settings> {
     capacityMinutes: numberOr(Number(capacityRaw), DEFAULT_CAPACITY_MINUTES),
     // Default on — it is one of the reasons to open the thing.
     soundOn: soundRaw !== 'false',
+    dayStartHour,
+    hardening:
+      hardDay && hardLevel !== null
+        ? { day: hardDay, level: clampLevel(Number(hardLevel)) }
+        : null,
   };
+}
+
+function clampLevel(value: number): HardeningLevel {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(3, Math.max(0, Math.trunc(value))) as HardeningLevel;
+}
+
+/**
+ * Move the day boundary.
+ *
+ * Applied immediately as well as stored: every `todayKey()` after this call has
+ * to agree with it, or the next write lands on the day the app just left.
+ */
+export async function setDayStartHour(db: Db, hour: number): Promise<number> {
+  const clamped = clampHour(hour);
+  configureDayStart(clamped);
+  await writeSetting(db, KEYS.dayStart, String(clamped));
+  return clamped;
+}
+
+export async function setHardeningMark(
+  db: Db,
+  day: DayKey,
+  level: HardeningLevel,
+): Promise<void> {
+  await writeSetting(db, KEYS.hardeningDay, day);
+  await writeSetting(db, KEYS.hardeningLevel, String(level));
 }
 
 function parseKeystone(raw: string | null): KeystoneConfig {

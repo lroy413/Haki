@@ -8,8 +8,8 @@ import {
   listEntries,
   readSetting,
   recentSleep,
-  writeSetting,
 } from '../db/repo';
+import { setHardeningMark } from '../db/settings';
 import { assessCascade, type CascadeVerdict } from '../domain/cascade';
 import { trainingStatus, type TrainingStatus } from '../domain/training';
 import { nextStrike, todaysLoad, type Load, type Task } from '../domain/tasks';
@@ -98,7 +98,12 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   });
   const [training, setTraining] = useState<TrainingStatus>(EMPTY_TRAINING);
   const [load, setLoad] = useState<Load>(EMPTY_LOAD);
-  const [hardening, setHardening] = useState<HardeningLevel>(0);
+  // Seeded from the mark that came in with the settings, which are loaded
+  // before anything renders. Starting at 0 and reading the mark afterwards
+  // paints paper and then snaps to black on every cold start of a used day.
+  const [hardening, setHardening] = useState<HardeningLevel>(() =>
+    settleLevel(NO_ACTS, todayKey(), settings.hardening),
+  );
   const [acts, setActs] = useState<Acts>(NO_ACTS);
 
   const refresh = useCallback(async () => {
@@ -149,13 +154,18 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
 
     // Only write when the mark actually moves — every screen focus calls this.
     if (!recorded || recorded.day !== today || recorded.level !== settled) {
-      await writeSetting(db, HARDENING_DAY, today);
-      await writeSetting(db, HARDENING_LEVEL, String(settled));
+      await setHardeningMark(db, today, settled);
     }
 
     // Fire-and-forget: a notification failure must never break a screen.
     void syncKeystoneWarning(nextCascade);
-  }, [db, settings.keystone, settings.training, settings.capacityMinutes]);
+  }, [
+    db,
+    settings.keystone,
+    settings.training,
+    settings.capacityMinutes,
+    settings.dayStartHour,
+  ]);
 
   useEffect(() => {
     void refresh();

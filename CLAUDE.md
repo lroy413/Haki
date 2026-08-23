@@ -80,6 +80,11 @@ adding one is a line there plus a file. Play with `play('name')` from
 
 ## Architecture
 
+- **A day does not end at midnight.** `todayKey()` respects a configurable
+  boundary (`voyage.dayStartHour`), so anything asking "what day is it" must go
+  through it rather than reading a `Date` itself. `loadSettings` applies the
+  boundary before it computes anything, because everything after that line is
+  wrong until it does.
 - **`src/domain/` is pure TypeScript with no React Native imports.** That is
   what lets the real logic be tested on plain Node with no simulator. Keep it
   that way — if something needs a React Native import, it does not belong here.

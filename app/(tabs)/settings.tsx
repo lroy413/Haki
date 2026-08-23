@@ -12,7 +12,14 @@ import {
 import { BackupCard } from '../../src/components/BackupCard';
 import { Toggle } from '../../src/components/Toggle';
 import { useStore } from '../../src/db/client';
-import { setKeystone, setPlainMode, setSoundOn, setTraining } from '../../src/db/settings';
+import {
+  setDayStartHour,
+  setKeystone,
+  setPlainMode,
+  setSoundOn,
+  setTraining,
+} from '../../src/db/settings';
+import { describeDayStart } from '../../src/domain/date';
 import { useHaki } from '../../src/state/HakiProvider';
 import { TAB_BAR_CLEARANCE, radius, space, type } from '../../src/theme/tokens';
 import type { Palette } from '../../src/theme/palettes';
@@ -75,6 +82,14 @@ export default function SettingsScreen() {
     await refreshSettings();
   }
 
+  async function shiftDayStart(delta: number) {
+    const next = (settings.dayStartHour + delta + 24) % 24;
+    await setDayStartHour(db, next);
+    await refreshSettings();
+    // What day it is has just changed, so everything derived from it is stale.
+    await refresh();
+  }
+
   async function togglePlain(next: boolean) {
     await setPlainMode(db, next);
     await refreshSettings();
@@ -113,6 +128,37 @@ export default function SettingsScreen() {
               tint={palette.crimson}
             />
           </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Day starts at</Text>
+          <Text style={styles.blurb}>
+            When the app rolls over. Set this past the end of your longest shift and a late
+            night stays on the day you were working, instead of splitting in two while you are
+            still up.
+          </Text>
+          <View style={styles.stepper}>
+            <Pressable
+              onPress={() => void shiftDayStart(-1)}
+              accessibilityRole="button"
+              accessibilityLabel="An hour earlier"
+              style={({ pressed }) => [styles.step, pressed && styles.pressed]}
+            >
+              <Text style={styles.stepText}>−</Text>
+            </Pressable>
+            <Text style={styles.dayStart}>{describeDayStart(settings.dayStartHour)}</Text>
+            <Pressable
+              onPress={() => void shiftDayStart(1)}
+              accessibilityRole="button"
+              accessibilityLabel="An hour later"
+              style={({ pressed }) => [styles.step, pressed && styles.pressed]}
+            >
+              <Text style={styles.stepText}>+</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.footnote}>
+            Only changes what counts as today. Nothing already written moves.
+          </Text>
         </View>
 
         <View style={styles.card}>
@@ -257,6 +303,26 @@ const makeStyles = (c: Palette) =>
     },
     saveText: { ...type.body, color: c.onAccent },
     pressed: { opacity: 0.75 },
+
+    stepper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: space.xs,
+    },
+    step: {
+      width: 52,
+      height: 44,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderTopColor: c.specular,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    stepText: { ...type.heading, fontSize: 22, color: c.ink },
+    dayStart: { ...type.display, fontSize: 30, color: c.violet },
+    footnote: { ...type.mono, fontSize: 11, color: c.inkFaint, marginTop: space.xs },
 
     footer: { ...type.small, color: c.inkFaint, textAlign: 'center' },
   });
