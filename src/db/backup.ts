@@ -146,31 +146,61 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
 
     // One transaction per table: a failure part-way cannot leave half a table
     // written.
-    await db.transaction(async (tx) => {
+    //
+    // The callback is deliberately NOT async, and neither are the inserts.
+    // Drizzle's expo-sqlite driver is synchronous all the way down —
+    // prepareSync, executeSync, getAllSync — and its `transaction` runs the
+    // callback and takes the returned value without awaiting it. Hand it an
+    // async function and it receives a pending promise, commits immediately,
+    // and the inserts land *after* the COMMIT: outside the transaction, from
+    // microtasks that interleave with anything else querying at the time.
+    //
+    // On web that also corrupts reads. Every sync call marshals its result
+    // through one shared buffer guarded by a lock, so a query firing from a
+    // stray microtask can read a payload half-written by another and throw a
+    // JSON parse error at a different offset each run. `.run()` executes the
+    // statement here and now, which is what the driver was always expecting.
+    db.transaction((tx) => {
       switch (table) {
         case 'dailyRead':
-          await tx.insert(dailyRead).values(plan.insert as never);
+          tx.insert(dailyRead)
+            .values(plan.insert as never)
+            .run();
           break;
         case 'sleepLog':
-          await tx.insert(sleepLog).values(plan.insert as never);
+          tx.insert(sleepLog)
+            .values(plan.insert as never)
+            .run();
           break;
         case 'entry':
-          await tx.insert(entry).values(plan.insert as never);
+          tx.insert(entry)
+            .values(plan.insert as never)
+            .run();
           break;
         case 'trainingSession':
-          await tx.insert(trainingSession).values(plan.insert as never);
+          tx.insert(trainingSession)
+            .values(plan.insert as never)
+            .run();
           break;
         case 'gearSession':
-          await tx.insert(gearSession).values(plan.insert as never);
+          tx.insert(gearSession)
+            .values(plan.insert as never)
+            .run();
           break;
         case 'carried':
-          await tx.insert(carried).values(plan.insert as never);
+          tx.insert(carried)
+            .values(plan.insert as never)
+            .run();
           break;
         case 'task':
-          await tx.insert(task).values(plan.insert as never);
+          tx.insert(task)
+            .values(plan.insert as never)
+            .run();
           break;
         case 'setting':
-          await tx.insert(setting).values(plan.insert as never);
+          tx.insert(setting)
+            .values(plan.insert as never)
+            .run();
           break;
       }
     });
