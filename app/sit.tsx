@@ -18,6 +18,7 @@ import {
   type SitDepth,
   type SitSession,
 } from '../src/domain/stillness';
+import { stateMessage, stateName } from '../src/domain/observation';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
 import type { Palette } from '../src/theme/palettes';
@@ -37,7 +38,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function SitScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { refresh, plainMode, palette } = useHaki();
+  const { refresh, plainMode, palette, observation } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [session, setSession] = useState<SitSession | null>(null);
@@ -160,6 +161,20 @@ export default function SitScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.list}>
+      {/*
+        The lens this screen belongs to, and the two halves of it side by side.
+        Sitting is the practice and clarity is what lets you use it — so the
+        state names whichever of them is doing the limiting, which is the one
+        genuinely useful thing to be told here. See `domain/observation.ts`.
+      */}
+      <View style={styles.reading}>
+        <View style={styles.readingHead}>
+          <Text style={styles.readingLabel}>{plainMode ? 'Reading' : '見聞色'}</Text>
+          <Text style={styles.readingState}>{stateName(observation.state)}</Text>
+        </View>
+        <Text style={styles.readingBody}>{stateMessage(observation)}</Text>
+      </View>
+
       <Text style={styles.blurb}>
         Armament is what you push out. This is the other one — five, ten or fifteen minutes of
         not pushing anything. Nothing here is scored, and there is no daily maximum.
@@ -245,6 +260,22 @@ const makeStyles = (c: Palette) =>
     footnote: { ...type.mono, color: c.inkFaint, fontSize: 11 },
 
     list: { padding: space.lg, gap: space.sm },
+    reading: {
+      borderWidth: 1,
+      borderColor: c.violet,
+      backgroundColor: c.violetSoft,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+    },
+    readingHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    readingLabel: { ...type.label, color: c.violet },
+    readingState: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    readingBody: { ...type.body, color: c.ink, lineHeight: 22 },
     blurb: {
       ...type.body,
       color: c.inkDim,

@@ -271,15 +271,78 @@ photosensitive-seizure guidance draws, and a future level that wanted to be
 exciting has to argue with a test. And it stays decoration: plain mode,
 reduced motion, and a low Will Reserve each turn it off completely.
 
+## Two corrections, and a lens that was missing
+
+Both came from the owner using the thing, and both were right.
+
+**"The Armament system is weird — it shouldn't be working off just workouts. I
+only work out one major time a day."** Correct, and worse than it sounds. The
+Hardness figure was sessions-per-week over four weeks, which meant the lens for
+_everything you do on purpose_ was measuring the gym — and for somebody who
+trains once a day it is a number with about two useful values. Hardness now
+reads every act of doing: a task struck, a block of focus, a session logged. It
+counts **days that had any**, never how much, because three tasks is not a
+better day than one and a measure that said so would pay for busywork. Training
+kept its own honest section underneath: sessions, gaps, Returns. One input
+among several rather than the whole of a lens.
+
+**"Stillness and meditation are part of the Observation system, as Observation
+Haki only works in times of mental clarity."** This one exposed a category
+error: sitting was hardening the app, and hardening was framed as Armament
+coating. So Observation got built — the lens that had a practice feeding it and
+nowhere for it to go.
+
+The design is in the second half of that sentence. Sitting is the **practice**
+and clarity is the **condition**, and they are deliberately not stirred into
+one number: they are reported separately so the state can name whichever is
+doing the limiting. Which means the app can say _"the practice is there — today
+is loud, and that is a day, not a verdict"_. Most habit apps can only tell you
+that you missed something.
+
+Hardening itself was reframed rather than changed. It reads the whole day
+across every lens, and sitting still darkens the app — because a day with
+stillness in it is a day that got used, and a mental-health app withholding its
+one piece of visual feedback from meditation would be punishing somebody for
+meditating.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** 404 tests,
-four palettes, seven sounds, sixty quotes, one principle held everywhere: the
-app rewards the act and never punishes the absence.
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Thirteen pull
+requests merged, 430 tests, one principle held everywhere: the app rewards the
+act and never punishes the absence.
 
-**Charted next:** the second lightning — Conqueror's, which leaks colour
-continuously and grows with the will behind it, and which needs the
-Conqueror's unlock before it means anything; that unlock itself, rare to have
-and rarer to master; the Log Pose as the finish-one-thing mechanic; and the
-Zoro theme, where the field keeps the violence and the instrument becomes a
-sword.
+What is actually in it:
+
+|                     |                                                                                                                                                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sense**           | The Daily Read — four dials, thirty seconds. Will Reserve as a gauge that is never a score. The keystone cascade, which warns on the first bad night rather than after the week is gone.                                                |
+| **Act**             | Tasks shaped for a brain that shuts down facing forty of them: minute estimates, a small deliberate today, one Next Strike on the home screen. Gears at 25, 90 and 120 minutes with honest costs. Training with Returns.                |
+| **Still**           | Stillness at five, ten or fifteen minutes, with a ring that breathes — Observation's counterpart to the Gears, and the only thing here that costs nothing at all.                                                                       |
+| **Record**          | The Logbook, with a second door: one line, folded into today, asking nothing. Inherited Will. Export and import that merges and never deletes.                                                                                          |
+| **The day**         | A course set for today or tomorrow and never marked. Six practices, each showing its offer rather than its absence. Hardening across four palettes, from paper to black, and the Sunny reading it back as a state and never a position. |
+| **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. Seven sounds, sixty quotes, and a mute button over all of it.                  |
+
+**Charted next**, roughly in the order they make sense:
+
+1. **Conqueror's** — the unlock, and then the mastery. The owner's framing is
+   the design: rare to have, rarer to master, already possessed and waiting to
+   be found rather than earned from zero. Nothing else on this list needs it,
+   and two things on it are blocked behind it.
+2. **The second lightning** — Conqueror's leaking colour continuously, growing
+   with the will behind it. The component already takes its colours, count and
+   reach as props, so this is a call site once there is a Conqueror's to drive
+   it.
+3. **The Log Pose** — finish-or-abandon, the fourth failure mode from the
+   concept doc and the only one still entirely unbuilt. A WIP limit that turns
+   silent drift into a logged decision.
+4. **The Zoro theme** — the field keeps the violence, the instrument becomes a
+   sword. The seam is already cut; this is one file and a picker.
+5. **Native.** The PWA has carried it this far, but iOS cannot do reliable
+   notifications or a home-screen widget, and the Den Den Mushi taxonomy in
+   the concept doc needs real notification channels.
+
+And two debts worth naming: the ship and the fist are hand-plotted and it
+shows — both now carry a **REPLACING THIS DRAWING** contract so a proper
+redraw drops in — and importing a backup of more than about six tasks still
+corrupts subsequent queries on the web, down in expo-sqlite's shared result
+buffer.

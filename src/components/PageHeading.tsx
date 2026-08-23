@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHaki } from '../state/HakiProvider';
-import { TAB_BAR_CLEARANCE, space, type } from '../theme/tokens';
+import { useTabBarHeight } from './GlassTabBar';
+import { space, type } from '../theme/tokens';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -52,16 +53,26 @@ const makeStyles = (c: Palette) =>
 /**
  * The padding a tab's scroll content needs to clear the hardware.
  *
- * Top: the notch, since the scene now runs underneath it. Bottom: room for the
- * floating bar, plus the home indicator on the phones that have one.
+ * Top: the notch, since the scene runs underneath it.
+ *
+ * Bottom: exactly what the bar occupies, plus one gap. This used to be a
+ * hardcoded 108 that matched nothing — it left 39 points of dead ground under
+ * the last item on the web, around 51 on a phone with a home indicator, and
+ * more again in plain mode where the bar loses its kanji and gets shorter.
+ *
+ * The arithmetic below is the bar's own, term for term: it sits
+ * `max(insets.bottom, space.md)` off the bottom and is `useTabBarHeight()`
+ * tall, so content clears it by `space.lg` and no more, on every device and in
+ * both modes.
  *
  * Returned as a style object to spread after a screen's own `content` style,
  * so the two vertical values win and everything else is left alone.
  */
 export function useTabInsets(): { paddingTop: number; paddingBottom: number } {
   const insets = useSafeAreaInsets();
+  const bar = useTabBarHeight();
   return {
     paddingTop: insets.top + space.lg,
-    paddingBottom: TAB_BAR_CLEARANCE + insets.bottom,
+    paddingBottom: Math.max(insets.bottom, space.md) + bar + space.lg,
   };
 }

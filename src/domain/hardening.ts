@@ -21,6 +21,15 @@ import { SITS } from './stillness';
  * It hardens, and the moment it hardens it is black. So the first act of any
  * day carries the whole flip, and everything after it is depth.
  *
+ * **It is the day being used, not one lens's output.** Worth being precise
+ * about, because the Armament metaphor made it easy to get wrong: sitting
+ * still is 見聞色 and it darkens the app anyway, because a day with stillness
+ * in it is a day that got used. The lenses are how acts are *attributed* —
+ * `domain/armament.ts` reads the doing, `domain/observation.ts` reads the
+ * sensing — and this reads the whole day regardless of which lens an act
+ * belongs to. Withholding the palette from meditation would be a mental-health
+ * app punishing somebody for meditating.
+ *
  * Two rules this must never break:
  *
  * 1. **Pale is not a scolding.** A light screen at seven in the morning means

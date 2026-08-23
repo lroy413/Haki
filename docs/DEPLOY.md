@@ -1,27 +1,28 @@
 # Deploying Haki
 
-One-time setup, then it's merge-and-it's-live.
+**Setup is done.** It is live at
+[haki-lac.vercel.app](https://haki-lac.vercel.app), and the loop is:
+
+```
+Claude pushes a branch  →  opens a PR into main  →  CI + a preview URL  →  merge  →  production
+```
+
+Skip to _Verifying a deploy_ for the day-to-day. Steps 1 and 2 are kept as a
+record of how it was wired, and for the day it needs wiring again.
 
 ---
 
-## Step 1 — create `main` (one time, ~30 seconds)
+## Step 1 — create `main` ✅ done
 
-Right now the repo has exactly one branch, `claude/haki-app-brainstorm-m6z8d7`,
-and it is the default. There is nothing to merge _into_, which is the piece
-missing from the merge-and-deploy flow.
+The repo began with one branch, `claude/haki-app-brainstorm-m6z8d7`, as the
+default, so there was nothing to merge _into_.
 
 On GitHub: **Settings → General → Default branch → the ✏️ pencil → rename to
 `main` → Rename branch.**
 
-That is it. All the work so far becomes `main`, and from then on:
-
-```
-Claude pushes a feature branch  →  opens a PR into main  →  you review and merge  →  Vercel deploys
-```
-
 ---
 
-## Step 2 — connect Vercel
+## Step 2 — connect Vercel ✅ done
 
 1. [vercel.com](https://vercel.com) → **Add New… → Project** → import `lroy413/Haki`.
 2. Vercel reads `vercel.json` from the repo, so **change nothing** on the
@@ -51,6 +52,38 @@ Screen**.
 You get the 覇 icon, no browser chrome, and it works offline. Check
 **Settings → Your data → Export data** once on day one: if that produces a file,
 your data can always get out again.
+
+---
+
+## Verifying a deploy
+
+Two things are worth checking every time, and both take seconds.
+
+**The headers**, because they are the one thing that can differ between local
+and production and silently break the database:
+
+```bash
+curl -sSI https://haki-lac.vercel.app/ | grep -i cross-origin
+```
+
+**That the bytes are the bytes you tested.** Expo content-hashes every file, so
+the strongest check available is comparing the whole built output against what
+is actually being served. If every file matches, production _is_ the build you
+drove in a browser:
+
+```bash
+npm run build:web
+cd dist && find . -type f | while read -r f; do
+  rel="${f#./}"
+  curl -sS "https://haki-lac.vercel.app/$rel" -o /tmp/p.bin
+  [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$(sha256sum /tmp/p.bin | cut -d' ' -f1)" ] \
+    || echo "DIFFERS: $rel"
+done
+```
+
+Silence means every file is identical. A deploy that is still building will
+show the old bundle hash in `index.html` — wait and run it again rather than
+assuming it failed.
 
 ---
 
@@ -101,6 +134,12 @@ run it again.
 Verified end to end: exported from one browser profile, imported into a fresh
 one, journal entry and training session both came back, second import reported
 `0 added, 4 already here`.
+
+**Known limit.** On the web, importing a backup with more than roughly six
+tasks still corrupts the queries that follow it — the failure is down in
+expo-sqlite's shared result buffer, below this app. Small exports restore
+cleanly; a large one is not yet trustworthy on the PWA. Native does not use
+that buffer, so the move _to_ native is the path this matters least on.
 
 ---
 

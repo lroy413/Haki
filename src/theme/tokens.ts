@@ -73,11 +73,14 @@ export function reserveColor(c: Palette): Record<Reserve['state'], string> {
 }
 
 /**
- * Vertical room every scroll view must leave at the bottom so its last item is
- * not swallowed by the floating tab bar.
+ * There is no tab-bar clearance constant, on purpose.
  *
- * The home-indicator inset goes on top of this — `useTabInsets` in
- * `components/PageHeading.tsx` is the one place that adds it, and every tab
- * screen takes its padding from there rather than reaching for this directly.
+ * There was — 108 — and it matched nothing: the bar is a different height in
+ * Haki mode and in plain mode, and sits a different distance off the bottom on
+ * a phone with a home indicator than on one without. A single number is wrong
+ * in most of those cases and it left up to fifty points of dead ground under
+ * the last item on every tab.
+ *
+ * `useTabInsets` in `components/PageHeading.tsx` asks the bar what it measured
+ * instead. Use that.
  */
-export const TAB_BAR_CLEARANCE = 108;

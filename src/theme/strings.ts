@@ -57,11 +57,12 @@ export type Strings = {
   nextStrikeEmpty: string;
 
   trainingTitle: string;
+  trainingSection: string;
   gearsTitle: string;
   trainingLog: string;
   trainingEmpty: string;
   trainingThisWeek: string;
-  trainingConsistency: string;
+  hardnessLabel: string;
   trainingSinceLast: string;
   trainingNever: string;
   trainingToday: string;
@@ -123,11 +124,15 @@ const haki: Strings = {
   nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
 
   trainingTitle: 'Armament',
+  // The gym, specifically — one input to Armament rather than the whole of
+  // it. Calling this section Armament was what made the lens look like a
+  // workout tracker.
+  trainingSection: 'Training',
   gearsTitle: 'Gears',
   trainingLog: 'Log a session',
   trainingEmpty: 'Nothing logged yet.',
   trainingThisWeek: 'This week',
-  trainingConsistency: 'Hardness',
+  hardnessLabel: 'Hardness',
   trainingSinceLast: 'Days off',
   trainingNever: 'No sessions yet',
   trainingToday: 'Trained today',
@@ -167,8 +172,11 @@ const plain: Strings = {
   stillnessTitle: 'Meditation',
   carriedTitle: 'People I carry',
   trainingTitle: 'Training',
+  // The tab is already called Training in plain mode, so the section inside it
+  // needs its own word or the two read as the same heading twice.
+  trainingSection: 'Workouts',
   gearsTitle: 'Focus',
-  trainingConsistency: 'Consistency',
+  hardnessLabel: 'Hardness',
   todayLoad: "Today's list",
 
   keystoneTitle: 'Keystone habit',

@@ -1,7 +1,12 @@
 # Haki — Concept v0.3
 
-> The build itself is chronicled in [VOYAGE.md](./VOYAGE.md) — where this
-> started, every decision since, and what is charted next.
+> **This is night 0's plan, kept as written.** It is the argument for the app,
+> not a description of it — some of it shipped exactly as described, some
+> arrived under a different name, and some was replaced by something better
+> once the thing existed to be used. [VOYAGE.md](./VOYAGE.md) is what actually
+> happened, and the honest inventory of what is live.
+>
+> Read this for _why_. Read that for _what_.
 
 > Every other app tracks what you **did**. This one tracks the state of your **will**.
 
@@ -247,6 +252,42 @@ The ordering matters more than the feature list. The temptation is to build the 
 | **v4** | Reward      | Bounty, wanted posters, gear transitions, Conqueror's lightning, the Ship, Gear 5. Pure delight, zero utility — and the reason you'll still be using this in a year. Late, but not optional.                                                                                                                           |
 
 _Anything not on this list is v5._
+
+### Where the plan actually went
+
+Kept here because the divergences are more interesting than the matches, and
+because a plan that was never checked against reality is just a wish.
+
+**v0 shipped as written**, and the three-week rule bent almost immediately —
+for a defensible reason: an app too thin to open gathers no data to be right
+about. Tasks arrived early because of it.
+
+**v1 arrived out of order and in better shape.** The Gears shipped as planned.
+Hardening did not: the concept had it as a per-habit coating, a percentage on
+a list of habits. What shipped instead is hardening as **the whole interface**
+— the app opens on paper and goes black as the day is used, with no habit list
+underneath it at all. That is a better idea than the one in this document and
+it came from the owner mid-build, not from here. The Break List with urge
+logging is still unbuilt.
+
+**v4's rewards jumped the queue**, deliberately. Impact frames, the emission,
+the ambient weather and the Sunny were all supposed to be last. They came early
+because "identity is cheap and it's what makes you open the thing" turned out
+to be the truest line in this document, and because the owner kept asking for
+the app to be _visual_. That was the right call.
+
+**Three things here were bettered by use.** The Calm Belt became Ryuo — reach
+that grows with the days the top of the list gets struck, rather than an alarm
+for coasting. Ship's Log became the Logbook with a second door that asks
+nothing, because the editor turned out to be the friction. And the Daily Read,
+Stillness, the course and the log stopped being separate features and became
+**the day's practice**: six things, each showing its offer rather than its
+absence.
+
+**Still entirely unbuilt:** Conqueror's in every form, the Log Pose and
+finish-or-abandon, Road Poneglyphs, the Setting Sail ritual, the Ship as a
+self-care module, bounties and wanted posters, Gear 5, Inner Weather,
+correlations and the Foresight engine.
 
 ---
 
