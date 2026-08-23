@@ -34,6 +34,22 @@ looking polished.** A feature that works but looks unfinished is not done.
 - An empty value is not a dash. Say what it means: "Not yet", "No sessions
   yet". A dash at display weight looks like data.
 
+## The screen answers the finger, not the write
+
+Striking a task writes one row and then reloads the whole provider. On the web
+every one of those queries goes through expo-sqlite's single synchronous
+channel, so the tick took long enough to appear that the checkbox read as
+broken — and a second tap on a checkbox is a perfectly good "undo", so it
+landed as one. Three taps to check a box, none of them missed.
+
+- **Anything that toggles holds its own optimistic state**, shown immediately
+  and dropped when the stored value agrees. See `TaskRow` in
+  `app/(tabs)/training.tsx`.
+- **Never read-modify-write from a row the screen is holding.** Pass the value
+  you want (`onToggle(next)`), not "flip whatever is there" — two quick taps
+  both read the stale row and both write the same thing.
+- **44pt is the floor for anything you tap.** A 26pt box with `hitSlop={8}` is 42. Prefer making the whole row the target over growing the hit slop.
+
 ## Type
 
 Three faces, carried over from the concept doc. They are the identity:
