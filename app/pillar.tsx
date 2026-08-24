@@ -248,7 +248,7 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.sm,
     },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 10 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
     input: {
       ...type.body,
       color: c.ink,
@@ -268,12 +268,12 @@ const makeStyles = (c: Palette) =>
     empty: { ...type.body, color: c.inkFaint, lineHeight: 21 },
 
     islandTitle: { fontFamily: font.displayBold, fontSize: 17, color: c.ink, lineHeight: 22 },
-    stampReached: { ...type.mono, color: c.violet, fontSize: 11 },
-    wake: { ...type.mono, color: c.inkFaint, fontSize: 11 },
+    stampReached: { ...type.mono, color: c.violet, fontSize: 12 },
+    wake: { ...type.mono, color: c.inkFaint, fontSize: 12 },
     // Not a warning colour. Sailing past is allowed and the record of it is
     // not a mark against anybody — it reads quieter than reaching, and that is
     // the only difference the styling is permitted to make.
-    stampPassed: { ...type.mono, color: c.inkFaint, fontSize: 11 },
+    stampPassed: { ...type.mono, color: c.inkFaint, fontSize: 12 },
     quiet: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' },
     quietText: { ...type.mono, color: c.inkDim, fontSize: 12 },
     reason: { ...type.body, color: c.inkDim, lineHeight: 21, fontStyle: 'italic' },

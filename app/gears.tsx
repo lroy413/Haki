@@ -148,7 +148,7 @@ const makeStyles = (c: Palette) =>
     gearName: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
     gearMinutes: { ...type.mono, color: c.inkDim },
     gearBlurb: { ...type.body, color: c.inkDim, lineHeight: 21 },
-    gearCost: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    gearCost: { ...type.mono, fontSize: 12, color: c.inkFaint },
 
     gearRunning: {
       backgroundColor: c.surface,

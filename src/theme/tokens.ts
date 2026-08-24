@@ -52,9 +52,14 @@ export const type = {
   body: { fontFamily: font.body, fontSize: 16, lineHeight: 24 },
   bodyStrong: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 24 },
   small: { fontFamily: font.body, fontSize: 14, lineHeight: 20 },
+  /**
+   * Section labels and units. Uppercase mono with wide tracking, and the
+   * floor for readable text in this app — nothing is set smaller. It was 10
+   * and every screen then overrode it *down* to 9; both were a squint.
+   */
   label: {
     fontFamily: font.monoSemi,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 1.6,
     textTransform: 'uppercase',
   },

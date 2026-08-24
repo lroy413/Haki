@@ -229,5 +229,5 @@ const makeStyles = (c: Palette) =>
     quiet: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.line },
     quietText: { ...type.heading, color: c.inkDim },
     pressed: { ...press },
-    footnote: { ...type.mono, color: c.inkFaint, fontSize: 11 },
+    footnote: { ...type.mono, color: c.inkFaint, fontSize: 12 },
   });

@@ -36,26 +36,55 @@ const HEAD = `${MARKER}
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <style>
       /* Painted before the JS bundle parses, so a cold start shows the app's
-         own ground instead of a white flash. */
+         own ground instead of a white flash. The value is a fallback: the
+         script below overwrites it with the ground this install last used,
+         because the app opens on *paper* for an unused day and a near-black
+         flash before it is the wrong first frame. */
       html, body, #root { background-color: #0A0B12; }
       body { overscroll-behavior-y: contain; }
-      ::selection { background: #B14CFF; color: #0A0B12; }
-      /* iOS standalone with a translucent status bar lies about percentage
-         heights: the page paints under the clock, but html's 100% resolves
-         to the screen minus the status bar, so the whole app stopped 62pt
-         short at the *bottom* on an iPhone 16 Pro — a dead band under the
-         tab bar, measured off a device screenshot as exactly the top inset.
-         The modern viewport units measure the real screen. min-height keeps
-         100% as the floor, so on any browser where these units are the
-         smaller lie the worst case is what shipped before, never shorter. */
-      @supports (-webkit-touch-callout: none) {
-        html, body, #root { height: -webkit-fill-available; min-height: 100%; }
-      }
-      @supports (height: 100dvh) {
-        html, body, #root { height: 100dvh; min-height: 100%; }
+      ::selection { background: #B85BFF; color: #0A0B12; }
+
+      /* THE SHELL DOES NOT MEASURE THE VIEWPORT. It is pinned to it.
+         
+         Every unit that claims to be "the height of the screen" is
+         negotiable on iOS: percentages resolve against a layout viewport
+         that a translucent status bar shrinks, -webkit-fill-available
+         settles a frame late, and even dvh is only as honest as the
+         browser's idea of what counts as dynamic. Each one has now cost
+         this app the same bug — a dead band under the floating tab bar,
+         the app visibly stopping short of the bottom of the phone.
+
+         A fixed element pinned to all four sides asks no question. It is
+         placed
+         against the viewport itself, so there is no number to get wrong and
+         no reflow to be late for. The app scrolls inside its own views —
+         nothing has ever relied on the document scrolling — so pinning the
+         root costs nothing and closes the whole class of bug. The height
+         rules below stay only as the pre-paint ground for the split second
+         before this rule applies. */
+      html, body { height: 100%; margin: 0; overflow: hidden; }
+      #root {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        overflow: hidden;
       }
     </style>
     <script>
+      /* The ground the app last rendered, painted before the bundle parses.
+         Hardening means the correct opening colour is a fact about this
+         install's day, not a constant — so the app records it and the shell
+         reads it back. Wrapped because a private window can refuse storage,
+         and a colour is never worth a boot failure. */
+      try {
+        var ground = localStorage.getItem('haki.ground');
+        if (ground && /^#[0-9A-Fa-f]{6}$/.test(ground)) {
+          document.documentElement.style.backgroundColor = ground;
+        }
+      } catch (e) {}
+
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
           navigator.serviceWorker.register('/sw.js').catch(function () {

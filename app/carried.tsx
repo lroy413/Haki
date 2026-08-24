@@ -221,7 +221,7 @@ const makeStyles = (c: Palette) =>
     relationship: { ...type.small, color: c.violet, marginTop: -space.sm },
 
     field: { gap: space.xs },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 10 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
     fieldValue: { ...type.body, color: c.ink, lineHeight: 21 },
 
     input: {

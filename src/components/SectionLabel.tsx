@@ -50,5 +50,5 @@ const makeStyles = (c: Palette) =>
     },
     label: { ...type.label, color: c.inkFaint },
     rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: c.line },
-    trailing: { ...type.mono, fontSize: 10, color: c.inkFaint },
+    trailing: { ...type.mono, fontSize: 11, color: c.inkFaint },
   });

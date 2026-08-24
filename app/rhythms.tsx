@@ -390,7 +390,7 @@ const makeStyles = (c: Palette) =>
     rowBody: { flex: 1, gap: 2 },
     rowTitle: { fontFamily: font.displayBold, fontSize: 17, color: c.ink },
     rowTitleStopped: { fontFamily: font.displayBold, fontSize: 16, color: c.inkFaint },
-    rowMeta: { ...type.mono, fontSize: 11, color: c.inkDim },
+    rowMeta: { ...type.mono, fontSize: 12, color: c.inkDim },
     rowEdit: { ...type.mono, fontSize: 12, color: c.crimson },
 
     card: {
@@ -402,7 +402,7 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.sm,
     },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 10, marginTop: space.xs },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11, marginTop: space.xs },
     input: {
       ...type.body,
       color: c.ink,
@@ -473,7 +473,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     chipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
-    chipText: { ...type.mono, fontSize: 11, color: c.inkDim },
+    chipText: { ...type.mono, fontSize: 12, color: c.inkDim },
     chipTextOn: { color: c.cyan },
 
     actions: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },

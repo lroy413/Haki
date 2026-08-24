@@ -54,7 +54,7 @@ import { hardnessMessage, hardnessName } from '../../src/domain/armament';
 import { Bolt } from '../../src/components/instruments/Bolt';
 import { darkest } from '../../src/theme/palettes';
 import { font, radius, space, type } from '../../src/theme/tokens';
-import { offer, plate, press, row } from '../../src/theme/surfaces';
+import { lit, offer, plate, press, row } from '../../src/theme/surfaces';
 import { Fragment } from 'react';
 import { SectionLabel } from '../../src/components/SectionLabel';
 import type { Palette } from '../../src/theme/palettes';
@@ -79,7 +79,7 @@ const MINUTE_CHIPS = [5, 15, 30, 60, 120];
 export default function ArmamentScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, training, load, hardness, refresh, plainMode, palette } = useHaki();
+  const { t, training, load, hardness, refresh, plainMode, palette, hardening } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
 
@@ -210,7 +210,11 @@ export default function ArmamentScreen() {
         contentContainerStyle={[styles.content, pad]}
         keyboardShouldPersistTaps="handled"
       >
-        <PageHeading title={t.trainingTitle} trailing={plainMode ? undefined : '武装色'} />
+        <PageHeading
+          title={t.trainingTitle}
+          trailing={plainMode ? undefined : '武装色'}
+          tint={palette.crimson}
+        />
 
         {/*
           The lens, read over four weeks — from everything done under this
@@ -218,7 +222,9 @@ export default function ArmamentScreen() {
           which made Armament look like a gym tracker and gave a figure with
           about two useful values to somebody who trains once a day.
         */}
-        <View style={styles.hardnessCard}>
+        {/* 武装色's own light. The lens that measures the day is the thing
+            the day lights up. */}
+        <View style={[styles.hardnessCard, lit(palette.crimson, plainMode ? 0 : hardening)]}>
           <View style={styles.head}>
             <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
             <Text style={styles.carrying}>
@@ -742,7 +748,7 @@ const makeStyles = (c: Palette) =>
     // The way into the workshop, sitting on the label rather than as a button
     // of its own — the day's work is the subject of this section, not this.
     rhythmLink: { flexDirection: 'row', alignItems: 'baseline', gap: space.md, minHeight: 44 },
-    rhythmLinkText: { ...type.mono, fontSize: 11, color: c.crimson },
+    rhythmLinkText: { ...type.mono, fontSize: 12, color: c.crimson },
     // Full-bleed within the padding; the drawing keeps its own aspect.
     bolt: { width: '100%', aspectRatio: 200 / 26, marginVertical: -2 },
     carrying: {
@@ -791,14 +797,14 @@ const makeStyles = (c: Palette) =>
     taskBody: { flex: 1, gap: 1 },
     taskTitle: { ...type.body, fontSize: 16, color: c.ink },
     taskTitleDone: { textDecorationLine: 'line-through', color: c.inkDim },
-    taskMinutes: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    taskMinutes: { ...type.mono, fontSize: 12, color: c.inkFaint },
     secondary: {
       justifyContent: 'center',
       paddingLeft: space.sm,
       paddingRight: space.md,
     },
-    secondaryText: { ...type.mono, fontSize: 11, color: c.cyan },
-    removeText: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    secondaryText: { ...type.mono, fontSize: 12, color: c.cyan },
+    removeText: { ...type.mono, fontSize: 12, color: c.inkFaint },
 
     /* ------------------------------------------------------------ capture */
     capture: {
@@ -830,7 +836,7 @@ const makeStyles = (c: Palette) =>
     chipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
     watchOn: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
     watchTextOn: { color: c.crimson },
-    chipText: { ...type.mono, fontSize: 11, color: c.inkDim },
+    chipText: { ...type.mono, fontSize: 12, color: c.inkDim },
     chipTextOn: { color: c.cyan },
     addRow: { flexDirection: 'row', gap: space.sm },
     addToday: {
@@ -880,7 +886,7 @@ const makeStyles = (c: Palette) =>
       padding: space.md,
       gap: space.xs,
     },
-    statLabel: { ...type.label, color: c.inkFaint, fontSize: 9 },
+    statLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
     statValue: {
       fontFamily: font.display,
       fontSize: 24,

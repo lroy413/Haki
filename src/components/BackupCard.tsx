@@ -228,7 +228,7 @@ const makeStyles = (c: Palette) =>
     actionBusy: { opacity: 0.5 },
     actionLabel: { ...type.body, color: c.ink },
     actionLabelPrimary: { color: c.onAccent },
-    actionHint: { ...type.small, fontSize: 11, color: c.inkFaint },
+    actionHint: { ...type.small, fontSize: 12, color: c.inkFaint },
     actionHintPrimary: { color: c.onAccent, opacity: 0.7 },
 
     status: { ...type.small, color: c.cyan, lineHeight: 19 },

@@ -27,7 +27,7 @@ import { addDays, todayKey } from '../../src/domain/date';
 import { futureSight, openness, stateMessage, stateName } from '../../src/domain/observation';
 import { Eyes } from '../../src/components/instruments/Eyes';
 import { font, radius, space, type } from '../../src/theme/tokens';
-import { plate, press, row } from '../../src/theme/surfaces';
+import { lit, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
 import type { Palette } from '../../src/theme/palettes';
 
@@ -55,7 +55,7 @@ const FAB_ROOM = 72;
 export default function ObservationScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t, palette, refresh, observation, acts, plainMode } = useHaki();
+  const { t, palette, refresh, observation, acts, plainMode, hardening } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
 
@@ -106,6 +106,7 @@ export default function ObservationScreen() {
             <PageHeading
               title={t.observationTitle}
               trailing={plainMode ? undefined : '見聞色'}
+              tint={palette.violet}
             />
 
             {/* The gauge: a pair of eyes, open as far as the tool has been
@@ -131,7 +132,7 @@ export default function ObservationScreen() {
             {/* The reading: the same card the sit screen leads with, because
                 it is the same fact. Practice and condition, reported
                 separately, naming whichever is the limit. */}
-            <View style={styles.reading}>
+            <View style={[styles.reading, lit(palette.violet, plainMode ? 0 : hardening)]}>
               <View style={styles.readingHead}>
                 <Text style={styles.readingLabel}>{plainMode ? 'Reading' : '見聞色'}</Text>
                 <Text style={styles.readingState}>{stateName(observation.state)}</Text>
@@ -148,7 +149,11 @@ export default function ObservationScreen() {
                 onPress={() => router.push('/foresight')}
                 accessibilityRole="button"
                 accessibilityLabel={t.foresightTitle}
-                style={({ pressed }) => [styles.foresight, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.foresight,
+                  lit(palette.cyan, plainMode ? 0 : hardening),
+                  pressed && styles.pressed,
+                ]}
               >
                 <View style={styles.foresightHead}>
                   <Text style={styles.foresightLabel}>{t.foresightLabel}</Text>
@@ -283,7 +288,7 @@ const makeStyles = (c: Palette) =>
     },
     stillText: { flex: 1, gap: 2 },
     stillName: { fontFamily: font.displayBold, fontSize: 17, color: c.ink },
-    stillLine: { ...type.mono, fontSize: 11, color: c.inkDim },
+    stillLine: { ...type.mono, fontSize: 12, color: c.inkDim },
     stillGo: { ...type.heading, fontSize: 15, color: c.violet },
 
     foresight: {
@@ -304,7 +309,7 @@ const makeStyles = (c: Palette) =>
     foresightGlyph: { fontFamily: font.display, fontSize: 15, color: c.cyan },
     foresightLine: { ...type.body, color: c.ink, lineHeight: 22 },
     foresightQuiet: { ...type.body, color: c.inkDim, lineHeight: 22 },
-    foresightMore: { ...type.mono, fontSize: 11, color: c.cyan },
+    foresightMore: { ...type.mono, fontSize: 12, color: c.cyan },
 
     sectionLabel: { marginTop: space.xs },
 

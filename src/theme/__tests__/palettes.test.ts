@@ -66,7 +66,7 @@ describe.each(LEVELS)('palette %i', (level) => {
     for (const key of SOLID) {
       expect(() => luminance(p[key] as string), `${where} ${key}`).not.toThrow();
     }
-    for (const key of ['glass', 'glassEdge', 'glassActive', 'shadow'] as const) {
+    for (const key of ['glass', 'glassEdge', 'shadow'] as const) {
       expect(p[key], `${where} ${key}`).toMatch(/^rgba\(/);
     }
   });
@@ -77,30 +77,49 @@ describe.each(LEVELS)('palette %i', (level) => {
     }
   });
 
-  it('carries secondary text at AA', () => {
-    for (const ground of ['bg', 'surface'] as const) {
+  it('carries secondary text at AAA on every ground it uses', () => {
+    // surface2 is included because inputs, chips and practice tiles are all
+    // drawn on it, and every one of them carries text.
+    for (const ground of ['bg', 'surface', 'surface2'] as const) {
       expect(
         contrast(p.inkDim, p[ground]),
         `${where} inkDim on ${ground}`,
-      ).toBeGreaterThanOrEqual(4.5);
+      ).toBeGreaterThanOrEqual(7);
     }
   });
 
   it('keeps the faintest text legible rather than decorative', () => {
-    // Dates, units and stat labels live here. They are small, so 3:1 is the
-    // floor and anything below it is a value pretending to be a whisper.
-    expect(contrast(p.inkFaint, p.bg), `${where} inkFaint on bg`).toBeGreaterThanOrEqual(3);
+    // Dates, units, cadences and stat labels live here — nearly every small
+    // word in the app. The floor used to be 3:1 on the ground alone, and the
+    // result measured 2.9:1 on the palette the app spends its day in: under
+    // the minimum for *normal* text, at eleven points. "Faint" is a role in
+    // the hierarchy, not permission to disappear.
+    for (const ground of ['bg', 'surface', 'surface2'] as const) {
+      expect(
+        contrast(p.inkFaint, p[ground]),
+        `${where} inkFaint on ${ground}`,
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+    // It also sits on the two tinted plates — the reading and Foresight cards.
+    for (const tint of ['violetSoft', 'cyanSoft'] as const) {
+      expect(
+        contrast(p.inkFaint, p[tint]),
+        `${where} inkFaint on ${tint}`,
+      ).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
-  it('shows every accent against the ground it sits on', () => {
+  it('reads every accent as text against the ground it sits on', () => {
+    // Not merely visible as a shape: every accent carries words somewhere —
+    // section labels, the cadence on a needle, "Sit", a rhythm's link. 4.5 is
+    // the floor for text, and these are the app's smallest words.
     for (const key of ACCENTS) {
-      expect(contrast(p[key] as string, p.bg), `${where} ${key} on bg`).toBeGreaterThanOrEqual(
-        3,
-      );
-      expect(
-        contrast(p[key] as string, p.surface),
-        `${where} ${key} on surface`,
-      ).toBeGreaterThanOrEqual(3);
+      for (const ground of ['bg', 'surface', 'surface2'] as const) {
+        expect(
+          contrast(p[key] as string, p[ground]),
+          `${where} ${key} on ${ground}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
     }
   });
 
@@ -122,10 +141,12 @@ describe.each(LEVELS)('palette %i', (level) => {
     ] as const;
     for (const [accent, soft] of pairs) {
       expect(contrast(p[soft], p.bg), `${where} ${soft} vs bg`).toBeGreaterThanOrEqual(1.08);
+      // The accent labels a tinted card from inside it — small text, so the
+      // floor is the text floor.
       expect(
         contrast(p[accent], p[soft]),
         `${where} ${accent} on ${soft}`,
-      ).toBeGreaterThanOrEqual(3);
+      ).toBeGreaterThanOrEqual(4.5);
     }
   });
 
@@ -181,8 +202,13 @@ describe('the ramp as a whole', () => {
   });
 
   it('ends on the palette the app was designed in', () => {
+    // The signature ground is untouched. The violet was lifted once, by about
+    // four percent of lightness, when the whole palette was raised to a text
+    // floor: at #B14CFF it labelled its own card at 4.4:1 in eleven-point
+    // mono. Pinned here so it can drift for a stated reason and never by
+    // accident.
     expect(PALETTES[3].bg).toBe('#0A0B12');
-    expect(PALETTES[3].violet).toBe('#B14CFF');
+    expect(PALETTES[3].violet).toBe('#B85BFF');
   });
 });
 

@@ -292,7 +292,7 @@ const makeStyles = (c: Palette) =>
     switchText: { flex: 1, gap: space.xs },
 
     field: { gap: space.xs },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 10 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
     input: {
       ...type.body,
       color: c.ink,
@@ -332,7 +332,7 @@ const makeStyles = (c: Palette) =>
     },
     stepText: { ...type.heading, fontSize: 22, color: c.ink },
     dayStart: { ...type.display, fontSize: 30, color: c.violet },
-    footnote: { ...type.mono, fontSize: 11, color: c.inkFaint, marginTop: space.xs },
+    footnote: { ...type.mono, fontSize: 12, color: c.inkFaint, marginTop: space.xs },
 
     footer: { ...type.small, color: c.inkFaint, textAlign: 'center' },
   });

@@ -1,4 +1,5 @@
 import type { ViewStyle } from 'react-native';
+import type { HardeningLevel } from '../domain/hardening';
 import type { Palette } from './palettes';
 import { radius } from './tokens';
 
@@ -74,3 +75,46 @@ export const press: ViewStyle = {
   opacity: 0.85,
   transform: [{ scale: 0.98 }],
 };
+
+/**
+ * The light a lens throws.
+ *
+ * A plate lit like this is the one place the app says *which* Haki you are
+ * looking at without writing the word. The hardness readout burns crimson,
+ * the reading violet, Foresight cyan, the Dream violet — the same colour
+ * each of those lenses already uses for its own labels, spread into the air
+ * around the card it belongs to.
+ *
+ * Two rules keep it from becoming decoration:
+ *
+ * 1. **Paper catches nothing.** At level 0 this returns the ordinary neutral
+ *    shadow. Unhardened Haki does not glow — that is the whole conceit of
+ *    the ramp, and an aura on parchment would say the opposite.
+ * 2. **It grows with the day and stops there.** The strength follows the
+ *    hardening level, the same curve the specular glint already climbs, and
+ *    it is never a figure, a bar, or a count. It is the ground changing
+ *    around you; you cannot read your score off a halo.
+ *
+ * One shadow per view is all React Native gives, so the aura *replaces* the
+ * plate's drop shadow rather than stacking with it. That is the right trade:
+ * a lit card still reads as lifted, because light around an edge is exactly
+ * what lifted looks like.
+ *
+ * Applied inline at the call site rather than baked into a StyleSheet —
+ * `makeStyles` takes a palette, and the level is a second fact. Call it with
+ * a level of 0 in plain mode: plain mode is the switch that stops the app
+ * performing, and an aura is a performance. (It cannot read that for itself,
+ * because the level it is handed is already pinned to the settled dark
+ * there — which is exactly the value that would glow brightest.)
+ */
+export function lit(tint: string, level: HardeningLevel): ViewStyle {
+  if (level === 0) return {};
+  const strength = { 1: 0.4, 2: 0.55, 3: 0.7 }[level];
+  return {
+    shadowColor: tint,
+    shadowOpacity: strength,
+    shadowRadius: 16 + level * 3,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6 + level * 2,
+  };
+}
