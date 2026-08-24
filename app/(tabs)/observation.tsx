@@ -27,6 +27,8 @@ import { addDays, todayKey } from '../../src/domain/date';
 import { futureSight, openness, stateMessage, stateName } from '../../src/domain/observation';
 import { Eyes } from '../../src/components/instruments/Eyes';
 import { font, radius, space, type } from '../../src/theme/tokens';
+import { plate, press, row } from '../../src/theme/surfaces';
+import { SectionLabel } from '../../src/components/SectionLabel';
 import type { Palette } from '../../src/theme/palettes';
 
 /** How much the floating button takes on top of the bar's own clearance. */
@@ -190,7 +192,7 @@ export default function ObservationScreen() {
               <Text style={styles.stillGo}>Sit</Text>
             </Pressable>
 
-            <Text style={styles.sectionLabel}>{t.entriesLabel}</Text>
+            <SectionLabel label={t.entriesLabel} style={styles.sectionLabel} />
             <LogLine onLogged={() => void load()} />
           </View>
         }
@@ -234,11 +236,12 @@ const makeStyles = (c: Palette) =>
     head: { gap: space.sm, marginBottom: space.sm },
     eyes: { width: '100%', height: 84, marginBottom: -space.xs },
 
+    // The lens's own readout, raised and in its colour.
     reading: {
-      borderWidth: 1,
+      ...plate(c),
       borderColor: c.violet,
+      borderTopColor: c.violet,
       backgroundColor: c.violetSoft,
-      borderRadius: radius.md,
       padding: space.lg,
       gap: space.xs,
     },
@@ -252,14 +255,10 @@ const makeStyles = (c: Palette) =>
     readingBody: { ...type.body, color: c.ink, lineHeight: 22 },
 
     still: {
+      ...row(c),
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.md,
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
       padding: space.lg,
       minHeight: 44,
     },
@@ -269,10 +268,10 @@ const makeStyles = (c: Palette) =>
     stillGo: { ...type.heading, fontSize: 15, color: c.violet },
 
     foresight: {
-      borderWidth: 1,
+      ...plate(c),
       borderColor: c.cyan,
+      borderTopColor: c.cyan,
       backgroundColor: c.cyanSoft,
-      borderRadius: radius.md,
       padding: space.lg,
       gap: space.xs,
       minHeight: 44,
@@ -288,21 +287,17 @@ const makeStyles = (c: Palette) =>
     foresightQuiet: { ...type.body, color: c.inkDim, lineHeight: 22 },
     foresightMore: { ...type.mono, fontSize: 11, color: c.cyan },
 
-    sectionLabel: { ...type.label, color: c.inkFaint, marginTop: space.sm },
+    sectionLabel: { marginTop: space.xs },
     empty: { ...type.body, color: c.inkDim, textAlign: 'center', marginTop: space.xxxl },
 
     row: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
+      ...row(c),
       padding: space.lg,
       gap: space.xs,
     },
     rowDay: { ...type.mono, color: c.inkFaint },
     rowBody: { ...type.body, color: c.ink, lineHeight: 21 },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
 
     fab: {
       position: 'absolute',
@@ -314,6 +309,11 @@ const makeStyles = (c: Palette) =>
       borderRadius: radius.md,
       paddingVertical: space.lg,
       alignItems: 'center',
+      shadowColor: c.shadow,
+      shadowOpacity: 1,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 6,
     },
     fabText: { ...type.heading, color: c.onAccent },
   });

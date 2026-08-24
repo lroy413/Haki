@@ -16,6 +16,7 @@ import {
 import { addDays, todayKey } from '../src/domain/date';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { plate } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -115,11 +116,7 @@ const makeStyles = (c: Palette) =>
     lead: { ...type.body, color: c.ink, lineHeight: 23, marginBottom: space.xs },
 
     card: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
+      ...plate(c),
       padding: space.lg,
       gap: space.xs,
     },

@@ -4,6 +4,7 @@ import { useHaki } from '../state/HakiProvider';
 import { dayMessage, practice, type Practice, type PracticeKey } from '../domain/practice';
 import { levelName } from '../domain/hardening';
 import { font, radius, space, type } from '../theme/tokens';
+import { plate, press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -112,11 +113,7 @@ export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     card: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
+      ...plate(c),
       padding: space.md,
       gap: space.sm,
     },
@@ -150,5 +147,5 @@ const makeStyles = (c: Palette) =>
     words: { gap: 1 },
     tileLabel: { ...type.heading, fontSize: 14, color: c.ink },
     line: { ...type.mono, fontSize: 10, color: c.inkFaint, lineHeight: 14 },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

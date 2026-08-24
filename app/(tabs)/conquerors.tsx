@@ -43,6 +43,8 @@ import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { NeedleCard } from '../../src/components/logpose/NeedleCard';
 import { useHaki } from '../../src/state/HakiProvider';
 import { font, radius, space, type } from '../../src/theme/tokens';
+import { offer, plate, press, row } from '../../src/theme/surfaces';
+import { SectionLabel } from '../../src/components/SectionLabel';
 import type { Palette } from '../../src/theme/palettes';
 
 /**
@@ -216,6 +218,7 @@ export default function ConquerorsScreen() {
         {/* ------------------------------------------------------- the dream */}
 
         <View style={styles.dreamCard}>
+          {plainMode ? null : <Text style={styles.dreamWatermark}>夢</Text>}
           <Text style={styles.dreamLabel}>{t.dreamLabel}</Text>
 
           {editingDream ? (
@@ -280,7 +283,7 @@ export default function ConquerorsScreen() {
         {/* -------------------------------------------- the road poneglyphs */}
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t.roadLabel}</Text>
+          <SectionLabel label={t.roadLabel} />
           <Text style={styles.room}>{room.note}</Text>
         </View>
 
@@ -388,12 +391,24 @@ const makeStyles = (c: Palette) =>
     said: { ...type.mono, color: c.violet, fontSize: 12 },
 
     dreamCard: {
-      backgroundColor: c.violetSoft,
-      borderWidth: 1,
+      ...plate(c),
       borderColor: c.violet,
-      borderRadius: radius.md,
+      borderTopColor: c.violet,
+      backgroundColor: c.violetSoft,
       padding: space.lg,
       gap: space.sm,
+      overflow: 'hidden',
+    },
+    // Decoration, clipped by the card. Low opacity keeps it a texture: it
+    // must never compete with the dream's own words for contrast.
+    dreamWatermark: {
+      position: 'absolute',
+      right: -space.xs,
+      bottom: -space.xl,
+      fontFamily: font.display,
+      fontSize: 110,
+      color: c.violet,
+      opacity: 0.09,
     },
     dreamLabel: { ...type.label, color: c.violet },
     dreamBody: { gap: space.xs, minHeight: 44, justifyContent: 'center' },
@@ -426,11 +441,7 @@ const makeStyles = (c: Palette) =>
     room: { ...type.small, color: c.inkDim, lineHeight: 19 },
 
     card: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
+      ...row(c),
       padding: space.lg,
       gap: space.sm,
     },
@@ -474,10 +485,7 @@ const makeStyles = (c: Palette) =>
     disabled: { opacity: 0.4 },
 
     add: {
-      borderWidth: 1,
-      borderColor: c.line,
-      borderStyle: 'dashed',
-      borderRadius: radius.md,
+      ...offer(c),
       paddingVertical: space.lg,
       minHeight: 44,
       alignItems: 'center',
@@ -498,5 +506,5 @@ const makeStyles = (c: Palette) =>
     crewBody: { ...type.body, color: c.inkDim, lineHeight: 21 },
 
     footnote: { ...type.small, color: c.inkFaint, lineHeight: 18, marginTop: space.sm },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

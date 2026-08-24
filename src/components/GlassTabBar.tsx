@@ -7,6 +7,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useHaki } from '../state/HakiProvider';
 import type { Tab } from '../theme/strings';
 import { font, radius, space } from '../theme/tokens';
+import { press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -183,7 +184,7 @@ const makeStyles = (c: Palette) =>
       borderRadius: radius.lg,
     },
     tabActive: { backgroundColor: c.glassActive },
-    pressed: { opacity: 0.6 },
+    pressed: { ...press },
     glyph: { fontFamily: font.displayBold, fontSize: 14, lineHeight: 19 },
     label: { fontFamily: font.mono, fontSize: 9, letterSpacing: 0.6 },
   });

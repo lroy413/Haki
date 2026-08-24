@@ -16,6 +16,7 @@ import { listCarried, upsertCarried } from '../src/db/repo';
 import type { CarriedRow } from '../src/db/schema';
 import { useHaki } from '../src/state/HakiProvider';
 import { radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -265,5 +266,5 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
     },
     addText: { ...type.heading, color: c.inkDim },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

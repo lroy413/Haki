@@ -7,6 +7,7 @@ import { todayKey } from '../domain/date';
 import { transfer } from '../files/transfer';
 import { useHaki } from '../state/HakiProvider';
 import { radius, space, type } from '../theme/tokens';
+import { press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -231,5 +232,5 @@ const makeStyles = (c: Palette) =>
     actionHintPrimary: { color: c.onAccent, opacity: 0.7 },
 
     status: { ...type.small, color: c.cyan, lineHeight: 19 },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

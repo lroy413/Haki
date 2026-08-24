@@ -13,6 +13,7 @@ import { useStore } from '../../src/db/client';
 import { setTaskDone } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
 import { font, radius, space, type } from '../../src/theme/tokens';
+import { press, row } from '../../src/theme/surfaces';
 import type { Palette } from '../../src/theme/palettes';
 
 export default function Home() {
@@ -161,17 +162,13 @@ const makeStyles = (c: Palette) =>
     warningLabel: { ...type.label },
     warningBody: { ...type.body, color: c.ink, lineHeight: 21 },
 
-    ctaPressed: { opacity: 0.75 },
+    ctaPressed: { ...press },
 
     strip: {
+      ...row(c),
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
       padding: space.lg,
     },
     stripLabel: { ...type.label, color: c.inkFaint, marginBottom: 2 },

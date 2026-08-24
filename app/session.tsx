@@ -18,6 +18,7 @@ import { gapClosedBy, returnMessage } from '../src/domain/training';
 import { play } from '../src/sound';
 import { todayKey } from '../src/domain/date';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 const QUICK_KINDS = ['Push', 'Pull', 'Legs', 'Full body', 'Run', 'Conditioning'];
@@ -236,7 +237,7 @@ const makeStyles = (c: Palette) =>
     returnDone: { paddingHorizontal: space.xxxl, minWidth: 180, marginTop: space.sm },
     saveDisabled: { backgroundColor: c.surface2 },
     saveText: { ...type.heading, color: c.onAccent },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
 
     returnScreen: {
       flex: 1,

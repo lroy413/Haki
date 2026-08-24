@@ -479,10 +479,48 @@ sentence about their own mind is owed the arithmetic that produced it, and an
 engine that cannot explain itself in a paragraph has no business telling anyone
 anything about themselves.
 
+## The audit, and unequal chrome
+
+Two jobs in one pass: prove the tracking, then earn the screens their looks.
+
+The proof came first because it had to — polishing a card that miscounts is
+paint on a wrong number. A scripted browser drove the whole day on a fake
+clock: set a course, save a read, log a line, sit five minutes, run a gear,
+strike a task, take a rhythm, log a session, name a dream, reach an island,
+set sail, reload. Thirty-four assertions about what the screen says back, and
+every one held. The only failures the audit ever produced were its own — a
+selector that matched a hidden minute-chip on the tab scene still mounted
+under a pushed screen — which is the right way round: the harness should be
+the thing that breaks first.
+
+Then the cards. Every container in the app had grown the same recipe —
+surface fill, hairline border, glint along the top, six-point corners — and a
+screen of them read as a template, because the day's identity card, a task
+row and an untaken offer all carried identical weight. The fix was not more
+chrome but _unequal_ chrome, written down once in `theme/surfaces.ts` as
+three surfaces. A **plate** is raised: it keeps the specular glint and drops
+a real shadow, from a new per-palette token — warm ink on paper, heavier
+black as the ramp descends, because a shadow on a near-black ground has to
+work harder to read as depth at all. A **row** is flat: no glint, no shadow —
+working material, not an object. An **offer** is dashed and unfilled: a thing
+that does not exist yet, which is the rhythm's whole model drawn instead of
+explained — the standing offer sits dashed above the solid committed rows and
+becomes one the moment it is taken.
+
+Each screen now holds one or two plates and no more: the hardness readout,
+the reserve, the reading, the dream — which got a faint 夢 riding its corner,
+clipped by the card. Section labels grew a rule running off their end, so
+"TRAINING ───" opens a region instead of captioning a box. The live island
+in a needle card carries a violet rail down its left edge: the one part of
+the card at sea rather than on record. And everything pressable now presses
+the same way — a slight sink instead of a grey-out, because bare opacity
+reads as disabled, and the difference between "acknowledged" and "broken" is
+the whole reason the checkbox chapter above exists.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Eighteen pull
-requests merged, 559 tests, one principle held everywhere: the app rewards the
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Nineteen pull
+requests merged, 562 tests, one principle held everywhere: the app rewards the
 act and never punishes the absence.
 
 What is actually in it:

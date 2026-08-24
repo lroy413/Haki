@@ -26,6 +26,7 @@ import {
 import { DEFAULT_TASK_MINUTES, formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -512,5 +513,5 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     addText: { ...type.heading, color: c.inkDim },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

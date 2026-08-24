@@ -17,6 +17,7 @@ import { play } from '../src/sound';
 import { useHaki } from '../src/state/HakiProvider';
 import { todayKey } from '../src/domain/date';
 import { radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -156,5 +157,5 @@ const makeStyles = (c: Palette) =>
     },
     saveDisabled: { backgroundColor: c.surface2 },
     saveText: { ...type.heading, color: c.onAccent },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

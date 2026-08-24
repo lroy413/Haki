@@ -37,6 +37,9 @@ import { addDays, todayKey } from '../src/domain/date';
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
+import { row } from '../src/theme/surfaces';
+import { SectionLabel } from '../src/components/SectionLabel';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -160,7 +163,7 @@ export default function SailScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* ------------------------------------------------ the week behind */}
-        <Text style={styles.sectionLabel}>{t.sailWeekLabel}</Text>
+        <SectionLabel label={t.sailWeekLabel} />
         <Text style={styles.weekMessage}>{weekMessage(week)}</Text>
 
         <View style={styles.facts}>
@@ -197,7 +200,7 @@ export default function SailScreen() {
         ) : null}
 
         {/* ---------------------------------------------------- the needles */}
-        <Text style={[styles.sectionLabel, styles.spaced]}>{t.sailNeedlesLabel}</Text>
+        <SectionLabel label={t.sailNeedlesLabel} style={styles.spaced} />
 
         {pose.needles.length === 0 ? (
           <Pressable
@@ -230,7 +233,7 @@ export default function SailScreen() {
         ))}
 
         {/* ---------------------------------------------------- the heading */}
-        <Text style={[styles.sectionLabel, styles.spaced]}>{t.sailHeadingLabel}</Text>
+        <SectionLabel label={t.sailHeadingLabel} style={styles.spaced} />
         <Text style={styles.prompt}>{headingPrompt(plainMode)}</Text>
 
         <TextInput
@@ -288,7 +291,7 @@ export default function SailScreen() {
 
         {past.length > 0 ? (
           <>
-            <Text style={[styles.sectionLabel, styles.spaced]}>{t.sailPastLabel}</Text>
+            <SectionLabel label={t.sailPastLabel} style={styles.spaced} />
             {past.map((row) => (
               <View key={row.id} style={styles.pastRow}>
                 <Text style={styles.pastDay}>{row.day}</Text>
@@ -315,12 +318,8 @@ const makeStyles = (c: Palette) =>
     fact: {
       // Three across on a phone, and the gaps subtract cleanly so the last
       // row never sits wider than the ones above it.
+      ...row(c),
       width: '31.5%',
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
       paddingVertical: space.md,
       paddingHorizontal: space.sm,
       gap: 2,
@@ -349,11 +348,7 @@ const makeStyles = (c: Palette) =>
     lastHeadingText: { ...type.body, color: c.inkDim, fontStyle: 'italic', lineHeight: 21 },
 
     needle: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
+      ...row(c),
       padding: space.lg,
       gap: 3,
     },
@@ -418,5 +413,5 @@ const makeStyles = (c: Palette) =>
     },
     pastDay: { ...type.mono, fontSize: 11, color: c.inkFaint },
     pastHeading: { ...type.body, fontSize: 15, color: c.inkDim, flex: 1 },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });
