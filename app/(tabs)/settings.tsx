@@ -23,6 +23,7 @@ import { describeDayStart } from '../../src/domain/date';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useHaki } from '../../src/state/HakiProvider';
 import { radius, space, type } from '../../src/theme/tokens';
+import { press } from '../../src/theme/surfaces';
 import type { Palette } from '../../src/theme/palettes';
 
 export default function SettingsScreen() {
@@ -311,7 +312,7 @@ const makeStyles = (c: Palette) =>
       marginTop: space.xs,
     },
     saveText: { ...type.body, color: c.onAccent },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
 
     stepper: {
       flexDirection: 'row',

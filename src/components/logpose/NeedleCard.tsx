@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { needleLine, reachedLine, type Needle } from '../../domain/logpose';
 import { useHaki } from '../../state/HakiProvider';
 import { font, radius, space, type } from '../../theme/tokens';
+import { press, row } from '../../theme/surfaces';
 import type { Palette } from '../../theme/palettes';
 
 /**
@@ -275,11 +276,7 @@ export function NeedleCard({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     card: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
+      ...row(c),
       padding: space.lg,
       gap: space.md,
     },
@@ -297,7 +294,14 @@ const makeStyles = (c: Palette) =>
 
     rule: { height: 1, backgroundColor: c.lineSoft },
 
-    island: { gap: space.sm },
+    // The rail marks the needle's live edge: this is the one part of the
+    // card that is at sea rather than on record.
+    island: {
+      gap: space.sm,
+      borderLeftWidth: 2,
+      borderLeftColor: c.violet,
+      paddingLeft: space.md,
+    },
     islandLabelRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
     islandGlyph: { fontFamily: font.display, fontSize: 13, color: c.violet },
     islandLabel: { ...type.label, color: c.violet, fontSize: 10 },
@@ -348,7 +352,7 @@ const makeStyles = (c: Palette) =>
     // same weight, which is the only ranking this card does.
     danger: { borderColor: c.violet },
     dangerText: { ...type.heading, fontSize: 15, color: c.violet },
-    invite: { borderColor: c.violet },
+    invite: { borderColor: c.violet, borderStyle: 'dashed' },
     inviteText: { ...type.heading, fontSize: 15, color: c.violet },
     disabled: { opacity: 0.4 },
 
@@ -363,5 +367,5 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     strikeText: { ...type.mono, color: c.inkDim, fontSize: 12 },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

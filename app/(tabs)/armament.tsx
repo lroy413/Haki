@@ -50,6 +50,8 @@ import { hardnessMessage, hardnessName } from '../../src/domain/armament';
 import { Bolt } from '../../src/components/instruments/Bolt';
 import { darkest } from '../../src/theme/palettes';
 import { font, radius, space, type } from '../../src/theme/tokens';
+import { offer, plate, press, row } from '../../src/theme/surfaces';
+import { SectionLabel } from '../../src/components/SectionLabel';
 import type { Palette } from '../../src/theme/palettes';
 
 /** Estimates you can pick without thinking. Typing a number is a decision too. */
@@ -202,39 +204,41 @@ export default function ArmamentScreen() {
           which made Armament look like a gym tracker and gave a figure with
           about two useful values to somebody who trains once a day.
         */}
-        <View style={styles.head}>
-          <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
-          <Text style={styles.carrying}>
-            {hardness.value === null ? hardnessName(null) : `${hardness.value}%`}
-          </Text>
-        </View>
-        {/* The gauge: one bolt, filling across the frame as the window fills
+        <View style={styles.hardnessCard}>
+          <View style={styles.head}>
+            <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
+            <Text style={styles.carrying}>
+              {hardness.value === null ? hardnessName(null) : `${hardness.value}%`}
+            </Text>
+          </View>
+          {/* The gauge: one bolt, filling across the frame as the window fills
             with used days. The faint channel is the storm's path; the strike
             has travelled as far as the figure above says. Plain mode keeps
             the words and loses the weather. */}
-        {plainMode ? null : (
-          <View
-            style={styles.bolt}
-            accessibilityRole="image"
-            accessibilityLabel={`Hardness, ${hardnessName(hardness.value)}`}
-          >
-            {/* A perceptual floor on the lit length: day one is 1/28 ≈ 4%,
+          {plainMode ? null : (
+            <View
+              style={styles.bolt}
+              accessibilityRole="image"
+              accessibilityLabel={`Hardness, ${hardnessName(hardness.value)}`}
+            >
+              {/* A perceptual floor on the lit length: day one is 1/28 ≈ 4%,
                 which is a sliver so thin the whole gauge reads as unlit —
                 after five struck tasks, which is exactly the moment it must
                 not. The label above still tells the true number; the floor
                 only guarantees that "lit at all" is visible at arm's
                 length. */}
-            <Bolt
-              track={palette.lineSoft}
-              core={darkest(palette)}
-              halo={palette.crimson}
-              fill={hardness.value === null ? 0 : Math.max(0.07, hardness.value / 100)}
-            />
-          </View>
-        )}
-        <Text style={styles.message}>
-          {hardnessMessage(hardness.value, hardness.days, todayIn)}
-        </Text>
+              <Bolt
+                track={palette.lineSoft}
+                core={darkest(palette)}
+                halo={palette.crimson}
+                fill={hardness.value === null ? 0 : Math.max(0.07, hardness.value / 100)}
+              />
+            </View>
+          )}
+          <Text style={styles.message}>
+            {hardnessMessage(hardness.value, hardness.days, todayIn)}
+          </Text>
+        </View>
 
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
@@ -298,6 +302,7 @@ export default function ArmamentScreen() {
         {standing.map((r) => (
           <TaskRow
             key={`rhythm-${r.key}`}
+            standing
             task={{
               id: -r.key,
               title: r.title,
@@ -426,7 +431,7 @@ export default function ArmamentScreen() {
         {/* ----------------------------------------------------- training */}
         {/* The gym, under its own name. One half of the figure at the top of
             this screen; the list above is the other. */}
-        <Text style={[styles.sectionLabel, styles.trainingLabel]}>{t.trainingSection}</Text>
+        <SectionLabel label={t.trainingSection} style={styles.trainingLabel} />
 
         <View style={styles.stats}>
           <Stat
@@ -490,6 +495,7 @@ function TaskRow({
   onRemove,
   done,
   note,
+  standing,
 }: {
   task: Task;
   onToggle: (next: boolean) => void;
@@ -497,6 +503,8 @@ function TaskRow({
   secondaryLabel?: string;
   onRemove?: () => void;
   done?: boolean;
+  /** True for a rhythm offer: a row that does not exist until it is taken. */
+  standing?: boolean;
   /** A rhythm's cadence, shown beside the estimate. */
   note?: string;
 }) {
@@ -542,7 +550,11 @@ function TaskRow({
     <Emission
       trigger={strikes}
       radius={radius.md}
-      style={StyleSheet.flatten([styles.task, checked && styles.taskDone])}
+      style={StyleSheet.flatten([
+        styles.task,
+        standing && !checked && styles.taskOffer,
+        checked && styles.taskDone,
+      ])}
     >
       {/*
         The whole row is the target, not the 26pt box sitting in it. Even with
@@ -619,6 +631,8 @@ const makeStyles = (c: Palette) =>
     content: { padding: space.lg, gap: space.sm },
 
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    // The lens's own readout, raised: the one plate on this screen.
+    hardnessCard: { ...plate(c), padding: space.lg, gap: space.sm, marginBottom: space.xs },
     sectionLabel: { ...type.label, color: c.inkFaint },
     // The way into the workshop, sitting on the label rather than as a button
     // of its own — the day's work is the subject of this section, not this.
@@ -637,14 +651,14 @@ const makeStyles = (c: Palette) =>
 
     /* ------------------------------------------------------------- a task */
     task: {
+      ...row(c),
       flexDirection: 'row',
       alignItems: 'stretch',
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
     },
+    // A standing offer is dashed and unfilled: it is not in the database and
+    // will not be unless taken. The moment it is checked it renders solid,
+    // because at that moment it becomes a real struck task.
+    taskOffer: { ...offer(c), backgroundColor: 'transparent' },
     taskDone: { opacity: 0.45 },
     // The padding lives on the press target rather than the card, so the
     // whole face of the row is tappable rather than a box inside it.
@@ -683,12 +697,8 @@ const makeStyles = (c: Palette) =>
 
     /* ------------------------------------------------------------ capture */
     capture: {
+      ...row(c),
       gap: space.sm,
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
       padding: space.md,
       marginTop: space.sm,
     },
@@ -758,12 +768,8 @@ const makeStyles = (c: Palette) =>
     trainingLabel: { marginTop: space.xl, marginBottom: space.xs },
     stats: { flexDirection: 'row', gap: space.sm },
     stat: {
+      ...row(c),
       flex: 1,
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
       padding: space.md,
       gap: space.xs,
     },
@@ -788,11 +794,7 @@ const makeStyles = (c: Palette) =>
     gapBody: { ...type.body, color: c.ink, lineHeight: 21 },
 
     session: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      borderRadius: radius.md,
+      ...row(c),
       padding: space.md,
       gap: 2,
     },
@@ -815,5 +817,5 @@ const makeStyles = (c: Palette) =>
     },
     logSessionText: { ...type.heading, color: c.onAccent },
 
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

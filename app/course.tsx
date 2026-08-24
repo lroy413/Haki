@@ -17,6 +17,7 @@ import { useHaki } from '../src/state/HakiProvider';
 import { COURSE_PROMPT, MAX_HEADING, courseFor, normaliseHeading } from '../src/domain/course';
 import { addDays, todayKey } from '../src/domain/date';
 import { radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -167,7 +168,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
     },
     secondaryText: { ...type.heading, color: c.inkDim },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
 
     ahead: {
       borderWidth: 1,

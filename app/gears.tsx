@@ -19,6 +19,7 @@ import {
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -160,5 +161,5 @@ const makeStyles = (c: Palette) =>
     gearRunningLabel: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
     gearRunningHint: { ...type.mono, color: c.inkDim },
 
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

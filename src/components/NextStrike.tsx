@@ -7,6 +7,7 @@ import { play } from '../sound';
 import { fireImpact } from '../impact';
 import { Emission } from './Emission';
 import { font, radius, space, type } from '../theme/tokens';
+import { offer, plate, press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -40,7 +41,7 @@ export function NextStrike({
 
   if (!task) {
     return (
-      <Emission trigger={strikes} radius={radius.md}>
+      <Emission trigger={strikes} radius={radius.lg}>
         <Pressable
           onPress={onOpenList}
           accessibilityRole="button"
@@ -54,7 +55,7 @@ export function NextStrike({
   }
 
   return (
-    <Emission trigger={strikes} radius={radius.md} style={styles.card}>
+    <Emission trigger={strikes} radius={radius.lg} style={styles.card}>
       <View style={styles.head}>
         <Text style={styles.label}>Next strike</Text>
         <Text style={styles.minutes}>{formatMinutes(task.minutes)}</Text>
@@ -94,14 +95,24 @@ export function NextStrike({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     card: {
-      backgroundColor: c.surface,
-      borderWidth: 1,
+      ...plate(c),
       borderColor: c.crimson,
-      borderRadius: radius.md,
+      borderTopColor: c.crimson,
       padding: space.lg,
       gap: space.md,
     },
-    empty: { borderColor: c.line, borderStyle: 'dashed' },
+    // borderTopColor set explicitly: the base card's crimson top would
+    // otherwise survive the shorthand and leave one loud edge on a quiet box.
+    // The shadow is zeroed the same way — a row that does not exist yet has
+    // no business dropping one.
+    empty: {
+      ...offer(c),
+      borderTopColor: c.line,
+      borderRadius: radius.lg,
+      backgroundColor: 'transparent',
+      shadowOpacity: 0,
+      elevation: 0,
+    },
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     label: { ...type.label, color: c.crimson },
     minutes: { ...type.mono, color: c.inkDim },
@@ -126,5 +137,5 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
     },
     moreText: { ...type.heading, color: c.inkDim },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

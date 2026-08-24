@@ -21,6 +21,7 @@ import {
 import { stateMessage, stateName } from '../src/domain/observation';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -256,7 +257,7 @@ const makeStyles = (c: Palette) =>
     filledText: { ...type.heading, color: c.onAccent },
     quiet: { borderWidth: 1, borderColor: c.line },
     quietText: { ...type.heading, color: c.inkDim },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
     footnote: { ...type.mono, color: c.inkFaint, fontSize: 11 },
 
     list: { padding: space.lg, gap: space.sm },

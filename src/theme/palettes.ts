@@ -53,6 +53,19 @@ export type Palette = {
   specular: string;
 
   /**
+   * What a raised card drops on the ground behind it. Always an rgba: the
+   * alpha is the shadow, and a solid hex here would paint a slab.
+   *
+   * On paper it is warm ink at low alpha — the shade under a sheet laid on
+   * the desk. On the dark palettes it is plain black and progressively
+   * heavier, because a shadow on a near-black ground has to work harder to
+   * read as depth at all. Used by `plate` in `theme/surfaces.ts`; reaching
+   * past that helper for ad-hoc shadows is how a screen ends up with three
+   * competing light sources.
+   */
+  shadow: string;
+
+  /**
    * Text that sits *on* a filled accent button. Near-black on the dark
    * palettes, where every accent is bright; near-white on paper, where they
    * are deep.
@@ -92,6 +105,7 @@ const unhardened: Palette = {
   glassActive: 'rgba(99,33,184,0.12)',
 
   specular: '#C6BBA2',
+  shadow: 'rgba(23,19,9,0.16)',
   onAccent: '#FFFFFF',
   lightSurface: true,
 };
@@ -122,6 +136,7 @@ const hardened: Palette = {
   glassActive: 'rgba(193,112,255,0.16)',
 
   specular: '#4C5266',
+  shadow: 'rgba(0,0,0,0.34)',
   onAccent: '#0A0B12',
   lightSurface: false,
 };
@@ -152,6 +167,7 @@ const set: Palette = {
   glassActive: 'rgba(185,92,255,0.15)',
 
   specular: '#565C77',
+  shadow: 'rgba(0,0,0,0.42)',
   onAccent: '#0A0B12',
   lightSurface: false,
 };
@@ -182,6 +198,7 @@ const black: Palette = {
   glassActive: 'rgba(177,76,255,0.14)',
 
   specular: '#616787',
+  shadow: 'rgba(0,0,0,0.52)',
   onAccent: '#0A0B12',
   lightSurface: false,
 };

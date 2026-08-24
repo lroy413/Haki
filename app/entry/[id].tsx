@@ -13,6 +13,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '../../src/db/client';
 import { createEntry, deleteEntry, getEntry, updateEntry } from '../../src/db/repo';
 import { radius, space, type } from '../../src/theme/tokens';
+import { press } from '../../src/theme/surfaces';
 import type { Palette } from '../../src/theme/palettes';
 
 const AUTOSAVE_MS = 800;
@@ -227,5 +228,5 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
     },
     doneText: { ...type.heading, color: c.ink },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

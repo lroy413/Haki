@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { radius, space, type } from '../theme/tokens';
+import { press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 const STEPS = [1, 2, 3, 4, 5];
@@ -80,7 +81,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    pressed: { opacity: 0.7 },
+    pressed: { ...press },
     stepText: { ...type.body, color: c.inkDim, fontVariant: ['tabular-nums'] },
     stepTextSelected: { color: c.onAccent },
   });

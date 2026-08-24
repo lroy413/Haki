@@ -66,7 +66,7 @@ describe.each(LEVELS)('palette %i', (level) => {
     for (const key of SOLID) {
       expect(() => luminance(p[key] as string), `${where} ${key}`).not.toThrow();
     }
-    for (const key of ['glass', 'glassEdge', 'glassActive'] as const) {
+    for (const key of ['glass', 'glassEdge', 'glassActive', 'shadow'] as const) {
       expect(p[key], `${where} ${key}`).toMatch(/^rgba\(/);
     }
   });

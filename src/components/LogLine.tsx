@@ -6,6 +6,7 @@ import { logLine } from '../db/repo';
 import { CAPTURE_PLACEHOLDER, isWritable } from '../domain/logbook';
 import { useHaki } from '../state/HakiProvider';
 import { radius, space, type } from '../theme/tokens';
+import { press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -81,7 +82,6 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.surface,
       borderWidth: 1,
       borderColor: c.line,
-      borderTopColor: c.specular,
       borderRadius: radius.md,
       paddingHorizontal: space.md,
       height: 48,
@@ -94,5 +94,5 @@ const makeStyles = (c: Palette) =>
     },
     logDisabled: { opacity: 0.4 },
     logText: { ...type.heading, color: c.onAccent },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

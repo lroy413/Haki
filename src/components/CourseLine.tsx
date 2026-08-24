@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
 import { noCourse, type Course } from '../domain/course';
 import { font, radius, space, type } from '../theme/tokens';
+import { offer, press, row } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -51,16 +52,12 @@ export function CourseLine({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     frame: {
-      borderWidth: 1,
-      borderColor: c.line,
-      borderTopColor: c.specular,
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
+      ...row(c),
       paddingVertical: space.md,
       paddingHorizontal: space.md,
       gap: space.xs,
     },
-    empty: { backgroundColor: 'transparent', borderStyle: 'dashed', borderColor: c.lineSoft },
+    empty: { ...offer(c), backgroundColor: 'transparent', borderColor: c.lineSoft },
     label: { ...type.label, color: c.cyan },
     heading: {
       fontFamily: font.body,
@@ -69,5 +66,5 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
     },
     placeholder: { ...type.body, fontSize: 16, color: c.inkFaint },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });

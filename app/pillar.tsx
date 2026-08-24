@@ -22,6 +22,7 @@ import {
 import { reachedLine, stateName, type Poneglyph, type Road } from '../src/domain/logpose';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -287,5 +288,5 @@ const makeStyles = (c: Palette) =>
       gap: space.md,
     },
     retireNote: { ...type.small, color: c.inkFaint, lineHeight: 18 },
-    pressed: { opacity: 0.75 },
+    pressed: { ...press },
   });
