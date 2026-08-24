@@ -69,6 +69,7 @@ describe('round trip', () => {
           minutes: 10,
           committedFor: '2026-08-22',
           doneAt: null,
+          rhythmKey: null,
           createdAt: 4000,
         },
       ],
@@ -302,11 +303,29 @@ describe('key hygiene', () => {
         createdAt: 1,
         updatedAt: 1,
       },
+      rhythm: {
+        title: 'Laundry',
+        minutes: 30,
+        kind: 'weekdays',
+        weekdays: '1,4',
+        intervalDays: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        retiredAt: null,
+      },
+      sailing: {
+        day: '2026-08-22',
+        heading: 'One long thing, properly',
+        note: null,
+        createdAt: 1,
+        updatedAt: 1,
+      },
       task: {
         title: 'Something',
         minutes: 15,
         committedFor: null,
         doneAt: null,
+        rhythmKey: null,
         createdAt: 1,
       },
       setting: { key: 'ui.plainMode', value: 'false' },
@@ -421,6 +440,88 @@ describe('the tables added in v6', () => {
     if (!result.ok) return;
     expect(result.backup.data.poneglyph).toHaveLength(0);
     expect(result.rejected.poneglyph).toBe(1);
+  });
+});
+
+describe('the tables added in v7', () => {
+  const rhythm = (createdAt: number, weekdays = '1,4') => ({
+    title: 'Laundry',
+    minutes: 30,
+    kind: 'weekdays',
+    weekdays,
+    intervalDays: 1,
+    createdAt,
+    updatedAt: createdAt,
+    retiredAt: null,
+  });
+  const sailing = (day: string, heading = 'One long thing, properly') => ({
+    day,
+    heading,
+    note: null,
+    createdAt: 1,
+    updatedAt: 1,
+  });
+  const struck = (createdAt: number, rhythmKey: number | null) => ({
+    title: 'Laundry',
+    minutes: 30,
+    committedFor: '2026-08-22',
+    doneAt: createdAt,
+    rhythmKey,
+    createdAt,
+  });
+
+  it('travels with everything else', () => {
+    const original = tables({
+      rhythm: [rhythm(1700)],
+      sailing: [sailing('2026-08-23')],
+    });
+    const result = parseBackup(serializeBackup(buildBackup(original, 7, 0)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.rhythm).toEqual(original.rhythm);
+    expect(result.backup.data.sailing).toEqual(original.sailing);
+  });
+
+  it('keeps a struck task pointing at the rhythm that produced it', () => {
+    // Same natural-key link the Poneglyphs use, and for the same reason: row
+    // ids are not carried, so a task keyed on one would arrive orphaned and
+    // the rhythm would look like it had never been taken.
+    const original = tables({ rhythm: [rhythm(1700)], task: [struck(1800, 1700)] });
+    const result = parseBackup(serializeBackup(buildBackup(original, 7, 0)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.task[0].rhythmKey).toBe(result.backup.data.rhythm[0].createdAt);
+  });
+
+  it('carries an ordinary task with no rhythm behind it', () => {
+    const result = parseBackup(
+      serializeBackup(buildBackup(tables({ task: [struck(9, null)] }), 7, 0)),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.task).toHaveLength(1);
+    expect(result.backup.data.task[0].rhythmKey).toBeNull();
+  });
+
+  it('does not stack a second week on one day', () => {
+    const plan = planMerge(
+      [sailing('2026-08-23')],
+      [sailing('2026-08-23', 'Rewritten')],
+      KEYS.sailing,
+    );
+    expect(plan.insert).toHaveLength(0);
+    expect(plan.skipped).toBe(1);
+  });
+
+  it('rejects a rhythm with a missing field rather than importing it broken', () => {
+    const bad = { ...rhythm(2) } as Record<string, unknown>;
+    delete bad.weekdays;
+    const raw = buildBackup(tables({ rhythm: [bad as never] }), 7, 0);
+    const result = parseBackup(serializeBackup(raw));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.rhythm).toHaveLength(0);
+    expect(result.rejected.rhythm).toBe(1);
   });
 });
 

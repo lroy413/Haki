@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, isNotNull, lte } from 'drizzle-orm';
 import type { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
@@ -10,6 +10,11 @@ import type { SitDepth, SitSession } from '../domain/stillness';
 import { normaliseHeading, type Course } from '../domain/course';
 import { appendLine, isWritable } from '../domain/logbook';
 import type { Poneglyph, PoneglyphState, Road } from '../domain/logpose';
+import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
+import type { WeekDay } from '../domain/sail';
+import { NO_ACTS } from '../domain/hardening';
+import { minutesToday as gearMinutes } from '../domain/gears';
+import { minutesToday as sitMinutes } from '../domain/stillness';
 import {
   carried,
   course,
@@ -17,7 +22,9 @@ import {
   entry,
   gearSession,
   poneglyph,
+  rhythm,
   roadPoneglyph,
+  sailing,
   sitSession,
   setting,
   sleepLog,
@@ -25,6 +32,7 @@ import {
   trainingSession,
   type CarriedRow,
   type EntryRow,
+  type SailingRow,
   type TaskRow,
   type TrainingSessionRow,
 } from './schema';
@@ -105,6 +113,7 @@ function toTask(row: TaskRow): Task {
     minutes: row.minutes,
     committedFor: row.committedFor,
     doneAt: row.doneAt,
+    rhythmKey: row.rhythmKey,
     createdAt: row.createdAt,
   };
 }
@@ -531,6 +540,248 @@ export async function upsertCarried(
 
 export async function deleteCarried(db: Db, id: number): Promise<void> {
   await db.delete(carried).where(eq(carried.id, id));
+}
+
+/* ----------------------------------------------------------------- rhythm */
+
+function toRhythm(row: {
+  id: number;
+  title: string;
+  minutes: number;
+  kind: string;
+  weekdays: string;
+  intervalDays: number;
+  createdAt: number;
+  retiredAt: number | null;
+}): Rhythm {
+  return {
+    id: row.id,
+    key: row.createdAt,
+    title: row.title,
+    minutes: row.minutes,
+    kind: row.kind as RhythmKind,
+    weekdays: decodeWeekdays(row.weekdays),
+    intervalDays: row.intervalDays,
+    retired: row.retiredAt !== null,
+  };
+}
+
+/** Every rhythm, retired ones included — the history has to keep making sense. */
+export async function listRhythms(db: Db): Promise<Rhythm[]> {
+  const rows = await db.select().from(rhythm).orderBy(rhythm.createdAt);
+  return rows.map(toRhythm);
+}
+
+export async function addRhythm(
+  db: Db,
+  value: Pick<Rhythm, 'title' | 'minutes' | 'kind' | 'weekdays' | 'intervalDays'>,
+): Promise<void> {
+  const t = now();
+  await db.insert(rhythm).values({
+    title: value.title.trim(),
+    minutes: value.minutes,
+    kind: value.kind,
+    weekdays: encodeWeekdays(value.weekdays),
+    intervalDays: value.intervalDays,
+    createdAt: t,
+    updatedAt: t,
+  });
+}
+
+export async function updateRhythm(
+  db: Db,
+  id: number,
+  patch: Partial<Pick<Rhythm, 'title' | 'minutes' | 'kind' | 'weekdays' | 'intervalDays'>>,
+): Promise<void> {
+  const next: Record<string, unknown> = { updatedAt: now() };
+  if (patch.title !== undefined) next.title = patch.title.trim();
+  if (patch.minutes !== undefined) next.minutes = patch.minutes;
+  if (patch.kind !== undefined) next.kind = patch.kind;
+  if (patch.weekdays !== undefined) next.weekdays = encodeWeekdays(patch.weekdays);
+  if (patch.intervalDays !== undefined) next.intervalDays = patch.intervalDays;
+  await db.update(rhythm).set(next).where(eq(rhythm.id, id));
+}
+
+/** Retire, or bring back. Never a delete — struck tasks still point at it. */
+export async function retireRhythm(db: Db, id: number, retired: boolean): Promise<void> {
+  await db
+    .update(rhythm)
+    .set({ retiredAt: retired ? now() : null, updatedAt: now() })
+    .where(eq(rhythm.id, id));
+}
+
+/**
+ * The last day each rhythm was actually struck.
+ *
+ * Read off the tasks it produced rather than stored on the rhythm, so there is
+ * exactly one source of truth and un-striking a task moves the answer back on
+ * its own.
+ */
+export async function lastDoneByRhythm(db: Db): Promise<Map<number, DayKey>> {
+  const rows = await db
+    .select()
+    .from(task)
+    .where(and(isNotNull(task.rhythmKey), isNotNull(task.doneAt)));
+  const last = new Map<number, DayKey>();
+  for (const row of rows) {
+    if (row.rhythmKey === null || row.committedFor === null) continue;
+    const seen = last.get(row.rhythmKey);
+    if (!seen || row.committedFor > seen) last.set(row.rhythmKey, row.committedFor);
+  }
+  return last;
+}
+
+/**
+ * Take a rhythm's offer for a day: one struck task, written now.
+ *
+ * The task is created already done, because the offer *is* the tap — there is
+ * no state where a rhythm sits committed-but-undone. Idempotent, so a double
+ * tap on a slow write cannot write it twice.
+ */
+export async function strikeRhythm(
+  db: Db,
+  value: Pick<Rhythm, 'key' | 'title' | 'minutes'>,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  const existing = await db
+    .select()
+    .from(task)
+    .where(and(eq(task.rhythmKey, value.key), eq(task.committedFor, day)))
+    .limit(1);
+  if (existing.length > 0) return;
+
+  await db.insert(task).values({
+    title: value.title,
+    minutes: value.minutes,
+    committedFor: day,
+    doneAt: now(),
+    rhythmKey: value.key,
+    createdAt: now(),
+  });
+}
+
+/**
+ * Give the offer back.
+ *
+ * Deletes the row rather than clearing `doneAt`: a rhythm is either taken
+ * today or standing today, and a committed-but-undone rhythm row is exactly
+ * the rotting artefact this model exists to not create.
+ */
+export async function unstrikeRhythm(
+  db: Db,
+  key: number,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  await db.delete(task).where(and(eq(task.rhythmKey, key), eq(task.committedFor, day)));
+}
+
+/* ---------------------------------------------------------------- sailing */
+
+/**
+ * Every day in a range, with what it had in it.
+ *
+ * One query per table rather than per day — a week is seven days but a screen
+ * asking for seven days' worth of seven tables would be forty-nine round trips
+ * through expo-sqlite's single channel, which is exactly how the web build
+ * gets slow. Days with nothing in them are present with zeros, so the caller
+ * can count what a week held without having to know which days exist.
+ */
+export async function actsBetween(db: Db, from: DayKey, to: DayKey): Promise<WeekDay[]> {
+  const [reads, entries, tasks, sessions, gears, sits, courses] = await Promise.all([
+    db
+      .select()
+      .from(dailyRead)
+      .where(and(gte(dailyRead.day, from), lte(dailyRead.day, to))),
+    db
+      .select()
+      .from(entry)
+      .where(and(gte(entry.day, from), lte(entry.day, to))),
+    db
+      .select()
+      .from(task)
+      .where(
+        and(isNotNull(task.doneAt), gte(task.committedFor, from), lte(task.committedFor, to)),
+      ),
+    db
+      .select()
+      .from(trainingSession)
+      .where(and(gte(trainingSession.day, from), lte(trainingSession.day, to))),
+    gearSessionsBetween(db, from, to),
+    sitSessionsBetween(db, from, to),
+    db
+      .select()
+      .from(course)
+      .where(and(gte(course.day, from), lte(course.day, to))),
+  ]);
+
+  const days = new Map<DayKey, WeekDay>();
+  const dayOf = (key: DayKey): WeekDay => {
+    const seen = days.get(key);
+    if (seen) return seen;
+    const fresh: WeekDay = { day: key, ...NO_ACTS };
+    days.set(key, fresh);
+    return fresh;
+  };
+
+  for (let day = from; day <= to; day = addDays(day, 1)) dayOf(day);
+
+  for (const row of reads) dayOf(row.day).read = true;
+  for (const row of courses) dayOf(row.day).course = true;
+  // A blank row left behind by opening the editor is not an entry.
+  for (const row of entries) if (row.body.trim().length > 0) dayOf(row.day).entries += 1;
+  for (const row of tasks) if (row.committedFor) dayOf(row.committedFor).struck += 1;
+  for (const row of sessions) dayOf(row.day).trained += 1;
+
+  const stamp = now();
+  for (const [key, group] of groupByDay(gears))
+    dayOf(key).gearMinutes += gearMinutes(group, stamp);
+  for (const [key, group] of groupByDay(sits))
+    dayOf(key).satMinutes += sitMinutes(group, stamp);
+
+  return [...days.values()].sort((a, b) => a.day.localeCompare(b.day));
+}
+
+/** Group day-stamped rows by their day. */
+function groupByDay<T extends { day: string }>(rows: T[]): Map<DayKey, T[]> {
+  const out = new Map<DayKey, T[]>();
+  for (const row of rows) {
+    const group = out.get(row.day);
+    if (group) group.push(row);
+    else out.set(row.day, [row]);
+  }
+  return out;
+}
+
+export async function lastSailing(db: Db): Promise<SailingRow | null> {
+  const rows = await db.select().from(sailing).orderBy(desc(sailing.day)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function listSailings(db: Db, limit = 12): Promise<SailingRow[]> {
+  return db.select().from(sailing).orderBy(desc(sailing.day)).limit(limit);
+}
+
+/** One per day, so setting sail twice is one decision restated. */
+export async function setSail(
+  db: Db,
+  heading: string,
+  note: string | null,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  const t = now();
+  await db
+    .insert(sailing)
+    .values({
+      day,
+      heading: heading.trim(),
+      note: note?.trim() || null,
+      createdAt: t,
+      updatedAt: t,
+    })
+    .onConflictDoUpdate({
+      target: sailing.day,
+      set: { heading: heading.trim(), note: note?.trim() || null, updatedAt: t },
+    });
 }
 
 /* ---------------------------------------------------------------- log pose */

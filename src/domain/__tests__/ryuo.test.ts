@@ -23,6 +23,7 @@ function task(over: Partial<Task> = {}): Task {
     title: `task ${seq}`,
     minutes: 15,
     committedFor: TODAY,
+    rhythmKey: null,
     doneAt: null,
     createdAt: seq * 1000,
     ...over,

@@ -84,6 +84,10 @@ function Chrome() {
         {/* The Gears' waiting room — off the Armament tab, ahead of the
             ability page. See the note at the top of app/gears.tsx. */}
         <Stack.Screen name="gears" options={{ title: t.gearsTitle }} />
+        {/* The workshop behind the day's offers. See app/rhythms.tsx. */}
+        <Stack.Screen name="rhythms" options={{ title: t.rhythmTitle }} />
+        {/* The weekly ritual. See app/sail.tsx. */}
+        <Stack.Screen name="sail" options={{ title: t.sailTitle }} />
         <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />
         {/* One Road Poneglyph. The title is set from the pillar itself once
             it loads, so the header carries its name rather than a category. */}

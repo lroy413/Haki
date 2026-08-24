@@ -17,6 +17,7 @@ import {
   addTask,
   closePoneglyph,
   getDream,
+  lastSailing,
   listCarried,
   listPoneglyphs,
   listRoads,
@@ -35,6 +36,7 @@ import {
   type Road,
 } from '../../src/domain/logpose';
 import { todayKey } from '../../src/domain/date';
+import { isDue, offerLine as sailOfferLine } from '../../src/domain/sail';
 import { fireConquerors } from '../../src/impact';
 import { play } from '../../src/sound';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
@@ -82,6 +84,7 @@ export default function ConquerorsScreen() {
   const [roads, setRoads] = useState<Road[]>([]);
   const [glyphs, setGlyphs] = useState<Poneglyph[]>([]);
   const [crew, setCrew] = useState<string[]>([]);
+  const [lastSail, setLastSail] = useState<string | null>(null);
 
   const [editingDream, setEditingDream] = useState(false);
   const [dreamDraft, setDreamDraft] = useState('');
@@ -92,16 +95,18 @@ export default function ConquerorsScreen() {
   const [said, setSaid] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const [d, r, g, people] = await Promise.all([
+    const [d, r, g, people, sail] = await Promise.all([
       getDream(db),
       listRoads(db),
       listPoneglyphs(db),
       listCarried(db),
+      lastSailing(db),
     ]);
     setDreamState(d);
     setRoads(r);
     setGlyphs(g);
     setCrew(people.map((p) => p.name));
+    setLastSail(sail?.day ?? null);
   }, [db]);
 
   useFocusEffect(
@@ -182,6 +187,31 @@ export default function ConquerorsScreen() {
 
         <Text style={styles.bearing}>{bearing(pose, plainMode)}</Text>
         {said ? <Text style={styles.said}>{said}</Text> : null}
+
+        {/* The weekly ritual, offered rather than demanded — and offered from
+            here because it is Conqueror's own act. Always reachable; the card
+            only brightens once a week has passed, so skipping one costs
+            nothing and nothing nags. */}
+        <Pressable
+          onPress={() => router.push('/sail')}
+          accessibilityRole="button"
+          accessibilityLabel={t.sailTitle}
+          style={({ pressed }) => [
+            styles.sail,
+            isDue(lastSail, todayKey()) && styles.sailDue,
+            pressed && styles.pressed,
+          ]}
+        >
+          <View style={styles.sailHead}>
+            <Text
+              style={[styles.sailLabel, isDue(lastSail, todayKey()) && styles.sailLabelDue]}
+            >
+              {t.sailTitle}
+            </Text>
+            {plainMode ? null : <Text style={styles.sailGlyph}>出航</Text>}
+          </View>
+          <Text style={styles.sailLine}>{sailOfferLine(lastSail, todayKey(), plainMode)}</Text>
+        </Pressable>
 
         {/* ------------------------------------------------------- the dream */}
 
@@ -373,6 +403,23 @@ const makeStyles = (c: Palette) =>
     dreamMeta: { ...type.mono, color: c.inkFaint, fontSize: 11 },
     dreamOffer: { ...type.body, color: c.inkDim, lineHeight: 22 },
     dreamCta: { ...type.heading, fontSize: 15, color: c.violet },
+
+    sail: {
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+      minHeight: 44,
+    },
+    // Brighter only when it has come round. An offer that always shouts is a
+    // nag, and this one has to survive being skipped for a month.
+    sailDue: { borderColor: c.violet, backgroundColor: c.violetSoft },
+    sailHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    sailLabel: { ...type.label, color: c.inkFaint },
+    sailLabelDue: { color: c.violet },
+    sailGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    sailLine: { ...type.body, color: c.inkDim, lineHeight: 21 },
 
     section: { gap: space.xs, marginTop: space.sm },
     sectionLabel: { ...type.label, color: c.inkFaint },
