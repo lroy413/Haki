@@ -13,6 +13,8 @@ export const dailyRead = sqliteTable(
     mood: integer('mood').notNull(),
     clarity: integer('clarity').notNull(),
     tension: integer('tension').notNull(),
+    /** The optional one-word sky. See `domain/weather.ts`. */
+    weather: text('weather'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
   },
@@ -97,11 +99,16 @@ export const task = sqliteTable(
      * the ordinary one-off task, which is most of them.
      */
     rhythmKey: integer('rhythm_key'),
+    /** The island this was struck from, by the poneglyph's `createdAt`. */
+    islandKey: integer('island_key'),
+    /** 'morning' | 'afternoon' | 'evening', or null for any time. */
+    watch: text('watch'),
     createdAt: integer('created_at').notNull(),
   },
   (t) => [
     index('task_committed_idx').on(t.committedFor),
     index('task_rhythm_idx').on(t.rhythmKey),
+    index('task_island_idx').on(t.islandKey),
   ],
 );
 

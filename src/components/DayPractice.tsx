@@ -47,9 +47,12 @@ function pairs(items: Practice[]): Practice[][] {
 }
 
 export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
-  const { acts, hardening, palette, plainMode } = useHaki();
+  const { acts, hardening, palette, plainMode, read } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
-  const items = useMemo(() => practice(acts, plainMode), [acts, plainMode]);
+  const items = useMemo(
+    () => practice(acts, plainMode, read?.weather ?? null),
+    [acts, plainMode, read],
+  );
 
   return (
     <View style={styles.card}>

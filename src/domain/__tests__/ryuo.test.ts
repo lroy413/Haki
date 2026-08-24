@@ -24,6 +24,8 @@ function task(over: Partial<Task> = {}): Task {
     minutes: 15,
     committedFor: TODAY,
     rhythmKey: null,
+    islandKey: null,
+    watch: null,
     doneAt: null,
     createdAt: seq * 1000,
     ...over,

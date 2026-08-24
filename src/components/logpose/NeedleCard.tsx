@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { needleLine, reachedLine, type Needle } from '../../domain/logpose';
+import { wakeLine } from '../../domain/tasks';
 import { useHaki } from '../../state/HakiProvider';
 import { font, radius, space, type } from '../../theme/tokens';
 import { press, row } from '../../theme/surfaces';
@@ -41,6 +42,7 @@ type Mode = 'idle' | 'naming' | 'passing' | 'striking';
 
 export function NeedleCard({
   needle,
+  wake = null,
   onOpen,
   onReached,
   onPass,
@@ -48,6 +50,8 @@ export function NeedleCard({
   onDetail,
 }: {
   needle: Needle;
+  /** What has been struck under the open island so far, if anything. */
+  wake?: { struck: number; minutes: number } | null;
   onOpen: (title: string) => void;
   onReached: () => void;
   onPass: (reason: string) => void;
@@ -107,6 +111,10 @@ export function NeedleCard({
           </View>
           <Text style={styles.islandTitle}>{needle.next.title}</Text>
           <Text style={styles.atSea}>{needleLine(needle, plainMode)}</Text>
+          {/* The wake so far: strikes under this island, visible while the
+              work happens rather than only at arrival. Absent until
+              something has actually been struck. */}
+          {wake && wakeLine(wake) ? <Text style={styles.wake}>{wakeLine(wake)}</Text> : null}
 
           {mode === 'passing' ? (
             <View style={styles.form}>
@@ -307,6 +315,7 @@ const makeStyles = (c: Palette) =>
     islandLabel: { ...type.label, color: c.violet, fontSize: 10 },
     islandTitle: { ...type.title, fontSize: 21, color: c.ink, lineHeight: 27 },
     atSea: { ...type.mono, color: c.inkFaint, fontSize: 11 },
+    wake: { ...type.mono, color: c.violet, fontSize: 11 },
     spinning: { ...type.body, color: c.inkDim, lineHeight: 22 },
     astern: { ...type.mono, color: c.inkFaint, fontSize: 11 },
 

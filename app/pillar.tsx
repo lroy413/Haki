@@ -18,8 +18,10 @@ import {
   reopenPoneglyph,
   retireRoad,
   updateRoad,
+  wakesFor,
 } from '../src/db/repo';
 import { reachedLine, stateName, type Poneglyph, type Road } from '../src/domain/logpose';
+import { wakeLine } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
@@ -54,6 +56,9 @@ export default function PillarScreen() {
   const roadId = Number(id);
   const [road, setRoad] = useState<Road | null>(null);
   const [astern, setAstern] = useState<Poneglyph[]>([]);
+  const [wakes, setWakes] = useState<Map<number, { struck: number; minutes: number }>>(
+    new Map(),
+  );
   const [hasOpen, setHasOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [why, setWhy] = useState('');
@@ -72,6 +77,12 @@ export default function PillarScreen() {
         under
           .filter((g) => g.state !== 'open')
           .sort((a, b) => (b.closedOn ?? '').localeCompare(a.closedOn ?? '')),
+      );
+      setWakes(
+        await wakesFor(
+          db,
+          under.map((g) => g.key),
+        ),
       );
     }
   }, [db, roadId, navigation]);
@@ -172,6 +183,13 @@ export default function PillarScreen() {
             <Text style={island.state === 'reached' ? styles.stampReached : styles.stampPassed}>
               {stateName(island.state, plainMode)} · {island.closedOn}
             </Text>
+            {/* What the island actually took — counts with no denominator,
+                shown only when something was struck under it. See wakeLine. */}
+            {wakeLine(wakes.get(island.key) ?? { struck: 0, minutes: 0 }) ? (
+              <Text style={styles.wake}>
+                {wakeLine(wakes.get(island.key) ?? { struck: 0, minutes: 0 })}
+              </Text>
+            ) : null}
             {island.reason ? <Text style={styles.reason}>{island.reason}</Text> : null}
             {/* Only offered while the needle is free: putting one back to sea
                 while another is open would break the one-at-a-time rule from
@@ -251,6 +269,7 @@ const makeStyles = (c: Palette) =>
 
     islandTitle: { fontFamily: font.displayBold, fontSize: 17, color: c.ink, lineHeight: 22 },
     stampReached: { ...type.mono, color: c.violet, fontSize: 11 },
+    wake: { ...type.mono, color: c.inkFaint, fontSize: 11 },
     // Not a warning colour. Sailing past is allowed and the record of it is
     // not a mark against anybody — it reads quieter than reaching, and that is
     // the only difference the styling is permitted to make.

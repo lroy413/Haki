@@ -199,6 +199,23 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE UNIQUE INDEX IF NOT EXISTS sailing_day_idx ON sailing (day);
     `,
   },
+  {
+    version: 8,
+    up: `
+      -- The island a struck task came from, by the poneglyph's created_at —
+      -- the same natural-key linking every other child row here uses.
+      -- Nullable: most tasks are not born on the Log Pose.
+      ALTER TABLE task ADD COLUMN island_key INTEGER;
+      CREATE INDEX IF NOT EXISTS task_island_idx ON task (island_key);
+
+      -- Which watch of the day a task is placed in ('morning' | 'afternoon'
+      -- | 'evening'). Nullable: an unplaced task is normal, not incomplete.
+      ALTER TABLE task ADD COLUMN watch TEXT;
+
+      -- The one optional word after the dials. See domain/weather.ts.
+      ALTER TABLE daily_read ADD COLUMN weather TEXT;
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { BreathRing } from '../src/components/BreathRing';
 import { useStore } from '../src/db/client';
@@ -15,10 +15,17 @@ import {
   durationMs,
   isRipe,
   remainingMs,
-  type SitDepth,
+  type PracticeDepth,
   type SitSession,
 } from '../src/domain/stillness';
+import {
+  BREATHS,
+  BREATH_ORDER,
+  breathCompletionMessage,
+  isBreathKey,
+} from '../src/domain/breath';
 import { stateMessage, stateName } from '../src/domain/observation';
+import { SectionLabel } from '../src/components/SectionLabel';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
@@ -36,10 +43,30 @@ import type { Palette } from '../src/theme/palettes';
  * While a sit is running the screen is the ring, the clock and one way out.
  * Nothing else — the whole thing is a device for not looking at this.
  */
+function practiceOf(depth: PracticeDepth) {
+  if (isBreathKey(depth)) {
+    const breath = BREATHS[depth];
+    return {
+      kanji: breath.cadence,
+      label: breath.label,
+      done: breathCompletionMessage(depth),
+      pattern: breath.phases,
+    };
+  }
+  const sit = SITS[depth];
+  return {
+    kanji: sit.kanji,
+    label: sit.label,
+    done: completionMessage(depth),
+    pattern: undefined,
+  };
+}
+
 export default function SitScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ begin?: string }>();
   const { db } = useStore();
-  const { refresh, plainMode, palette, observation } = useHaki();
+  const { refresh, plainMode, palette, observation, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [session, setSession] = useState<SitSession | null>(null);
@@ -92,10 +119,27 @@ export default function SitScreen() {
   // nobody is looking at it when it happens.
   useEffect(() => {
     if (!session || outcome) return;
-    if (isRipe(session, now)) void finish(true, completionMessage(session.depth));
+    if (isRipe(session, now)) void finish(true, practiceOf(session.depth).done);
   }, [session, now, outcome, finish]);
 
-  async function begin(depth: SitDepth) {
+  /**
+   * The loud-day door arrives with `?begin=settle`: one tap on the offer and
+   * the person is already breathing, no second menu. Consumed once, so
+   * navigating back to this screen later does not restart anything.
+   */
+  const consumedBegin = useRef(false);
+  useEffect(() => {
+    if (consumedBegin.current || session || outcome) return;
+    const asked = typeof params.begin === 'string' ? params.begin : '';
+    if (!isBreathKey(asked)) return;
+    consumedBegin.current = true;
+    void begin(asked);
+    // `begin` is stable enough for a fire-once effect; listing it would
+    // re-run this on every render it is recreated.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.begin, session, outcome]);
+
+  async function begin(depth: PracticeDepth) {
     void Haptics.selectionAsync();
     const started = await startSit(db, depth);
     setRowId(started.id);
@@ -107,11 +151,11 @@ export default function SitScreen() {
   /* ------------------------------------------------------------- finished */
 
   if (outcome) {
-    const sit = SITS[session?.depth ?? 'presence'];
+    const practice = practiceOf(session?.depth ?? 'presence');
     return (
       <View style={styles.centred}>
-        {!plainMode && <Text style={styles.kanji}>{sit.kanji}</Text>}
-        <Text style={styles.doneTitle}>{sit.label}</Text>
+        {!plainMode && <Text style={styles.kanji}>{practice.kanji}</Text>}
+        <Text style={styles.doneTitle}>{practice.label}</Text>
         <Text style={styles.doneBody}>{outcome}</Text>
         <Pressable
           onPress={() => router.back()}
@@ -129,13 +173,18 @@ export default function SitScreen() {
   if (session) {
     const left = remainingMs(session, now);
     const elapsed = durationMs(session.depth) - left;
+    const practice = practiceOf(session.depth);
     return (
       <View style={styles.centred}>
         {/* Still breathes in plain mode. Plain mode kills the app's Haki —
             the glow, the corona, the sound — and this is not that: it is the
             face of the timer, and a frozen circle would make the screen
             useless in the one place someone might most want to use it. */}
-        <BreathRing color={palette.violet} size={248} />
+        <BreathRing color={palette.violet} size={248} pattern={practice.pattern} />
+
+        {/* A pattern needs its instruction visible; a sit needs nothing. The
+            cadence is the whole instruction, so it is the caption. */}
+        {practice.pattern ? <Text style={styles.cadence}>{practice.kanji}</Text> : null}
 
         {/* Quieter than the gear screen's clock on purpose: there the number
             is the thing you are working against, here it is the thing you are
@@ -201,6 +250,31 @@ export default function SitScreen() {
           </Pressable>
         );
       })}
+
+      {/* ------------------------------------------------------ the breath */}
+      <SectionLabel label={t.breathLabel} style={styles.breathLabel} />
+      <Text style={styles.breathBlurb}>{t.breathBlurb}</Text>
+
+      {BREATH_ORDER.map((key) => {
+        const breath = BREATHS[key];
+        return (
+          <Pressable
+            key={key}
+            onPress={() => void begin(key)}
+            accessibilityRole="button"
+            accessibilityLabel={`${breath.label}, ${breath.minutes} minutes`}
+            style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+          >
+            <View style={styles.cardHead}>
+              <Text style={styles.cardName}>{breath.label}</Text>
+              <Text style={styles.cardMinutes}>
+                {breath.cadence} · {breath.minutes} min
+              </Text>
+            </View>
+            <Text style={styles.cardBlurb}>{breath.blurb}</Text>
+          </Pressable>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -235,6 +309,9 @@ const makeStyles = (c: Palette) =>
       color: c.inkDim,
       fontVariant: ['tabular-nums'],
     },
+    cadence: { ...type.mono, fontSize: 13, color: c.inkFaint, letterSpacing: 2 },
+    breathLabel: { marginTop: space.lg },
+    breathBlurb: { ...type.small, color: c.inkDim, lineHeight: 19 },
 
     doneTitle: { ...type.display, color: c.ink },
     doneBody: {

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { BREATH } from '../domain/stillness';
+import type { BreathPhases } from '../domain/breath';
 import { radius } from '../theme/tokens';
 
 /**
@@ -25,44 +26,64 @@ import { radius } from '../theme/tokens';
 /** How small it gets at the bottom of the breath. Never to nothing. */
 const FLOOR = 0.55;
 
+/** The ring's idle cadence, as a pattern: the sits breathe to this. */
+const DEFAULT_PATTERN: BreathPhases = {
+  inMs: BREATH.inMs,
+  holdInMs: BREATH.holdMs,
+  outMs: BREATH.outMs,
+  holdOutMs: 0,
+};
+
 export function BreathRing({
   color,
   size = 240,
   active = true,
+  pattern = DEFAULT_PATTERN,
 }: {
   color: string;
   size?: number;
   active?: boolean;
+  /** The cadence to breathe at. Defaults to the sits' long-exhale idle. */
+  pattern?: BreathPhases;
 }) {
   const breath = useRef(new Animated.Value(FLOOR)).current;
 
   useEffect(() => {
     if (!active) return;
+    // A zero-duration timing confuses neither driver, so the two holds are
+    // simply present for every pattern and last no time when a cadence has
+    // none — one sequence shape for all of them.
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breath, {
           toValue: 1,
-          duration: BREATH.inMs,
+          duration: pattern.inMs,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
         Animated.timing(breath, {
           toValue: 1,
-          duration: BREATH.holdMs,
+          duration: pattern.holdInMs,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
         Animated.timing(breath, {
           toValue: FLOOR,
-          duration: BREATH.outMs,
+          duration: pattern.outMs,
           easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(breath, {
+          toValue: FLOOR,
+          duration: pattern.holdOutMs,
+          easing: Easing.linear,
           useNativeDriver: true,
         }),
       ]),
     );
     loop.start();
     return () => loop.stop();
-  }, [active, breath]);
+  }, [active, breath, pattern]);
 
   const circle = { width: size, height: size, borderRadius: radius.pill };
 
