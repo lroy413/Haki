@@ -28,6 +28,8 @@ export type DailyReadBackup = {
   mood: number;
   clarity: number;
   tension: number;
+  /** The optional one-word sky. Absent in backups older than format v8. */
+  weather?: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -72,6 +74,10 @@ export type TaskBackup = {
   doneAt: number | null;
   /** The rhythm that produced it, by that rhythm's createdAt. */
   rhythmKey: number | null;
+  /** The island it was struck from. Absent in older backups. */
+  islandKey?: number | null;
+  /** Which watch of the day it was placed in. Absent in older backups. */
+  watch?: string | null;
   createdAt: number;
 };
 
@@ -223,6 +229,14 @@ const str = (v: unknown): v is string => typeof v === 'string';
 const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const nullableStr = (v: unknown): v is string | null => v === null || str(v);
 const nullableNum = (v: unknown): v is number | null => v === null || num(v);
+// A column added after a backup was written is simply absent from its rows.
+// Absent and null both mean "not set", so a validator for such a column must
+// accept both — requiring the key would silently reject every row of an
+// older, perfectly good backup.
+const absentableStr = (v: unknown): v is string | null | undefined =>
+  v === undefined || nullableStr(v);
+const absentableNum = (v: unknown): v is number | null | undefined =>
+  v === undefined || nullableNum(v);
 
 type RowCheck = (row: Record<string, unknown>) => boolean;
 
@@ -234,7 +248,8 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     num(r.clarity) &&
     num(r.tension) &&
     num(r.createdAt) &&
-    num(r.updatedAt),
+    num(r.updatedAt) &&
+    absentableStr(r.weather),
   sleepLog: (r) => str(r.day) && num(r.hours) && num(r.createdAt) && num(r.updatedAt),
   entry: (r) => str(r.body) && str(r.day) && num(r.createdAt) && num(r.updatedAt),
   trainingSession: (r) =>
@@ -287,7 +302,11 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     num(r.minutes) &&
     nullableStr(r.committedFor) &&
     nullableNum(r.doneAt) &&
-    nullableNum(r.rhythmKey) &&
+    // rhythmKey arrived in schema v7, islandKey and watch in v8: all three
+    // are absent from rows exported before their columns existed.
+    absentableNum(r.rhythmKey) &&
+    absentableNum(r.islandKey) &&
+    absentableStr(r.watch) &&
     num(r.createdAt),
   rhythm: (r) =>
     str(r.title) &&

@@ -42,7 +42,7 @@ import { syncKeystoneWarning } from '../notifications/denDenMushi';
 import { preloadSounds, setSoundEnabled } from '../sound';
 
 type HakiState = {
-  read: DailyRead | null;
+  read: (DailyRead & { weather: string | null }) | null;
   reserve: Reserve;
   cascade: CascadeVerdict;
   training: TrainingStatus;
@@ -122,7 +122,7 @@ const EMPTY_RESERVE: Reserve = {
 
 export function HakiProvider({ children }: { children: React.ReactNode }) {
   const { db, settings } = useStore();
-  const [read, setRead] = useState<DailyRead | null>(null);
+  const [read, setRead] = useState<(DailyRead & { weather: string | null }) | null>(null);
   const [reserve, setReserve] = useState<Reserve>(EMPTY_RESERVE);
   const [cascade, setCascade] = useState<CascadeVerdict>({
     level: 'clear',

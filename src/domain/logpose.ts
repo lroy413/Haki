@@ -87,6 +87,11 @@ export type Road = {
 export type Poneglyph = {
   id: number;
   roadKey: number;
+  /**
+   * The island's own natural key — its `createdAt` — the value a struck
+   * task carries in `islandKey` to say which island it served.
+   */
+  key: number;
   title: string;
   state: PoneglyphState;
   openedOn: DayKey;

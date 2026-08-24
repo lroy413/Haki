@@ -40,6 +40,10 @@ export type Strings = {
   courseTitle: string;
   coursePlaceholder: string;
   stillnessTitle: string;
+  breathLabel: string;
+  breathBlurb: string;
+  settleTitle: string;
+  settleLine: string;
 
   logPoseTitle: string;
   logPoseBlurb: string;
@@ -114,6 +118,9 @@ export type Strings = {
   taskPlaceholder: string;
   addToToday: string;
   addToLater: string;
+  addToTomorrow: string;
+  tomorrowLabel: string;
+  watchPrompt: string;
   backlogLabel: string;
   backlogEmpty: string;
   nextStrikeEmpty: string;
@@ -138,6 +145,8 @@ export type Strings = {
   downstreamLabel: string;
 
   dials: { energy: string; mood: string; clarity: string; tension: string };
+  weatherPrompt: string;
+  weatherHint: string;
   sleepPrompt: string;
   daysAtSea: (n: number) => string;
 };
@@ -175,6 +184,15 @@ const haki: Strings = {
   courseTitle: 'Course',
   coursePlaceholder: 'What today is for.',
   stillnessTitle: 'Stillness',
+  breathLabel: 'The breath',
+  breathBlurb: 'Two minutes at a set cadence. A pace to follow, never a thing that is checked.',
+  // The loud-day door. It opens only when the read already says today is
+  // loud, and it offers exactly one thing.
+  settleTitle: 'Settle',
+  // The reading card directly above has already said today is loud, so this
+  // line carries only the offer — the same fact twice in two stacked cards
+  // reads as the app repeating itself.
+  settleLine: 'Two minutes of long exhales, right here. It asks nothing else.',
 
   logPoseTitle: 'Log Pose',
   logPoseBlurb:
@@ -257,6 +275,9 @@ const haki: Strings = {
   taskPlaceholder: 'One thing. What is it?',
   addToToday: 'Carry today',
   addToLater: 'Later',
+  addToTomorrow: 'Tomorrow',
+  tomorrowLabel: 'Tomorrow',
+  watchPrompt: 'The watch',
   backlogLabel: 'Waiting',
   backlogEmpty: 'Nothing waiting.',
   nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
@@ -285,6 +306,8 @@ const haki: Strings = {
   downstreamLabel: 'What it carries',
 
   dials: { energy: 'Energy', mood: 'Mood', clarity: 'Clarity', tension: 'Tension' },
+  weatherPrompt: 'The weather',
+  weatherHint: 'One word for the sky today. Optional, every day.',
   sleepPrompt: 'Hours slept',
   daysAtSea: (n) => `Day ${n} at sea`,
 };
@@ -310,6 +333,9 @@ const plain: Strings = {
   logTitle: 'Journal',
   courseTitle: 'Intention',
   stillnessTitle: 'Meditation',
+  breathLabel: 'Breathing',
+  settleTitle: 'Settle',
+  settleLine: 'Two minutes of slow breathing, right here. Nothing else attached.',
   logPoseTitle: 'Goals',
   logPoseBlurb:
     'One big goal, the things it needs, and the next step under each. Nothing here is scored.',

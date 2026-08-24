@@ -16,6 +16,7 @@ import { recentSleep, saveRead, saveSleep } from '../src/db/repo';
 import { play } from '../src/sound';
 import { useHaki } from '../src/state/HakiProvider';
 import { todayKey } from '../src/domain/date';
+import { WEATHER_WORDS } from '../src/domain/weather';
 import { radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
@@ -37,6 +38,7 @@ export default function DailyReadScreen() {
   const [clarity, setClarity] = useState<number | null>(read?.clarity ?? null);
   const [tension, setTension] = useState<number | null>(read?.tension ?? null);
   const [sleep, setSleep] = useState('');
+  const [weather, setWeather] = useState<string | null>(read?.weather ?? null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function DailyReadScreen() {
     if (energy === null || mood === null || clarity === null || tension === null) return;
     setSaving(true);
     try {
-      await saveRead(db, { energy, mood, clarity, tension });
+      await saveRead(db, { energy, mood, clarity, tension }, todayKey(), weather);
 
       const hours = Number.parseFloat(sleep.replace(',', '.'));
       if (Number.isFinite(hours) && hours >= 0 && hours <= 24) {
@@ -96,6 +98,35 @@ export default function DailyReadScreen() {
           accent={palette.crimson}
         />
 
+        {/* The one word after the dials. Optional every single day: a read
+            saves fine without it, tapping the word again clears it, and
+            nothing anywhere counts how often one was given. */}
+        <View style={styles.weather}>
+          <Text style={styles.weatherLabel}>{t.weatherPrompt}</Text>
+          <Text style={styles.weatherHint}>{t.weatherHint}</Text>
+          <View style={styles.weatherRow}>
+            {WEATHER_WORDS.map((word) => {
+              const on = weather === word;
+              return (
+                <Pressable
+                  key={word}
+                  onPress={() => setWeather(on ? null : word)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  accessibilityLabel={`Weather: ${word}`}
+                  style={({ pressed }) => [
+                    styles.weatherChip,
+                    on && styles.weatherChipOn,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={[styles.weatherWord, on && styles.weatherWordOn]}>{word}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
         <View style={styles.sleep}>
           <Text style={styles.sleepLabel}>{t.sleepPrompt}</Text>
           <TextInput
@@ -134,6 +165,22 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
     content: { padding: space.lg, gap: space.xl, paddingBottom: space.xxxl },
+
+    weather: { gap: space.xs },
+    weatherLabel: { ...type.heading, color: c.ink },
+    weatherHint: { ...type.small, color: c.inkFaint, lineHeight: 18 },
+    weatherRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.xs },
+    weatherChip: {
+      borderWidth: 1,
+      borderColor: c.line,
+      backgroundColor: c.surface,
+      borderRadius: radius.pill,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
+    },
+    weatherChipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
+    weatherWord: { ...type.small, color: c.inkDim },
+    weatherWordOn: { color: c.cyan },
 
     sleep: { gap: space.sm },
     sleepLabel: { ...type.heading, color: c.ink },

@@ -173,6 +173,25 @@ export default function ObservationScreen() {
               </Pressable>
             ) : null}
 
+            {/* The loud-day door. The reading above has already said today is
+                loud; this gives the sentence one exit — a two-minute settling
+                breath, started by the tap itself. Only offered on a clouded
+                read: on any other day it would be a nag about nothing. */}
+            {observation.state === 'clouded' ? (
+              <Pressable
+                onPress={() => router.push('/sit?begin=settle')}
+                accessibilityRole="button"
+                accessibilityLabel={t.settleTitle}
+                style={({ pressed }) => [styles.settle, pressed && styles.pressed]}
+              >
+                <View style={styles.settleHead}>
+                  <Text style={styles.settleLabel}>{t.settleTitle}</Text>
+                  {plainMode ? null : <Text style={styles.settleGlyph}>息</Text>}
+                </View>
+                <Text style={styles.settleLine}>{t.settleLine}</Text>
+              </Pressable>
+            ) : null}
+
             {/* The practice's door. The line under it is the offer, never the
                 absence — the practice card's rule, held here too. */}
             <Pressable
@@ -288,6 +307,22 @@ const makeStyles = (c: Palette) =>
     foresightMore: { ...type.mono, fontSize: 11, color: c.cyan },
 
     sectionLabel: { marginTop: space.xs },
+
+    settle: {
+      ...row(c),
+      borderColor: c.cyan,
+      padding: space.lg,
+      gap: space.xs,
+      minHeight: 44,
+    },
+    settleHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    settleLabel: { ...type.label, color: c.cyan },
+    settleGlyph: { fontFamily: font.display, fontSize: 15, color: c.cyan },
+    settleLine: { ...type.body, color: c.ink, lineHeight: 21 },
     empty: { ...type.body, color: c.inkDim, textAlign: 'center', marginTop: space.xxxl },
 
     row: {

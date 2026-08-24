@@ -479,6 +479,55 @@ sentence about their own mind is owed the arithmetic that produced it, and an
 engine that cannot explain itself in a paragraph has no business telling anyone
 anything about themselves.
 
+## Four small things from the comparison
+
+The competitive read ranked ten possible features; the first three became the
+rhythm, Setting Sail and Foresight. This pass took the next four — three
+smalls and a medium, shipped together because each is one honest idea.
+
+**The island's wake.** A task born from "Strike it" now remembers its island
+(`island_key`, the same natural-key linking every child row here uses), so
+the needle card shows what has been struck under the open island while the
+work is happening, and the pillar screen stamps each astern island with what
+it took — "14 struck · 6h 20m in its wake". Counts with no denominator: the
+progress language the Log Pose is allowed, applied to the one question an
+arrival always raises. An empty wake says nothing at all, because six
+"nothing yet"s on a record screen is a scoreboard of absences.
+
+**The breath, and the loud-day door.** The sit screen grew three two-minute
+patterns under the sits — the long exhale, box, 4-7-8 — same ring, different
+cadence, the cadence itself the caption. They write ordinary sit rows, so
+the minutes count; at two minutes they sit deliberately under
+`SAT_COUNTS_FROM`, so no pattern ever claims a day of sitting practice. And
+when the Daily Read comes back clouded, the observation tab now offers one
+exit: a Settle card whose tap lands you already breathing — `/sit?begin=settle`,
+no second menu. Offered only on clouded days, because on any other day it
+would be a nag about nothing.
+
+**Naming the weather.** One optional word after the dials — Calm, Bright,
+Swell, Overcast, Fog, Restless, Squall, Heavy. Sea weather rather than
+emotion labels, because a squall is not a failure of the ocean. It engages
+the faculty the dials cannot, stores as one nullable column, echoes quietly
+on the practice card ("Logged · Squall"), and is never counted, streaked, or
+read by Foresight — a word is not a dial, and the engine only speaks
+arithmetic.
+
+**A place for tomorrow, and the watches.** The capture row gained Tomorrow
+between Carry today and Later — the night-before flow the course already
+had — and every open task on today offers a one-tap Tomorrow beside Later,
+because end-of-day stragglers deserve a kinder move than the backlog.
+Tomorrow's list is a quiet disclosure that only exists while something is in
+it, and at the day boundary it simply _becomes_ today: nothing moves, the
+key under it changes meaning. And tasks can now take a watch — morning,
+afternoon, evening, the day divided the way a crew divides it. Optional on
+every task; the list grows watch headings only once something actually
+carries one, so an unplaced day renders exactly the flat list it always was.
+
+One repair went along: the backup validator required fields that older
+backups could not have (a pre-rhythm export would have silently dropped
+every task on import). New columns now validate as absent-or-null, which is
+what "added later" honestly means.
+
 ## The audit, and unequal chrome
 
 Two jobs in one pass: prove the tracking, then earn the screens their looks.

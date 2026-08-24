@@ -34,8 +34,91 @@ export type Task = {
    * ordinary one-off task. See `domain/rhythm.ts`.
    */
   rhythmKey: number | null;
+  /**
+   * The island this was struck from, by that poneglyph's `createdAt`. Null
+   * for everything not born on the Log Pose — which is most tasks. The link
+   * is what lets an arrival say what it actually took. See `islandWake`.
+   */
+  islandKey: number | null;
+  /** Which watch of the day this is placed in, or null for any time. */
+  watch: Watch | null;
   createdAt: number;
 };
+
+/**
+ * The three watches — the day, divided the way a crew divides it.
+ *
+ * A schedule in this app's accent: not hours, not calendar slots, just which
+ * stretch of the day a thing belongs to. Optional on every task — an
+ * unplaced task is normal, not incomplete — and the day's list only grows
+ * watch headings once something actually carries one.
+ */
+export type Watch = 'morning' | 'afternoon' | 'evening';
+
+export const WATCH_ORDER: Watch[] = ['morning', 'afternoon', 'evening'];
+
+export const WATCHES: Record<Watch, { label: string; short: string; kanji: string }> = {
+  morning: { label: 'Morning watch', short: 'Morning', kanji: '朝' },
+  afternoon: { label: 'Afternoon watch', short: 'Afternoon', kanji: '昼' },
+  evening: { label: 'Evening watch', short: 'Evening', kanji: '夜' },
+};
+
+export function isWatch(value: string): value is Watch {
+  return value in WATCHES;
+}
+
+/**
+ * The day's list, split by watch, in watch order, unplaced last.
+ *
+ * Groups with nothing in them are absent rather than empty: three headings
+ * over one task is a timetable, and this is not a timetable. When no task
+ * carries a watch at all the result is one unlabelled group — the exact list
+ * the screen showed before watches existed.
+ */
+export function byWatch<T extends { watch: Watch | null }>(
+  items: T[],
+): { watch: Watch | null; items: T[] }[] {
+  const groups: { watch: Watch | null; items: T[] }[] = [];
+  for (const watch of [...WATCH_ORDER, null] as (Watch | null)[]) {
+    const inWatch = items.filter((item) => item.watch === watch);
+    if (inWatch.length > 0) groups.push({ watch, items: inWatch });
+  }
+  return groups;
+}
+
+/**
+ * What an island's wake holds: every struck task that carries its key.
+ *
+ * Counts and minutes, nothing else — the Log Pose's rule about denominators
+ * binds here too. There is no "of", no target, no pace; the wake is what the
+ * water shows behind you.
+ */
+export function islandWake(
+  tasks: { islandKey: number | null; doneAt: number | null; minutes: number }[],
+  key: number,
+): { struck: number; minutes: number } {
+  let struck = 0;
+  let minutes = 0;
+  for (const task of tasks) {
+    if (task.islandKey !== key || task.doneAt === null) continue;
+    struck += 1;
+    minutes += task.minutes;
+  }
+  return { struck, minutes };
+}
+
+/**
+ * The wake, said in one mono line — or nothing at all.
+ *
+ * Null when nothing has been struck under the island yet: a record shows
+ * what is astern, and an empty wake is not a thing to report. "Nothing yet"
+ * under every fresh island would be six absences on a screen about work.
+ */
+export function wakeLine(wake: { struck: number; minutes: number }): string | null {
+  if (wake.struck === 0) return null;
+  const struck = `${wake.struck} struck`;
+  return wake.minutes > 0 ? `${struck} · ${formatMinutes(wake.minutes)} in its wake` : struck;
+}
 
 /** Sensible default for a single task: small enough to actually start. */
 export const DEFAULT_TASK_MINUTES = 15;

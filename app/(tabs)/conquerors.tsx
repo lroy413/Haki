@@ -23,6 +23,7 @@ import {
   listRoads,
   openPoneglyph,
   setDream,
+  wakesFor,
 } from '../../src/db/repo';
 import {
   ROAD_MAX,
@@ -87,6 +88,9 @@ export default function ConquerorsScreen() {
   const [glyphs, setGlyphs] = useState<Poneglyph[]>([]);
   const [crew, setCrew] = useState<string[]>([]);
   const [lastSail, setLastSail] = useState<string | null>(null);
+  const [wakes, setWakes] = useState<Map<number, { struck: number; minutes: number }>>(
+    new Map(),
+  );
 
   const [editingDream, setEditingDream] = useState(false);
   const [dreamDraft, setDreamDraft] = useState('');
@@ -109,6 +113,13 @@ export default function ConquerorsScreen() {
     setGlyphs(g);
     setCrew(people.map((p) => p.name));
     setLastSail(sail?.day ?? null);
+    // The open islands' wakes: what has been struck under each so far.
+    setWakes(
+      await wakesFor(
+        db,
+        g.filter((x) => x.state === 'open').map((x) => x.key),
+      ),
+    );
   }, [db]);
 
   useFocusEffect(
@@ -168,10 +179,12 @@ export default function ConquerorsScreen() {
     await load();
   }
 
-  async function strike(title: string) {
+  async function strike(title: string, islandKey: number | null) {
     // Straight onto today, not the backlog. The point of striking an island is
     // that the enormous thing produced one move you can make before tonight.
-    await addTask(db, title, 15, todayKey());
+    // The task remembers the island it came from, so an arrival can say what
+    // it actually took — see `islandWake` in domain/tasks.ts.
+    await addTask(db, title, 15, todayKey(), { islandKey });
     void Haptics.selectionAsync();
     setSaid(t.strikeAdded);
   }
@@ -291,6 +304,7 @@ export default function ConquerorsScreen() {
           <NeedleCard
             key={needle.road.id}
             needle={needle}
+            wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
             onDetail={() => router.push(`/pillar?id=${needle.road.id}`)}
             onOpen={(title) => {
               setSaid(null);
@@ -302,7 +316,7 @@ export default function ConquerorsScreen() {
             onPass={(reason) => {
               if (needle.next) void passed(needle.next.id, reason);
             }}
-            onStrike={(title) => void strike(title)}
+            onStrike={(title) => void strike(title, needle.next?.key ?? null)}
           />
         ))}
 

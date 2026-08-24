@@ -1,4 +1,5 @@
 import type { DayKey } from './date';
+import { BREATHS, isBreathKey, type BreathKey } from './breath';
 
 /**
  * Stillness — 見聞色, sat down.
@@ -31,6 +32,14 @@ import type { DayKey } from './date';
  */
 
 export type SitDepth = 'presence' | 'intent' | 'ahead';
+
+/**
+ * Everything that can occupy the cushion: a sit, or a breath pattern from
+ * `breath.ts`. They share the one session table and the one runtime — a
+ * breath session is a sit with a cadence — so everything downstream of
+ * `startSit` speaks this union.
+ */
+export type PracticeDepth = SitDepth | BreathKey;
 
 export type Sit = {
   depth: SitDepth;
@@ -85,7 +94,7 @@ export const BREATH = { inMs: 4000, holdMs: 1000, outMs: 6000 } as const;
 export const BREATH_CYCLE_MS = BREATH.inMs + BREATH.holdMs + BREATH.outMs;
 
 export type SitSession = {
-  depth: SitDepth;
+  depth: PracticeDepth;
   day: DayKey;
   startedAt: number;
   /** Null while it is still running. */
@@ -96,8 +105,8 @@ export type SitSession = {
 
 const MINUTE = 60_000;
 
-export function durationMs(depth: SitDepth): number {
-  return SITS[depth].minutes * MINUTE;
+export function durationMs(depth: PracticeDepth): number {
+  return (isBreathKey(depth) ? BREATHS[depth] : SITS[depth]).minutes * MINUTE;
 }
 
 /** When a sit would end if left alone. */

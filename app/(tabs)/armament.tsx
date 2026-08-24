@@ -38,8 +38,12 @@ import {
   loadMessage,
   stale,
   type Task,
+  WATCHES,
+  WATCH_ORDER,
+  byWatch,
+  type Watch,
 } from '../../src/domain/tasks';
-import { todayKey } from '../../src/domain/date';
+import { addDays, todayKey } from '../../src/domain/date';
 import {
   cadence,
   offerLine as rhythmOfferLine,
@@ -51,6 +55,7 @@ import { Bolt } from '../../src/components/instruments/Bolt';
 import { darkest } from '../../src/theme/palettes';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { offer, plate, press, row } from '../../src/theme/surfaces';
+import { Fragment } from 'react';
 import { SectionLabel } from '../../src/components/SectionLabel';
 import type { Palette } from '../../src/theme/palettes';
 
@@ -82,7 +87,9 @@ export default function ArmamentScreen() {
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
   const [title, setTitle] = useState('');
   const [minutes, setMinutes] = useState(DEFAULT_TASK_MINUTES);
+  const [watch, setWatch] = useState<Watch | null>(null);
   const [showBacklog, setShowBacklog] = useState(false);
+  const [showTomorrow, setShowTomorrow] = useState(false);
   const [rhythms, setRhythms] = useState<Rhythm[]>([]);
   const [lastDone, setLastDone] = useState<Map<number, string>>(new Map());
 
@@ -106,13 +113,16 @@ export default function ArmamentScreen() {
     }, [reload]),
   );
 
-  async function add(commitToday: boolean) {
+  async function add(committedFor: string | null) {
     const name = title.trim();
     if (!name) return;
     void Haptics.selectionAsync();
-    await addTask(db, name, minutes, commitToday ? todayKey() : null);
+    // The watch travels with the task even into the backlog: it says when in
+    // a day the thing belongs, and that stays true whichever day it lands.
+    await addTask(db, name, minutes, committedFor, { watch });
     setTitle('');
     setMinutes(DEFAULT_TASK_MINUTES);
+    setWatch(null);
     await reload();
   }
 
@@ -182,6 +192,10 @@ export default function ArmamentScreen() {
     ...load.open.map((item) => ({ item, done: false })),
     ...load.doneToday.map((item) => ({ item, done: true })),
   ];
+  const tomorrow = addDays(day, 1);
+  const tomorrowTasks = tasks.filter(
+    (item) => item.committedFor === tomorrow && item.doneAt === null,
+  );
   const waiting = backlog(tasks);
   const old = stale(tasks, todayKey());
   const message = loadMessage(load);
@@ -310,6 +324,8 @@ export default function ArmamentScreen() {
               committedFor: day,
               doneAt: null,
               rhythmKey: r.key,
+              islandKey: null,
+              watch: null,
               createdAt: r.key,
             }}
             note={cadence(r)}
@@ -317,25 +333,50 @@ export default function ArmamentScreen() {
           />
         ))}
 
-        {today.map(({ item, done }) => (
-          <TaskRow
-            // A struck rhythm keeps the key its offer row had, so striking one
-            // is a re-render rather than an unmount — the same swallowed-
-            // emission bug the one-list comment below describes, which the
-            // rhythm rows quietly reintroduced by changing key mid-strike.
-            key={item.rhythmKey !== null ? `rhythm-${item.rhythmKey}` : item.id}
-            task={item}
-            done={done}
-            note={cadenceOf(item.rhythmKey)}
-            onToggle={(next) =>
-              item.rhythmKey === null
-                ? toggleDone(item, next)
-                : void unstrikeRhythm(db, item.rhythmKey, day).then(reload)
-            }
-            onSecondary={done || item.rhythmKey !== null ? undefined : () => moveTo(item, null)}
-            secondaryLabel={done || item.rhythmKey !== null ? undefined : 'Later'}
-          />
-        ))}
+        {/* Grouped by watch, headings materialising only once a task carries
+            one — an unplaced day renders exactly the flat list it always did.
+            A strike never changes a task's watch, so a row keeps its group
+            and its element identity across the move; the emission survives. */}
+        {byWatch(today.map(({ item, done }) => ({ watch: item.watch, item, done }))).map(
+          (group) => (
+            <Fragment key={group.watch ?? 'any'}>
+              {group.watch !== null ? (
+                <SectionLabel
+                  label={plainMode ? WATCHES[group.watch].short : WATCHES[group.watch].label}
+                  trailing={plainMode ? undefined : WATCHES[group.watch].kanji}
+                />
+              ) : today.some(({ item }) => item.watch !== null) ? (
+                <SectionLabel label="Any time" />
+              ) : null}
+              {group.items.map(({ item, done }) => (
+                <TaskRow
+                  // A struck rhythm keeps the key its offer row had, so
+                  // striking one is a re-render rather than an unmount — the
+                  // same swallowed-emission bug the one-list comment below
+                  // describes, which the rhythm rows quietly reintroduced by
+                  // changing key mid-strike.
+                  key={item.rhythmKey !== null ? `rhythm-${item.rhythmKey}` : item.id}
+                  task={item}
+                  done={done}
+                  note={cadenceOf(item.rhythmKey)}
+                  onToggle={(next) =>
+                    item.rhythmKey === null
+                      ? toggleDone(item, next)
+                      : void unstrikeRhythm(db, item.rhythmKey, day).then(reload)
+                  }
+                  actions={
+                    done || item.rhythmKey !== null
+                      ? undefined
+                      : [
+                          { label: t.addToTomorrow, run: () => void moveTo(item, tomorrow) },
+                          { label: t.addToLater, run: () => void moveTo(item, null) },
+                        ]
+                  }
+                />
+              ))}
+            </Fragment>
+          ),
+        )}
 
         {/* ------------------------------------------------------ capture */}
         <View style={styles.capture}>
@@ -346,7 +387,7 @@ export default function ArmamentScreen() {
             placeholderTextColor={palette.inkFaint}
             style={styles.input}
             returnKeyType="done"
-            onSubmitEditing={() => void add(true)}
+            onSubmitEditing={() => void add(day)}
             accessibilityLabel={t.taskPlaceholder}
           />
 
@@ -370,9 +411,32 @@ export default function ArmamentScreen() {
             ))}
           </View>
 
+          {/* The watch is optional and a second tap clears it: an unplaced
+              task is normal, not incomplete. */}
+          <View style={styles.chips}>
+            {WATCH_ORDER.map((w) => (
+              <Pressable
+                key={w}
+                onPress={() => setWatch(watch === w ? null : w)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: watch === w }}
+                accessibilityLabel={WATCHES[w].label}
+                style={({ pressed }) => [
+                  styles.chip,
+                  watch === w && styles.watchOn,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={[styles.chipText, watch === w && styles.watchTextOn]}>
+                  {WATCHES[w].short}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
           <View style={styles.addRow}>
             <Pressable
-              onPress={() => void add(true)}
+              onPress={() => void add(day)}
               disabled={!title.trim()}
               accessibilityRole="button"
               style={({ pressed }) => [
@@ -384,7 +448,19 @@ export default function ArmamentScreen() {
               <Text style={styles.addTodayText}>{t.addToToday}</Text>
             </Pressable>
             <Pressable
-              onPress={() => void add(false)}
+              onPress={() => void add(tomorrow)}
+              disabled={!title.trim()}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.addLater,
+                !title.trim() && styles.addDisabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.addLaterText}>{t.addToTomorrow}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => void add(null)}
               disabled={!title.trim()}
               accessibilityRole="button"
               style={({ pressed }) => [
@@ -417,8 +493,7 @@ export default function ArmamentScreen() {
                 key={item.id}
                 task={item}
                 onToggle={(next) => toggleDone(item, next)}
-                onSecondary={() => moveTo(item, todayKey())}
-                secondaryLabel="Today"
+                actions={[{ label: 'Today', run: () => void moveTo(item, todayKey()) }]}
                 onRemove={() => remove(item)}
               />
             ))
@@ -427,6 +502,36 @@ export default function ArmamentScreen() {
         {showBacklog && waiting.length === 0 ? (
           <Text style={styles.emptyBacklog}>{t.backlogEmpty}</Text>
         ) : null}
+
+        {/* ----------------------------------------------------- tomorrow */}
+        {/* Only present once something is actually placed there: an empty
+            "tomorrow" standing open every day is a nag about planning. At
+            the day boundary these simply become today's list — nothing
+            moves, the key under them changes meaning. */}
+        {tomorrowTasks.length > 0 ? (
+          <Pressable
+            onPress={() => setShowTomorrow((v) => !v)}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.disclosure, pressed && styles.pressed]}
+          >
+            <Text style={styles.disclosureText}>
+              {t.tomorrowLabel} · {tomorrowTasks.length}
+            </Text>
+            <Text style={styles.chevron}>{showTomorrow ? '−' : '+'}</Text>
+          </Pressable>
+        ) : null}
+
+        {showTomorrow
+          ? tomorrowTasks.map((item) => (
+              <TaskRow
+                key={item.id}
+                task={item}
+                onToggle={(next) => toggleDone(item, next)}
+                actions={[{ label: 'Today', run: () => void moveTo(item, day) }]}
+                onRemove={() => remove(item)}
+              />
+            ))
+          : null}
 
         {/* ----------------------------------------------------- training */}
         {/* The gym, under its own name. One half of the figure at the top of
@@ -490,8 +595,7 @@ export default function ArmamentScreen() {
 function TaskRow({
   task,
   onToggle,
-  onSecondary,
-  secondaryLabel,
+  actions,
   onRemove,
   done,
   note,
@@ -499,8 +603,8 @@ function TaskRow({
 }: {
   task: Task;
   onToggle: (next: boolean) => void;
-  onSecondary?: () => void;
-  secondaryLabel?: string;
+  /** Quiet moves offered on the row's right edge — Tomorrow, Later, Today. */
+  actions?: { label: string; run: () => void }[];
   onRemove?: () => void;
   done?: boolean;
   /** True for a rhythm offer: a row that does not exist until it is taken. */
@@ -583,16 +687,17 @@ function TaskRow({
         </View>
       </Pressable>
 
-      {onSecondary && secondaryLabel ? (
+      {(actions ?? []).map((action) => (
         <Pressable
-          onPress={onSecondary}
+          key={action.label}
+          onPress={action.run}
           accessibilityRole="button"
-          accessibilityLabel={`${secondaryLabel}: ${task.title}`}
+          accessibilityLabel={`${action.label}: ${task.title}`}
           style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
         >
-          <Text style={styles.secondaryText}>{secondaryLabel}</Text>
+          <Text style={styles.secondaryText}>{action.label}</Text>
         </Pressable>
-      ) : null}
+      ))}
 
       {onRemove ? (
         <Pressable
@@ -723,6 +828,8 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
     },
     chipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
+    watchOn: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
+    watchTextOn: { color: c.crimson },
     chipText: { ...type.mono, fontSize: 11, color: c.inkDim },
     chipTextOn: { color: c.cyan },
     addRow: { flexDirection: 'row', gap: space.sm },
@@ -733,7 +840,7 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.md,
       alignItems: 'center',
     },
-    addTodayText: { ...type.heading, color: c.onAccent },
+    addTodayText: { ...type.heading, fontSize: 15, color: c.onAccent },
     addLater: {
       flex: 1,
       borderWidth: 1,
@@ -742,7 +849,7 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.md,
       alignItems: 'center',
     },
-    addLaterText: { ...type.heading, color: c.inkDim },
+    addLaterText: { ...type.heading, fontSize: 13, color: c.inkDim },
     addDisabled: { opacity: 0.4 },
 
     /* ------------------------------------------------------------ backlog */

@@ -50,7 +50,12 @@ function plural(n: number, one: string, many: string): string {
  * The six, in the order a day tends to go: point it, read it, sit, write,
  * strike, focus. Not an order of importance — there isn't one.
  */
-export function practice(acts: Acts, plain = false): Practice[] {
+/**
+ * `weather` is the read's optional one-word sky, echoed on the read row so
+ * the word lands somewhere after the modal closes. Purely a caption — it
+ * changes no `done` state and nothing counts it.
+ */
+export function practice(acts: Acts, plain = false, weather: string | null = null): Practice[] {
   const k = (glyph: string) => (plain ? '' : glyph);
   return [
     {
@@ -66,7 +71,7 @@ export function practice(acts: Acts, plain = false): Practice[] {
       key: 'read',
       kanji: k('見聞色'),
       label: plain ? 'Check in' : 'Daily Read',
-      line: acts.read ? 'Logged' : '30 seconds',
+      line: acts.read ? (weather ? `Logged · ${weather}` : 'Logged') : '30 seconds',
       done: acts.read,
       route: '/read',
     },

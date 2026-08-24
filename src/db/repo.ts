@@ -1,12 +1,12 @@
-import { and, desc, eq, gte, isNotNull, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, lte } from 'drizzle-orm';
 import type { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
 import type { SleepNight } from '../domain/cascade';
 import type { Session } from '../domain/training';
-import type { Task } from '../domain/tasks';
+import { isWatch, type Task, type Watch } from '../domain/tasks';
 import type { GearName, GearSession } from '../domain/gears';
-import type { SitDepth, SitSession } from '../domain/stillness';
+import type { PracticeDepth, SitSession } from '../domain/stillness';
 import { normaliseHeading, type Course } from '../domain/course';
 import { appendLine, isWritable } from '../domain/logbook';
 import type { Poneglyph, PoneglyphState, Road } from '../domain/logpose';
@@ -44,25 +44,35 @@ const now = () => Date.now();
 
 /* -------------------------------------------------------------- daily read */
 
-export async function getRead(db: Db, day: DayKey = todayKey()): Promise<DailyRead | null> {
+export async function getRead(
+  db: Db,
+  day: DayKey = todayKey(),
+): Promise<(DailyRead & { weather: string | null }) | null> {
   const rows = await db.select().from(dailyRead).where(eq(dailyRead.day, day)).limit(1);
   const row = rows[0];
   if (!row) return null;
-  return { energy: row.energy, mood: row.mood, clarity: row.clarity, tension: row.tension };
+  return {
+    energy: row.energy,
+    mood: row.mood,
+    clarity: row.clarity,
+    tension: row.tension,
+    weather: row.weather,
+  };
 }
 
 export async function saveRead(
   db: Db,
   read: DailyRead,
   day: DayKey = todayKey(),
+  weather: string | null = null,
 ): Promise<void> {
   const t = now();
   await db
     .insert(dailyRead)
-    .values({ day, ...read, createdAt: t, updatedAt: t })
+    .values({ day, ...read, weather, createdAt: t, updatedAt: t })
     .onConflictDoUpdate({
       target: dailyRead.day,
-      set: { ...read, updatedAt: t },
+      set: { ...read, weather, updatedAt: t },
     });
 }
 
@@ -115,6 +125,8 @@ function toTask(row: TaskRow): Task {
     committedFor: row.committedFor,
     doneAt: row.doneAt,
     rhythmKey: row.rhythmKey,
+    islandKey: row.islandKey,
+    watch: row.watch !== null && isWatch(row.watch) ? row.watch : null,
     createdAt: row.createdAt,
   };
 }
@@ -124,13 +136,41 @@ export async function addTask(
   title: string,
   minutes: number,
   committedFor: DayKey | null = null,
+  opts: { islandKey?: number | null; watch?: Watch | null } = {},
 ): Promise<void> {
   await db.insert(task).values({
     title: title.trim(),
     minutes,
     committedFor,
+    islandKey: opts.islandKey ?? null,
+    watch: opts.watch ?? null,
     createdAt: now(),
   });
+}
+
+/**
+ * What has been struck under each of these islands: count and minutes, keyed
+ * by the poneglyph's `createdAt`. Counts only — the wake carries no
+ * denominator, same as everything else on the Log Pose.
+ */
+export async function wakesFor(
+  db: Db,
+  islandKeys: number[],
+): Promise<Map<number, { struck: number; minutes: number }>> {
+  const out = new Map<number, { struck: number; minutes: number }>();
+  if (islandKeys.length === 0) return out;
+  const rows = await db
+    .select()
+    .from(task)
+    .where(and(isNotNull(task.doneAt), inArray(task.islandKey, islandKeys)));
+  for (const row of rows) {
+    const key = row.islandKey as number;
+    const wake = out.get(key) ?? { struck: 0, minutes: 0 };
+    wake.struck += 1;
+    wake.minutes += row.minutes;
+    out.set(key, wake);
+  }
+  return out;
 }
 
 /** Pull into a day, or push back to the backlog with null. */
@@ -308,7 +348,7 @@ export async function endGear(db: Db, id: number, completed: boolean): Promise<v
 
 function toSitSession(row: typeof sitSession.$inferSelect): SitSession {
   return {
-    depth: row.depth as SitDepth,
+    depth: row.depth as PracticeDepth,
     day: row.day as DayKey,
     startedAt: row.startedAt,
     endedAt: row.endedAt,
@@ -366,7 +406,7 @@ export async function openSitSession(
  */
 export async function startSit(
   db: Db,
-  depth: SitDepth,
+  depth: PracticeDepth,
 ): Promise<{ id: number; session: SitSession }> {
   const stamp = now();
   const day = todayKey();
@@ -965,6 +1005,7 @@ export async function listPoneglyphs(db: Db): Promise<Poneglyph[]> {
   return rows.map((row) => ({
     id: row.id,
     roadKey: row.roadCreatedAt,
+    key: row.createdAt,
     title: row.title,
     state: row.state as PoneglyphState,
     openedOn: row.openedOn,
