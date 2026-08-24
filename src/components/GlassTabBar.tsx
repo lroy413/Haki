@@ -68,7 +68,7 @@ function publish(height: number): void {
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { t, palette } = useHaki();
+  const { t, palette, plainMode } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const tabs: Tab[] = [
@@ -100,7 +100,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
             if (!tab) return null;
 
             const { options } = descriptors[route.key];
-            const tint = focused ? palette.violet : palette.inkFaint;
+            const tint = focused ? lensTints(palette)[index] : palette.inkFaint;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -120,14 +120,27 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
                 accessibilityRole="tab"
                 accessibilityState={{ selected: focused }}
                 accessibilityLabel={options.title ?? tab.label}
-                style={({ pressed }) => [
-                  styles.tab,
-                  focused && styles.tabActive,
-                  pressed && styles.pressed,
-                ]}
+                style={({ pressed }) => [styles.tab, pressed && styles.pressed]}
               >
+                {/* The pill wears the lens's own colour, which is why it is a
+                    layer rather than a background: `opacity` on the tab
+                    itself would take the label down with it, and the label is
+                    the one thing here that has to stay legible. */}
+                {focused ? (
+                  <View style={[styles.wash, { backgroundColor: tint }]} pointerEvents="none" />
+                ) : null}
                 {tab.glyph ? (
-                  <Text numberOfLines={1} style={[styles.glyph, { color: tint }]}>
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.glyph,
+                      { color: tint },
+                      // The lens you are standing in is lit. Nothing else is
+                      // — a bar where every glyph glows is a bar that says
+                      // nothing about where you are.
+                      focused && !plainMode && { textShadowColor: tint, ...styles.alight },
+                    ]}
+                  >
                     {tab.glyph}
                   </Text>
                 ) : null}
@@ -141,6 +154,18 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
       </View>
     </View>
   );
+}
+
+/**
+ * What colour each tab burns when you are standing in it.
+ *
+ * The same colours the screens themselves already use, so the bar reads as a
+ * legend for the app rather than five copies of the accent: the day and its
+ * record in cyan, 見聞色 violet, 武装色 crimson, 覇王色 the signature violet,
+ * and settings in plain ink because it is not a lens.
+ */
+function lensTints(c: Palette): string[] {
+  return [c.cyan, c.violet, c.crimson, c.violet, c.inkDim];
 }
 
 const makeStyles = (c: Palette) =>
@@ -162,6 +187,9 @@ const makeStyles = (c: Palette) =>
       shadowOffset: { width: 0, height: 10 },
       elevation: 16,
     },
+    // Haki, showing. The colour comes from the tab; only the spread lives
+    // here, because a shadow's radius is not a palette decision.
+    alight: { textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
     bar: {
       flexDirection: 'row',
       alignItems: 'stretch',
@@ -183,8 +211,16 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.xs,
       borderRadius: radius.lg,
     },
-    tabActive: { backgroundColor: c.glassActive },
+    wash: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      borderRadius: radius.lg,
+      opacity: 0.16,
+    },
     pressed: { ...press },
     glyph: { fontFamily: font.displayBold, fontSize: 14, lineHeight: 19 },
-    label: { fontFamily: font.mono, fontSize: 9, letterSpacing: 0.6 },
+    label: { fontFamily: font.mono, fontSize: 10, letterSpacing: 0.6 },
   });

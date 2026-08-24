@@ -32,5 +32,5 @@ const makeStyles = (c: Palette) =>
       lineHeight: 25,
       color: c.inkDim,
     },
-    who: { ...type.label, fontSize: 9, color: c.inkFaint },
+    who: { ...type.label, fontSize: 11, color: c.inkFaint },
   });

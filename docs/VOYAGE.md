@@ -566,6 +566,77 @@ the same way — a slight sink instead of a grey-out, because bare opacity
 reads as disabled, and the difference between "acknowledged" and "broken" is
 the whole reason the checkbox chapter above exists.
 
+## Legible, and lit
+
+Three notes in one message, and the first two were the same note: _"the app is
+not reaching the bottom again… let's make sure the contrast is good, even with
+my full brightness it was a little difficult for me to see."_
+
+**The bottom, for the last time.** The dead band under the tab bar had already
+been fixed once, by measuring the viewport with better units — and it came
+back, because every unit that claims to be the height of the screen is
+negotiable on iOS. A percentage resolves against a layout viewport that a
+translucent status bar shrinks. `-webkit-fill-available` settles a frame late.
+Even `dvh` is only as honest as the browser's idea of what is dynamic. Three
+different answers to one question, and the app had now been wrong with two of
+them.
+
+So the shell stopped asking. The root is `position: fixed` pinned to all four
+sides: placed against the viewport itself, no number to get wrong and no
+reflow to be late for. Nothing here ever scrolled the document — every screen
+scrolls inside its own view — so pinning costs nothing and closes the whole
+class of bug. Verified pinned, with zero document overflow, on four viewports
+from an SE to a Pro Max. And the shell now wears the day's ground rather than
+a constant: hardening means the correct opening colour is a fact about your
+day, so the app writes it down and the boot script paints it before the bundle
+parses. On paper, every edge the phone keeps for itself used to be a black
+seam.
+
+**The contrast, with arithmetic.** The palettes had been held to a contrast
+floor since the day they were written, so the honest thing was to check the
+floor rather than the eyes. `inkFaint` — the colour under nearly every date,
+unit, cadence and stat label in the app — measured **2.9:1** on the palette the
+app spends most of its day in. That is under the minimum for _normal_ text, and
+it was being set at ten and eleven points. Forty-two separate styles had reached
+past the type scale to shrink something; each defensible alone, and the sum was
+a squint.
+
+Both halves were raised by solving rather than nudging: every ink and accent
+was walked up its own lightness until it cleared 4.5:1 on all three grounds it
+can sit on _and_ on the two tinted plates, then pinned there by tests that now
+check surface2 and the soft tints as well. Nothing is set below eleven points
+any more, and a guard test holds that too — with exactly one documented
+exception, the five tab labels, which truncate at eleven and sit under a glyph
+that is already doing the naming. The signature violet moved about four percent
+lighter, which is the only visible change and is recorded in the test that pins
+it.
+
+**And the light.** _"I like some colors or glows that fit the Haki theming in
+the appropriate places. Let's be creative."_
+
+The app already had one idea about light: hardened Armament is glossy, so cards
+catch a specular glint along their top edge that brightens as the day fills.
+This extends that idea outward. A lens's identity plate now throws its own
+colour into the air around it — the hardness readout burns crimson, the reading
+violet, Foresight cyan, the Dream the king's violet. Same colours those lenses
+already use for their own labels; the aura just says which Haki you are looking
+at without writing the word.
+
+Two rules keep it honest, and both are tested. **Paper catches nothing** —
+level 0 returns no glow at all, because unhardened Haki does not shine and an
+aura on parchment would say the opposite of everything the ramp says. And it
+**grows with the day and stops there**: strength follows the hardening level,
+the same curve the glint already climbs, and it is never a figure, a bar or a
+count. You cannot read a score off a halo. Plain mode gets none of it — an aura
+is a performance, and plain mode is the switch that stops the app performing.
+
+The tab bar became the legend for all of it. Each tab now burns its own lens
+colour when you are standing in it — the day and its record cyan, 見聞色 violet,
+武装色 crimson, 覇王色 the signature violet, settings in plain ink because it is
+not a lens — with the pill washed in that colour and the kanji itself lit. Each
+screen's mark in its top corner wears the same light. One screen, one colour,
+all the way from the glyph in the corner to the tab you arrived by.
+
 ## Where it stands
 
 **Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Nineteen pull

@@ -20,6 +20,13 @@ looking polished.** A feature that works but looks unfinished is not done.
   ```
 - Check **both modes** — Haki (default) and plain — and the empty state as
   well as the populated one. Most of the bugs above only appeared in one.
+- **Nothing is smaller than 11pt, and nothing is fainter than 4.5:1.** Both
+  floors are tested (`typeSizes.test.ts`, `palettes.test.ts`). They exist
+  because the owner said the app was hard to read at full brightness and the
+  arithmetic agreed: `inkFaint` measured 2.9:1 on the palette the app spends
+  its day in, under forty-two styles that had each shaved a point off the type
+  scale. If something needs to recede, use colour, weight or space — never
+  another point off a figure that is already small.
 - **Colour comes from `useHaki().palette`, never from a literal.** The app
   runs four palettes: it opens on paper and hardens as the day is used
   (`src/domain/hardening.ts`). A hex in a screen looks fine until the ground
@@ -75,6 +82,15 @@ flash of the system font on a cold start.
 
 ## Chrome
 
+**The web shell is pinned, not measured.** `#root` is `position: fixed` on all
+four sides (`tools/pwa-head.mjs`). Every unit that claims to be the height of
+the screen — percentages, `-webkit-fill-available`, `dvh` — has now cost this
+app the same bug twice: a dead band under the tab bar on an iPhone. Nothing
+scrolls the document here, so pinning costs nothing. **Do not reintroduce a
+height calculation on the root.** The shell's background follows the live
+palette (see `HakiProvider`), and the boot script paints the last known ground
+before the bundle parses.
+
 **The app runs edge to edge.** The tabs have no navigation header — a fixed
 band across the top cost 64pt on the web and about 103 on an iPhone, on every
 screen, to hold one word. Each tab draws its own title inside its scroll view
@@ -102,6 +118,27 @@ Keep that seam clean. The Sunny's _water_ lives in `instruments/Sea.tsx`
 because it is a system — swell, wavelength, phase, how much is running — and
 systems do not get thrown away when someone redraws the boat. Same rule for
 the impact frame: the field owns the violence, the instrument owns the shape.
+
+## The light a lens throws
+
+`lit(tint, level)` in `theme/surfaces.ts` puts a lens's own colour into the air
+around its identity plate — crimson on the hardness readout, violet on the
+reading and the Dream, cyan on Foresight. It is the only decoration allowed to
+follow hardening, and the licence has conditions, all tested:
+
+- **Paper catches nothing.** Level 0 returns no glow. Unhardened Haki does not
+  shine, and an aura on parchment says the opposite of what the ramp says.
+- **It only grows.** Strength climbs with the level, the same curve the
+  specular glint takes, and it is never a figure, a bar or a count — you
+  cannot read a score off a halo.
+- **Plain mode gets none of it.** Pass `plainMode ? 0 : hardening`; an aura is
+  a performance and plain mode stops the app performing. `lit` cannot work
+  this out for itself, because plain mode pins the level to the settled dark —
+  the value that glows brightest.
+
+The tab bar is the legend: each tab burns its own lens colour when focused
+(cyan, violet, crimson, violet, plain ink for settings), and each screen's mark
+in its top corner wears the same one. **One screen, one light.**
 
 ## Sound
 

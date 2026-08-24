@@ -15,6 +15,16 @@ import type { HardeningLevel } from '../domain/hardening';
  * The accents shift between 0 and 1 and then hold. A violet bright enough to
  * sit on near-black is far too pale to read on parchment, so the light palette
  * carries its own darker set. Every one of them is tested.
+ *
+ * **The floors were raised once, and the reason is worth keeping.** The owner
+ * said the app was hard to read at full brightness — and the arithmetic agreed:
+ * `inkFaint` carried nearly every date, stat, cadence and unit in the app, at
+ * ten or eleven points, at a contrast of 2.9:1 on the palette the app spends
+ * most of its day in. That is under the floor for *normal* text, let alone
+ * small text. Faint is a role, not a licence to disappear: every one of these
+ * values now clears 4.5:1 on all three grounds it can sit on, and the tests
+ * hold them there. If a colour here has to be dimmed for looks, the thing to
+ * change is what it is used for, never the number.
  */
 
 export type Palette = {
@@ -39,7 +49,6 @@ export type Palette = {
 
   glass: string;
   glassEdge: string;
-  glassActive: string;
 
   /**
    * The glint along a card's top edge.
@@ -85,8 +94,8 @@ const unhardened: Palette = {
   lineSoft: '#DCD3BF',
 
   ink: '#171309',
-  inkDim: '#4E4636',
-  inkFaint: '#6F6653',
+  inkDim: '#463E30',
+  inkFaint: '#625A4A',
 
   violet: '#6321B8',
   violetSoft: '#E2D5F5',
@@ -102,7 +111,6 @@ const unhardened: Palette = {
   // ink that cannot survive sitting on it.
   glass: 'rgba(247,243,234,0.88)',
   glassEdge: 'rgba(23,19,9,0.14)',
-  glassActive: 'rgba(99,33,184,0.12)',
 
   specular: '#C6BBA2',
   shadow: 'rgba(23,19,9,0.16)',
@@ -119,21 +127,20 @@ const hardened: Palette = {
   lineSoft: '#2A2E3C',
 
   ink: '#F1EFF8',
-  inkDim: '#B4B1C9',
-  inkFaint: '#8A87A2',
+  inkDim: '#C5C3D5',
+  inkFaint: '#9F9DB3',
 
-  violet: '#C170FF',
+  violet: '#C87FFF',
   violetSoft: '#332154',
   cyan: '#5FE3D6',
   cyanSoft: '#123330',
-  crimson: '#FF7075',
+  crimson: '#FF7377',
   crimsonSoft: '#3A1F21',
   warn: '#FFBB45',
   warnSoft: '#382B10',
 
   glass: 'rgba(38,42,56,0.66)',
   glassEdge: 'rgba(241,239,248,0.12)',
-  glassActive: 'rgba(193,112,255,0.16)',
 
   specular: '#4C5266',
   shadow: 'rgba(0,0,0,0.34)',
@@ -150,10 +157,10 @@ const set: Palette = {
   lineSoft: '#232634',
 
   ink: '#EDEBF5',
-  inkDim: '#A8A5BF',
-  inkFaint: '#7A7891',
+  inkDim: '#B4B2C8',
+  inkFaint: '#918FA4',
 
-  violet: '#B95CFF',
+  violet: '#BE68FF',
   violetSoft: '#2A1741',
   cyan: '#52DED0',
   cyanSoft: '#102E2C',
@@ -164,7 +171,6 @@ const set: Palette = {
 
   glass: 'rgba(27,30,42,0.64)',
   glassEdge: 'rgba(237,235,245,0.11)',
-  glassActive: 'rgba(185,92,255,0.15)',
 
   specular: '#565C77',
   shadow: 'rgba(0,0,0,0.42)',
@@ -181,10 +187,10 @@ const black: Palette = {
   lineSoft: '#1B1E2C',
 
   ink: '#E9E7F3',
-  inkDim: '#9E9BB7',
-  inkFaint: '#6C6A86',
+  inkDim: '#ABA9C1',
+  inkFaint: '#8D8CA4',
 
-  violet: '#B14CFF',
+  violet: '#B85BFF',
   violetSoft: '#241338',
   cyan: '#45D9CB',
   cyanSoft: '#0E2A29',
@@ -195,7 +201,6 @@ const black: Palette = {
 
   glass: 'rgba(18,20,31,0.62)',
   glassEdge: 'rgba(233,231,243,0.10)',
-  glassActive: 'rgba(177,76,255,0.14)',
 
   specular: '#616787',
   shadow: 'rgba(0,0,0,0.52)',

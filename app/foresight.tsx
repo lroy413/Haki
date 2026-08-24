@@ -16,7 +16,7 @@ import {
 import { addDays, todayKey } from '../src/domain/date';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
-import { plate } from '../src/theme/surfaces';
+import { lit, plate } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -39,7 +39,7 @@ const WINDOW_DAYS = 365;
 
 export default function ForesightScreen() {
   const { db, settings } = useStore();
-  const { palette, plainMode } = useHaki();
+  const { palette, plainMode, hardening } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const insets = useSafeAreaInsets();
 
@@ -72,7 +72,10 @@ export default function ForesightScreen() {
         ? reading.findings.map((finding) => {
             const note = directionNote(finding, plainMode);
             return (
-              <View key={`${finding.source}-${finding.dial}`} style={styles.card}>
+              <View
+                key={`${finding.source}-${finding.dial}`}
+                style={[styles.card, lit(palette.cyan, plainMode ? 0 : hardening)]}
+              >
                 <Text style={styles.finding}>{findingLine(finding, plainMode)}</Text>
                 {/* Not fine print. Which way a pattern runs is half of what is
                     known about it, so it reads at the same weight. */}
@@ -122,7 +125,7 @@ const makeStyles = (c: Palette) =>
     },
     finding: { fontFamily: font.displayBold, fontSize: 17, color: c.ink, lineHeight: 23 },
     note: { ...type.body, color: c.inkDim, lineHeight: 21 },
-    evidence: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    evidence: { ...type.mono, fontSize: 12, color: c.inkFaint },
 
     waiting: {
       borderWidth: 1,

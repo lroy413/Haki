@@ -44,7 +44,7 @@ import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { NeedleCard } from '../../src/components/logpose/NeedleCard';
 import { useHaki } from '../../src/state/HakiProvider';
 import { font, radius, space, type } from '../../src/theme/tokens';
-import { offer, plate, press, row } from '../../src/theme/surfaces';
+import { lit, offer, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
 import type { Palette } from '../../src/theme/palettes';
 
@@ -79,7 +79,7 @@ import type { Palette } from '../../src/theme/palettes';
 export default function ConquerorsScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, palette, plainMode } = useHaki();
+  const { t, palette, plainMode, hardening } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
 
@@ -198,7 +198,11 @@ export default function ConquerorsScreen() {
         contentContainerStyle={[styles.content, pad]}
         keyboardShouldPersistTaps="handled"
       >
-        <PageHeading title={t.logPoseTitle} trailing={plainMode ? undefined : '覇王色'} />
+        <PageHeading
+          title={t.logPoseTitle}
+          trailing={plainMode ? undefined : '覇王色'}
+          tint={palette.violet}
+        />
 
         <Text style={styles.bearing}>{bearing(pose, plainMode)}</Text>
         {said ? <Text style={styles.said}>{said}</Text> : null}
@@ -230,7 +234,9 @@ export default function ConquerorsScreen() {
 
         {/* ------------------------------------------------------- the dream */}
 
-        <View style={styles.dreamCard}>
+        {/* The one thing on this screen that is never scaled down gets the
+            king's colour thrown into the air around it. */}
+        <View style={[styles.dreamCard, lit(palette.violet, plainMode ? 0 : hardening)]}>
           {plainMode ? null : <Text style={styles.dreamWatermark}>夢</Text>}
           <Text style={styles.dreamLabel}>{t.dreamLabel}</Text>
 
@@ -429,7 +435,7 @@ const makeStyles = (c: Palette) =>
     // The one place in the app that gets display type at this size. It is the
     // largest thing on the screen because it is the largest thing there is.
     dreamText: { fontFamily: font.displayBold, fontSize: 25, lineHeight: 31, color: c.ink },
-    dreamMeta: { ...type.mono, color: c.inkFaint, fontSize: 11 },
+    dreamMeta: { ...type.mono, color: c.inkFaint, fontSize: 12 },
     dreamOffer: { ...type.body, color: c.inkDim, lineHeight: 22 },
     dreamCta: { ...type.heading, fontSize: 15, color: c.violet },
 
@@ -459,7 +465,7 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.sm,
     },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 10 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
     form: { gap: space.sm },
     input: {
       ...type.body,

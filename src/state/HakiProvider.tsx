@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
 import { useStore } from '../db/client';
 import {
   allSessions,
@@ -275,6 +276,34 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     if (on) preloadSounds();
   }, [settings.soundOn, settings.plainMode]);
 
+  // Plain mode pins the ramp to the settled dark so a screenshare stays still.
+  const level = settings.plainMode ? 3 : hardening;
+  const palette = paletteFor(level);
+
+  /**
+   * The page itself wears the day's ground.
+   *
+   * The app paints its own screens, so this is only ever seen at the edges —
+   * the overscroll rubber-band, the split second before the bundle parses,
+   * and any sliver a phone decides to keep for itself. But the shell's
+   * colour was a constant while the app's was a function of the day, so on
+   * paper every one of those edges was a black seam.
+   *
+   * Written to storage as well as applied, so the *next* cold start opens on
+   * the right ground instead of flashing the one this app happened to be
+   * designed in. See `tools/pwa-head.mjs` for the reading half.
+   */
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    document.documentElement.style.backgroundColor = palette.bg;
+    document.body.style.backgroundColor = palette.bg;
+    try {
+      localStorage.setItem('haki.ground', palette.bg);
+    } catch {
+      // A private window can refuse storage. The colour is already applied.
+    }
+  }, [palette.bg]);
+
   const value = useMemo<HakiState>(
     () => ({
       read,
@@ -288,9 +317,9 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       intensity: settings.plainMode ? 0 : effectIntensity(reserve),
       // Plain mode is the mute button for effects, and this is the loudest one
       // in the app. Pinned to the settled dark so a screenshare stays still.
-      hardening: settings.plainMode ? 3 : hardening,
+      hardening: level,
       acts,
-      palette: paletteFor(settings.plainMode ? 3 : hardening),
+      palette,
       ryuo: (() => {
         // Plain mode turns the effects off, and reach is entirely an effect.
         const tier = settings.plainMode ? 0 : tierFor(ryuoDays);

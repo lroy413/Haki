@@ -19,7 +19,21 @@ import type { Palette } from '../theme/palettes';
  * now starts at the very top of the display, which is what makes the ground
  * genuinely run edge to edge rather than merely appear to.
  */
-export function PageHeading({ title, trailing }: { title: string; trailing?: string }) {
+export function PageHeading({
+  title,
+  trailing,
+  tint,
+}: {
+  title: string;
+  trailing?: string;
+  /**
+   * Colours the trailing mark. Passed the lens's own colour on the three
+   * lens tabs, so the kanji in the corner is the same violet, crimson or
+   * cyan that the screen's labels and its tab are using — one screen, one
+   * light. Left off where the trailing slot holds data rather than a mark.
+   */
+  tint?: string;
+}) {
   const { palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
@@ -28,7 +42,9 @@ export function PageHeading({ title, trailing }: { title: string; trailing?: str
       <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
         {title}
       </Text>
-      {trailing ? <Text style={styles.trailing}>{trailing}</Text> : null}
+      {trailing ? (
+        <Text style={[styles.trailing, tint ? { color: tint } : null]}>{trailing}</Text>
+      ) : null}
     </View>
   );
 }
