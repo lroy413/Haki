@@ -29,6 +29,11 @@ export type Task = {
   /** The day this was pulled into, or null while it sits in the backlog. */
   committedFor: DayKey | null;
   doneAt: number | null;
+  /**
+   * The rhythm that produced this, by that rhythm's `createdAt`. Null for an
+   * ordinary one-off task. See `domain/rhythm.ts`.
+   */
+  rhythmKey: number | null;
   createdAt: number;
 };
 

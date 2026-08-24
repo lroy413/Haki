@@ -21,8 +21,12 @@ import {
   allTasks,
   commitTask,
   deleteTask,
+  lastDoneByRhythm,
+  listRhythms,
   recentSessions,
   setTaskDone,
+  strikeRhythm,
+  unstrikeRhythm,
 } from '../../src/db/repo';
 import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
@@ -36,6 +40,12 @@ import {
   type Task,
 } from '../../src/domain/tasks';
 import { todayKey } from '../../src/domain/date';
+import {
+  cadence,
+  offerLine as rhythmOfferLine,
+  offers,
+  type Rhythm,
+} from '../../src/domain/rhythm';
 import { hardnessMessage, hardnessName } from '../../src/domain/armament';
 import { Bolt } from '../../src/components/instruments/Bolt';
 import { darkest } from '../../src/theme/palettes';
@@ -71,11 +81,20 @@ export default function ArmamentScreen() {
   const [title, setTitle] = useState('');
   const [minutes, setMinutes] = useState(DEFAULT_TASK_MINUTES);
   const [showBacklog, setShowBacklog] = useState(false);
+  const [rhythms, setRhythms] = useState<Rhythm[]>([]);
+  const [lastDone, setLastDone] = useState<Map<number, string>>(new Map());
 
   const reload = useCallback(async () => {
-    const [allT, recent] = await Promise.all([allTasks(db), recentSessions(db, 8)]);
+    const [allT, recent, allR, done] = await Promise.all([
+      allTasks(db),
+      recentSessions(db, 8),
+      listRhythms(db),
+      lastDoneByRhythm(db),
+    ]);
     setTasks(allT);
     setSessions(recent);
+    setRhythms(allR);
+    setLastDone(done);
     await refresh();
   }, [db, refresh]);
 
@@ -113,9 +132,44 @@ export default function ArmamentScreen() {
     await reload();
   }
 
+  async function takeRhythm(r: Rhythm, next: boolean) {
+    if (next) await strikeRhythm(db, r, todayKey());
+    else await unstrikeRhythm(db, r.key, todayKey());
+    await reload();
+  }
+
   async function remove(taskItem: Task) {
     await deleteTask(db, taskItem.id);
     await reload();
+  }
+
+  const day = todayKey();
+  /**
+   * A rhythm already taken today is a real struck task in `load.doneToday`,
+   * so it must not also appear as an offer — hence the keys handed to
+   * `offers`. The remaining offers are rendered as rows that exist only on
+   * screen; nothing is written until one is tapped.
+   */
+  const struckRhythmKeys = new Set(
+    tasks
+      .filter((item) => item.rhythmKey !== null && item.committedFor === day)
+      .map((item) => item.rhythmKey as number),
+  );
+  const standing = offers(rhythms, day, lastDone, struckRhythmKeys);
+  const standingMinutes = standing.reduce((sum, r) => sum + r.minutes, 0);
+
+  /**
+   * The cadence line for a struck task, or nothing.
+   *
+   * A retired rhythm keeps the tasks it produced, and one whose row is gone
+   * entirely is still a perfectly good record of a day — so a task whose
+   * rhythm cannot be found simply reads as an ordinary task rather than
+   * throwing or inventing a cadence.
+   */
+  function cadenceOf(key: number | null): string | undefined {
+    if (key === null) return undefined;
+    const found = rhythms.find((r) => r.key === key);
+    return found ? cadence(found) : undefined;
   }
 
   const today = [
@@ -172,13 +226,32 @@ export default function ArmamentScreen() {
 
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
-          <Text style={styles.sectionLabel}>{t.todayLoad}</Text>
+          <Pressable
+            onPress={() => router.push('/rhythms')}
+            accessibilityRole="button"
+            accessibilityLabel={t.rhythmManage}
+            style={({ pressed }) => [styles.rhythmLink, pressed && styles.pressed]}
+          >
+            <Text style={styles.sectionLabel}>{t.todayLoad}</Text>
+            <Text style={styles.rhythmLinkText}>{t.rhythmManage} ›</Text>
+          </Pressable>
+          {/* Standing offers count toward the figure. They are minutes the day
+              genuinely holds — a reader looking at 45 minutes of rhythm rows
+              and a total of 0m is being told something untrue. The capacity
+              *verdict* below still reads committed work only, so a heavy
+              rhythm day never triggers an over-capacity warning on its own. */}
           <Text style={[styles.carrying, load.read === 'over' && { color: palette.warn }]}>
-            {formatMinutes(load.openMinutes)}
+            {formatMinutes(load.openMinutes + standingMinutes)}
           </Text>
         </View>
 
-        {message ? (
+        {/* An empty committed list is not an empty day when the rhythm has
+            something standing on it — saying "nothing pulled in" directly
+            above two offers is the kind of small lie that makes an app feel
+            careless. */}
+        {load.open.length === 0 && load.doneToday.length === 0 && standing.length > 0 ? (
+          <Text style={styles.message}>{rhythmOfferLine(standing.length, plainMode)}</Text>
+        ) : message ? (
           <Text style={[styles.message, load.read === 'over' && styles.messageWarn]}>
             {message}
           </Text>
@@ -192,14 +265,47 @@ export default function ArmamentScreen() {
           from one array keeps the component identity, so the row is reordered
           in place and the corona survives the move.
         */}
+        {/*
+          The rhythm's standing offers, above the one-offs. These rows are not
+          in the database and will not be unless one is tapped — a day you let
+          an offer pass leaves nothing behind to go red tomorrow. Taking one
+          writes a struck task like any other, which is why it can share
+          TaskRow and get the same emission, sound and impact frame.
+
+          The synthetic id is negative so it can never collide with a real
+          task's, and it is derived from the rhythm's key so the row keeps its
+          identity across a reload.
+        */}
+        {standing.map((r) => (
+          <TaskRow
+            key={`rhythm-${r.key}`}
+            task={{
+              id: -r.key,
+              title: r.title,
+              minutes: r.minutes,
+              committedFor: day,
+              doneAt: null,
+              rhythmKey: r.key,
+              createdAt: r.key,
+            }}
+            note={cadence(r)}
+            onToggle={(next) => void takeRhythm(r, next)}
+          />
+        ))}
+
         {today.map(({ item, done }) => (
           <TaskRow
             key={item.id}
             task={item}
             done={done}
-            onToggle={(next) => toggleDone(item, next)}
-            onSecondary={done ? undefined : () => moveTo(item, null)}
-            secondaryLabel={done ? undefined : 'Later'}
+            note={cadenceOf(item.rhythmKey)}
+            onToggle={(next) =>
+              item.rhythmKey === null
+                ? toggleDone(item, next)
+                : void unstrikeRhythm(db, item.rhythmKey, day).then(reload)
+            }
+            onSecondary={done || item.rhythmKey !== null ? undefined : () => moveTo(item, null)}
+            secondaryLabel={done || item.rhythmKey !== null ? undefined : 'Later'}
           />
         ))}
 
@@ -360,6 +466,7 @@ function TaskRow({
   secondaryLabel,
   onRemove,
   done,
+  note,
 }: {
   task: Task;
   onToggle: (next: boolean) => void;
@@ -367,6 +474,8 @@ function TaskRow({
   secondaryLabel?: string;
   onRemove?: () => void;
   done?: boolean;
+  /** A rhythm's cadence, shown beside the estimate. */
+  note?: string;
 }) {
   const { palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
@@ -432,7 +541,10 @@ function TaskRow({
           <Text style={[styles.taskTitle, checked && styles.taskTitleDone]} numberOfLines={2}>
             {task.title}
           </Text>
-          <Text style={styles.taskMinutes}>{formatMinutes(task.minutes)}</Text>
+          <Text style={styles.taskMinutes}>
+            {formatMinutes(task.minutes)}
+            {note ? ` · ${note}` : ''}
+          </Text>
         </View>
       </Pressable>
 
@@ -485,6 +597,10 @@ const makeStyles = (c: Palette) =>
 
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sectionLabel: { ...type.label, color: c.inkFaint },
+    // The way into the workshop, sitting on the label rather than as a button
+    // of its own — the day's work is the subject of this section, not this.
+    rhythmLink: { flexDirection: 'row', alignItems: 'baseline', gap: space.md, minHeight: 44 },
+    rhythmLinkText: { ...type.mono, fontSize: 11, color: c.crimson },
     // Full-bleed within the padding; the drawing keeps its own aspect.
     bolt: { width: '100%', aspectRatio: 200 / 26, marginVertical: -2 },
     carrying: {

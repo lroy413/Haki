@@ -428,8 +428,8 @@ makes cover-up exact in every renderer.
 
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Fourteen pull
-requests merged, 477 tests, one principle held everywhere: the app rewards the
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Seventeen pull
+requests merged, 535 tests, one principle held everywhere: the app rewards the
 act and never punishes the absence.
 
 What is actually in it:
@@ -442,20 +442,24 @@ What is actually in it:
 | **Record**          | The Logbook, with a second door: one line, folded into today, asking nothing. Inherited Will. Export and import that merges and never deletes.                                                                                          |
 | **The day**         | A course set for today or tomorrow and never marked. Six practices, each showing its offer rather than its absence. Hardening across four palettes, from paper to black, and the Sunny reading it back as a state and never a position. |
 | **The journey**     | The Log Pose. One dream that never scales down, four to seven Road Poneglyphs beneath it, one island at a time under each — finish it or sail past it with a reason, and nothing counted against a total.                               |
+| **The week**        | Setting Sail: the week read back, every needle looked at once, one heading named. And the rhythm — things that come back round, creating nothing until taken, so a day you let one pass leaves nothing behind.                          |
 | **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. The Conqueror's burst, fired by exactly one thing. Seven sounds, sixty quotes. |
 
 **Charted next**, roughly in the order they make sense:
 
-1. **Setting Sail** — the Sunday ritual. Read the week, check the Flag, name
-   the next island. Everything else in this app is data collection _for_ this,
-   and it is the one thing that would make the Log Pose recalibrate on a
-   rhythm rather than only when something closes.
+1. **Foresight** — the app holds months of reads, sleep, sits, training and
+   struck tasks, and has never once said what it sees. Sentences before charts:
+   "clarity runs about a point higher the day after seven hours." It is the
+   payoff Observation is named for, and the only large piece still unbuilt.
 2. **The Flag** — three to five values in your own words, and the thing a Road
-   Poneglyph can be checked against. Small, and the only piece of Conqueror's
+   Poneglyph can be checked against. Small, and the last piece of Conqueror's
    from the concept doc still missing.
-3. **The Zoro theme** — the field keeps the violence, the instrument becomes a
+3. **The island's wake** — struck tasks remembering which island they came
+   from, so an arrival can say what it actually took. One column and two
+   screens.
+4. **The Zoro theme** — the field keeps the violence, the instrument becomes a
    sword. The seam is already cut; this is one file and a picker.
-4. **Native.** The PWA has carried it this far, but iOS cannot do reliable
+5. **Native.** The PWA has carried it this far, but iOS cannot do reliable
    notifications or a home-screen widget, and the Den Den Mushi taxonomy in
    the concept doc needs real notification channels.
 

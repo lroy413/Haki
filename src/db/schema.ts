@@ -92,9 +92,17 @@ export const task = sqliteTable(
     minutes: integer('minutes').notNull().default(15),
     committedFor: text('committed_for'),
     doneAt: integer('done_at'),
+    /**
+     * The rhythm this task came from, by that rhythm's `createdAt`. Null for
+     * the ordinary one-off task, which is most of them.
+     */
+    rhythmKey: integer('rhythm_key'),
     createdAt: integer('created_at').notNull(),
   },
-  (t) => [index('task_committed_idx').on(t.committedFor)],
+  (t) => [
+    index('task_committed_idx').on(t.committedFor),
+    index('task_rhythm_idx').on(t.rhythmKey),
+  ],
 );
 
 /**
@@ -229,6 +237,53 @@ export const poneglyph = sqliteTable(
   (t) => [index('poneglyph_road_idx').on(t.roadCreatedAt)],
 );
 
+/**
+ * A rhythm — a thing that comes back.
+ *
+ * **There is no completion table, and that absence is the design.** A rhythm
+ * is a standing offer, not a queue: nothing exists for a day until you strike
+ * it, and what gets written then is an ordinary `task` row carrying this
+ * rhythm's `createdAt` in `rhythm_key`. A day you did not take the offer
+ * leaves no row at all — nothing to go red, nothing to count, nothing to
+ * reset. See `domain/rhythm.ts`.
+ *
+ * `retiredAt` rather than a delete, so the struck tasks it produced keep
+ * making sense in the record.
+ */
+export const rhythm = sqliteTable('rhythm', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  minutes: integer('minutes').notNull().default(15),
+  /** 'weekdays' | 'interval'. See `domain/rhythm.ts`. */
+  kind: text('kind').notNull().default('weekdays'),
+  /** Comma-separated 0..6, Sunday first. Empty for an interval rhythm. */
+  weekdays: text('weekdays').notNull().default(''),
+  intervalDays: integer('interval_days').notNull().default(1),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  retiredAt: integer('retired_at'),
+});
+
+/**
+ * One Setting Sail per week, keyed by the day it happened.
+ *
+ * Unique on `day` for the same reason a course is: setting sail twice in one
+ * day is one decision restated, not two weeks.
+ */
+export const sailing = sqliteTable(
+  'sailing',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    day: text('day').notNull(),
+    /** Where the week points. One line, and allowed to be empty. */
+    heading: text('heading').notNull().default(''),
+    note: text('note'),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (t) => [uniqueIndex('sailing_day_idx').on(t.day)],
+);
+
 /** Small key/value bag. Typed accessors live in `settings.ts`. */
 export const setting = sqliteTable('setting', {
   key: text('key').primaryKey(),
@@ -247,3 +302,5 @@ export type SitSessionRow = typeof sitSession.$inferSelect;
 export type CourseRow = typeof course.$inferSelect;
 export type RoadPoneglyphRow = typeof roadPoneglyph.$inferSelect;
 export type PoneglyphRow = typeof poneglyph.$inferSelect;
+export type RhythmRow = typeof rhythm.$inferSelect;
+export type SailingRow = typeof sailing.$inferSelect;

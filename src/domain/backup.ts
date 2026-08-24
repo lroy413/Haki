@@ -70,7 +70,28 @@ export type TaskBackup = {
   minutes: number;
   committedFor: string | null;
   doneAt: number | null;
+  /** The rhythm that produced it, by that rhythm's createdAt. */
+  rhythmKey: number | null;
   createdAt: number;
+};
+
+export type RhythmBackup = {
+  title: string;
+  minutes: number;
+  kind: string;
+  weekdays: string;
+  intervalDays: number;
+  createdAt: number;
+  updatedAt: number;
+  retiredAt: number | null;
+};
+
+export type SailingBackup = {
+  day: string;
+  heading: string;
+  note: string | null;
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type SettingBackup = {
@@ -137,6 +158,8 @@ export type BackupTables = {
   course: CourseBackup[];
   roadPoneglyph: RoadPoneglyphBackup[];
   poneglyph: PoneglyphBackup[];
+  rhythm: RhythmBackup[];
+  sailing: SailingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
   setting: SettingBackup[];
@@ -160,6 +183,8 @@ export const EMPTY_TABLES: BackupTables = {
   course: [],
   roadPoneglyph: [],
   poneglyph: [],
+  rhythm: [],
+  sailing: [],
   carried: [],
   task: [],
   setting: [],
@@ -262,7 +287,19 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     num(r.minutes) &&
     nullableStr(r.committedFor) &&
     nullableNum(r.doneAt) &&
+    nullableNum(r.rhythmKey) &&
     num(r.createdAt),
+  rhythm: (r) =>
+    str(r.title) &&
+    num(r.minutes) &&
+    str(r.kind) &&
+    str(r.weekdays) &&
+    num(r.intervalDays) &&
+    num(r.createdAt) &&
+    num(r.updatedAt) &&
+    nullableNum(r.retiredAt),
+  sailing: (r) =>
+    str(r.day) && str(r.heading) && nullableStr(r.note) && num(r.createdAt) && num(r.updatedAt),
   setting: (r) => str(r.key) && str(r.value),
 };
 
@@ -353,6 +390,9 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   course: (r) => r.day,
   roadPoneglyph: (r) => String(r.createdAt),
   poneglyph: (r) => String(r.createdAt),
+  rhythm: (r) => String(r.createdAt),
+  // One per day by definition, exactly like a course.
+  sailing: (r) => r.day,
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),
   setting: (r) => r.key,

@@ -168,6 +168,37 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS poneglyph_road_idx ON poneglyph (road_created_at);
     `,
   },
+  {
+    version: 7,
+    up: `
+      CREATE TABLE IF NOT EXISTS rhythm (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        title          TEXT    NOT NULL,
+        minutes        INTEGER NOT NULL DEFAULT 15,
+        kind           TEXT    NOT NULL DEFAULT 'weekdays',
+        weekdays       TEXT    NOT NULL DEFAULT '',
+        interval_days  INTEGER NOT NULL DEFAULT 1,
+        created_at     INTEGER NOT NULL,
+        updated_at     INTEGER NOT NULL,
+        retired_at     INTEGER
+      );
+
+      -- Which rhythm a struck task came from, by the rhythm's created_at.
+      -- Nullable: most tasks are one-offs and belong to nothing.
+      ALTER TABLE task ADD COLUMN rhythm_key INTEGER;
+      CREATE INDEX IF NOT EXISTS task_rhythm_idx ON task (rhythm_key);
+
+      CREATE TABLE IF NOT EXISTS sailing (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        day         TEXT    NOT NULL,
+        heading     TEXT    NOT NULL DEFAULT '',
+        note        TEXT,
+        created_at  INTEGER NOT NULL,
+        updated_at  INTEGER NOT NULL
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS sailing_day_idx ON sailing (day);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

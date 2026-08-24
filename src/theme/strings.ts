@@ -78,6 +78,31 @@ export type Strings = {
   carriedDream: string;
   carriedWhatICarry: string;
 
+  rhythmTitle: string;
+  rhythmLabel: string;
+  rhythmManage: string;
+  rhythmAdd: string;
+  rhythmEmpty: string;
+  rhythmBlurb: string;
+  rhythmName: string;
+  rhythmDays: string;
+  rhythmEvery: string;
+  rhythmRetire: string;
+  rhythmUnretire: string;
+  rhythmRetired: string;
+  rhythmKindWeek: string;
+  rhythmKindInterval: string;
+
+  sailTitle: string;
+  sailCta: string;
+  sailWeekLabel: string;
+  sailNeedlesLabel: string;
+  sailHeadingLabel: string;
+  sailNoteLabel: string;
+  sailSave: string;
+  sailCarriedLabel: string;
+  sailPastLabel: string;
+
   todayLoad: string;
   taskPlaceholder: string;
   addToToday: string;
@@ -183,6 +208,34 @@ const haki: Strings = {
   carriedDream: 'What they wanted',
   carriedWhatICarry: "What of it you're carrying",
 
+  // 律動 — the beat a thing keeps. Not a schedule: a schedule is when you
+  // must, and this is when a thing comes back round and offers itself.
+  rhythmTitle: 'The Rhythm',
+  rhythmLabel: 'Comes back',
+  rhythmManage: 'The rhythm',
+  rhythmAdd: 'Add a rhythm',
+  rhythmEmpty: 'Nothing set to come back yet.',
+  rhythmBlurb:
+    'Things that come back round. Nothing is created until you take it, so a day you let one pass leaves nothing behind — it simply comes round again.',
+  rhythmName: 'What comes back',
+  rhythmDays: 'Which days',
+  rhythmEvery: 'How many days between',
+  rhythmRetire: 'Stop this one',
+  rhythmUnretire: 'Start it again',
+  rhythmRetired: 'Stopped',
+  rhythmKindWeek: 'On days',
+  rhythmKindInterval: 'Every so often',
+
+  sailTitle: 'Setting Sail',
+  sailCta: 'Set sail',
+  sailWeekLabel: 'The week behind',
+  sailNeedlesLabel: 'The needles',
+  sailHeadingLabel: 'The heading',
+  sailNoteLabel: 'Anything worth writing down',
+  sailSave: 'Set the heading',
+  sailCarriedLabel: 'Carried',
+  sailPastLabel: 'Astern',
+
   todayLoad: "Today's load",
   taskPlaceholder: 'One thing. What is it?',
   addToToday: 'Carry today',
@@ -270,6 +323,25 @@ const plain: Strings = {
   trainingSection: 'Workouts',
   gearsTitle: 'Focus',
   hardnessLabel: 'Hardness',
+
+  rhythmTitle: 'Repeating',
+  rhythmLabel: 'Repeats',
+  rhythmManage: 'Repeating tasks',
+  rhythmAdd: 'Add a repeating task',
+  rhythmEmpty: 'Nothing repeating yet.',
+  rhythmBlurb:
+    'Tasks that repeat. Nothing is created until you tick it, so a day you skip one leaves nothing behind — it just comes back on its next day.',
+  rhythmName: 'What repeats',
+
+  sailTitle: 'Weekly review',
+  sailCta: 'Start the review',
+  sailWeekLabel: 'The week behind',
+  sailNeedlesLabel: 'Your goals',
+  sailHeadingLabel: 'This week',
+  sailSave: 'Save it',
+  sailCarriedLabel: 'People',
+  sailPastLabel: 'Past weeks',
+
   todayLoad: "Today's list",
 
   keystoneTitle: 'Keystone habit',

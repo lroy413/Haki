@@ -174,6 +174,37 @@ Hardening is not one of the lenses. It reads the whole day across all of the
 tools — a gear block or a sit still darkens the app — see
 `domain/hardening.ts`.
 
+## The rhythm is an offer, not a queue
+
+Recurring things (`domain/rhythm.ts`) create **nothing** until you take them.
+Every other task app materialises a row when a recurrence comes due, and by
+Friday the list is a rap sheet for the week — which is a shame mechanic with a
+calendar attached. Here the offers are computed for the day and rendered as
+rows that do not exist; taking one writes an ordinary struck `task` carrying
+the rhythm's `createdAt`, so it counts toward hardening and Armament like
+anything else. Un-ticking **deletes** that row rather than clearing `doneAt`:
+a rhythm is either taken today or standing today, and a committed-but-undone
+rhythm row is the rotting artefact the whole model exists to avoid.
+
+Two consequences worth keeping: an interval rhythm counts from the **last time
+it was taken**, never a fixed anchor, so letting one pass never pushes the next
+one away; and nothing anywhere reports how many times a rhythm has been taken
+or skipped. That number is derivable and displaying it would turn a set of
+offers into a set of scores.
+
+## Setting Sail is the one place that totals anything
+
+Everywhere else a count needs a denominator the app does not have — a journey
+has no total, hardening has no score. A week is different: seven days is real,
+bounded and honest, so `domain/sail.ts` may say "four of the seven days had
+something in them". The tone rules still bind, and the top of the range is
+where they bite hardest: **a full week gets a question, never a trophy**, because
+coasting is the thing to notice. There is a test asserting the seven-day
+message contains a question mark and no congratulation.
+
+Inherited Will surfaces here and nowhere else — the concept doc's rule kept
+exactly: at the weekly ritual, never on a schedule, never on a failure screen.
+
 ## The Log Pose
 
 覇王色 is **the lens with no meter**, and that is a decision rather than an
