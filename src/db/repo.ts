@@ -12,6 +12,7 @@ import { appendLine, isWritable } from '../domain/logbook';
 import type { Poneglyph, PoneglyphState, Road } from '../domain/logpose';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
+import type { DayRecord } from '../domain/foresight';
 import { NO_ACTS } from '../domain/hardening';
 import { minutesToday as gearMinutes } from '../domain/gears';
 import { minutesToday as sitMinutes } from '../domain/stillness';
@@ -673,6 +674,91 @@ export async function unstrikeRhythm(
   day: DayKey = todayKey(),
 ): Promise<void> {
   await db.delete(task).where(and(eq(task.rhythmKey, key), eq(task.committedFor, day)));
+}
+
+/* -------------------------------------------------------------- foresight */
+
+/**
+ * The whole history, shaped for `domain/foresight.ts`.
+ *
+ * One query per table and one pass to assemble, because this reads months
+ * rather than a week and per-day queries would be hundreds of round trips
+ * through expo-sqlite's single channel.
+ *
+ * Sleep is attached by its own key without shifting: `sleep_log` is keyed by
+ * the morning you woke, so the hours on a day are already the night *before*
+ * that day's read. That is the one relationship in the whole engine whose
+ * direction cannot be argued with, and it is free.
+ *
+ * Only days that carry a Daily Read come back. A day with acts and no read
+ * cannot answer any question Foresight asks, and including it would mean
+ * counting days into a comparison that contribute nothing to either side.
+ */
+export async function historyForForesight(db: Db, from: DayKey): Promise<DayRecord[]> {
+  const [reads, sleeps, tasks, sessions, gears, sits, entries] = await Promise.all([
+    db.select().from(dailyRead).where(gte(dailyRead.day, from)),
+    db.select().from(sleepLog).where(gte(sleepLog.day, from)),
+    db
+      .select()
+      .from(task)
+      .where(and(isNotNull(task.doneAt), gte(task.committedFor, from))),
+    db.select().from(trainingSession).where(gte(trainingSession.day, from)),
+    db.select().from(gearSession).where(gte(gearSession.day, from)),
+    db.select().from(sitSession).where(gte(sitSession.day, from)),
+    db.select().from(entry).where(gte(entry.day, from)),
+  ]);
+
+  const days = new Map<DayKey, DayRecord>();
+  for (const row of reads) {
+    days.set(row.day, {
+      day: row.day,
+      read: {
+        energy: row.energy,
+        mood: row.mood,
+        clarity: row.clarity,
+        tension: row.tension,
+      },
+      sleepHours: null,
+      sat: false,
+      trained: false,
+      struck: 0,
+      gearMinutes: 0,
+      wrote: false,
+    });
+  }
+
+  const at = (key: string | null): DayRecord | undefined =>
+    key === null ? undefined : days.get(key);
+
+  for (const row of sleeps) {
+    const day = at(row.day);
+    if (day) day.sleepHours = row.hours;
+  }
+  for (const row of tasks) {
+    const day = at(row.committedFor);
+    if (day) day.struck += 1;
+  }
+  for (const row of sessions) {
+    const day = at(row.day);
+    if (day) day.trained = true;
+  }
+  // A blank row left behind by opening the editor is not writing something.
+  for (const row of entries) {
+    const day = at(row.day);
+    if (day && row.body.trim().length > 0) day.wrote = true;
+  }
+
+  const stamp = now();
+  for (const [key, group] of groupByDay(gears)) {
+    const day = at(key);
+    if (day) day.gearMinutes += gearMinutes(group.map(toGearSession), stamp);
+  }
+  for (const [key, group] of groupByDay(sits)) {
+    const day = at(key);
+    if (day) day.sat = sitMinutes(group.map(toSitSession), stamp) > 0;
+  }
+
+  return [...days.values()].sort((a, b) => a.day.localeCompare(b.day));
 }
 
 /* ---------------------------------------------------------------- sailing */

@@ -11,11 +11,19 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useStore } from '../../src/db/client';
-import { listEntries, logLine } from '../../src/db/repo';
+import { listEntries } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea } from '../../src/domain/date';
 import { LogLine } from '../../src/components/LogLine';
+import { historyForForesight } from '../../src/db/repo';
+import {
+  findingLine,
+  foresight,
+  stateMessage as foresightMessage,
+  type Foresight,
+} from '../../src/domain/foresight';
+import { addDays, todayKey } from '../../src/domain/date';
 import { futureSight, openness, stateMessage, stateName } from '../../src/domain/observation';
 import { Eyes } from '../../src/components/instruments/Eyes';
 import { font, radius, space, type } from '../../src/theme/tokens';
@@ -50,6 +58,7 @@ export default function ObservationScreen() {
   const pad = useTabInsets();
 
   const [entries, setEntries] = useState<EntryRow[]>([]);
+  const [reading, setReading] = useState<Foresight | null>(null);
 
   const load = useCallback(async () => {
     const rows = await listEntries(db);
@@ -62,11 +71,15 @@ export default function ObservationScreen() {
       void (async () => {
         const rows = await listEntries(db);
         if (!cancelled) setEntries(rows);
+        // A year of history is a real query, so it runs after the list the
+        // screen is actually made of rather than racing it.
+        const history = await historyForForesight(db, addDays(todayKey(), -365));
+        if (!cancelled) setReading(foresight(history, settings.keystone.targetHours));
       })();
       return () => {
         cancelled = true;
       };
-    }, [db]),
+    }, [db, settings.keystone.targetHours]),
   );
 
   return (
@@ -123,6 +136,40 @@ export default function ObservationScreen() {
               </View>
               <Text style={styles.readingBody}>{stateMessage(observation)}</Text>
             </View>
+
+            {/* 未来視 — what the record has been saying. Shown only once the
+                engine has something, or once it is close enough that saying
+                what it is waiting for is informative rather than a nag; the
+                full readout and its method live on the pushed screen. */}
+            {reading && reading.state !== 'watching' ? (
+              <Pressable
+                onPress={() => router.push('/foresight')}
+                accessibilityRole="button"
+                accessibilityLabel={t.foresightTitle}
+                style={({ pressed }) => [styles.foresight, pressed && styles.pressed]}
+              >
+                <View style={styles.foresightHead}>
+                  <Text style={styles.foresightLabel}>{t.foresightLabel}</Text>
+                  {plainMode ? null : <Text style={styles.foresightGlyph}>未来視</Text>}
+                </View>
+                {reading.state === 'reading' ? (
+                  <>
+                    <Text style={styles.foresightLine}>
+                      {findingLine(reading.findings[0], plainMode)}
+                    </Text>
+                    {reading.findings.length > 1 ? (
+                      <Text style={styles.foresightMore}>
+                        {reading.findings.length - 1} more
+                      </Text>
+                    ) : null}
+                  </>
+                ) : (
+                  <Text style={styles.foresightQuiet}>
+                    {foresightMessage(reading, plainMode)}
+                  </Text>
+                )}
+              </Pressable>
+            ) : null}
 
             {/* The practice's door. The line under it is the offer, never the
                 absence — the practice card's rule, held here too. */}
@@ -220,6 +267,26 @@ const makeStyles = (c: Palette) =>
     stillName: { fontFamily: font.displayBold, fontSize: 17, color: c.ink },
     stillLine: { ...type.mono, fontSize: 11, color: c.inkDim },
     stillGo: { ...type.heading, fontSize: 15, color: c.violet },
+
+    foresight: {
+      borderWidth: 1,
+      borderColor: c.cyan,
+      backgroundColor: c.cyanSoft,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+      minHeight: 44,
+    },
+    foresightHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    foresightLabel: { ...type.label, color: c.cyan },
+    foresightGlyph: { fontFamily: font.display, fontSize: 15, color: c.cyan },
+    foresightLine: { ...type.body, color: c.ink, lineHeight: 22 },
+    foresightQuiet: { ...type.body, color: c.inkDim, lineHeight: 22 },
+    foresightMore: { ...type.mono, fontSize: 11, color: c.cyan },
 
     sectionLabel: { ...type.label, color: c.inkFaint, marginTop: space.sm },
     empty: { ...type.body, color: c.inkDim, textAlign: 'center', marginTop: space.xxxl },

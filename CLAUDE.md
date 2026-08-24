@@ -174,6 +174,32 @@ Hardening is not one of the lenses. It reads the whole day across all of the
 tools — a gear block or a sit still darkens the app — see
 `domain/hardening.ts`.
 
+## Foresight is tuned to stay quiet
+
+`domain/foresight.ts` reads the owner's own history back to him, which makes it
+the one module that can do real harm: **a mental-health app that confidently
+reports a pattern which is actually noise has invented a rule about somebody's
+mind and handed it over with the authority of arithmetic.**
+
+The first honest attempt — half a dial point of difference plus a median check
+— reported a confident finding on **254 of 300 simulated lives in which nothing
+was related to anything.** With a Welch t gate it speaks on 1. That simulation
+is `foresightNoise.test.ts` and it is the most important test in the repo; the
+planted-signal test beside it is the other half of the bargain, so the gates
+cannot simply be cranked until nothing survives.
+
+- **`MIN_T` is calibrated, not tabulated.** A Bonferroni critical value assumes
+  independent days, and daily self-reports are nothing of the kind — a bad week
+  is one event, not seven. The threshold was raised by simulation until the
+  engine shut up. If a change moves either the noise rate or the planted-signal
+  test, the change is wrong.
+- **Never a cause, never advice.** Every sentence describes two kinds of day.
+  `directionNote` says which-way-round is unknowable and renders at the same
+  weight as the finding, because it is half of what is known — not fine print.
+  There are tests forbidding "because", "you should" and their neighbours.
+- **Quiet is the ordinary answer**, and the copy says so rather than treating
+  an empty result as a failure of the app or of the life.
+
 ## The rhythm is an offer, not a queue
 
 Recurring things (`domain/rhythm.ts`) create **nothing** until you take them.

@@ -88,6 +88,8 @@ function Chrome() {
         <Stack.Screen name="rhythms" options={{ title: t.rhythmTitle }} />
         {/* The weekly ritual. See app/sail.tsx. */}
         <Stack.Screen name="sail" options={{ title: t.sailTitle }} />
+        {/* 未来視 — the full readout and its method. See app/foresight.tsx. */}
+        <Stack.Screen name="foresight" options={{ title: t.foresightTitle }} />
         <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />
         {/* One Road Poneglyph. The title is set from the pillar itself once
             it loads, so the header carries its name rather than a category. */}

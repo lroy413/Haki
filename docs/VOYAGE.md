@@ -426,10 +426,63 @@ the REPLACING THIS DRAWING contract, both are seeded so they never re-roll,
 and the eyes mask with the ground colour rather than a clip — a flat ground
 makes cover-up exact in every renderer.
 
+## Foresight, and the number that nearly shipped
+
+The payoff 見聞色 was named for: the app has been collecting reads, sleep, sits,
+sessions and struck tasks for months and had never once said what it could see
+in them.
+
+The engine is deliberately unclever. Every question has one shape — split the
+days in two and compare the dial — because a difference of half a point on a
+1–5 scale is a number the owner has already felt, and a correlation coefficient
+is a number nobody has ever felt. Sleep gets in because `sleep_log` is keyed to
+the morning you woke, so the night is always _before_ the day it is compared
+against: the one direction in the whole engine that cannot be argued with, and
+the app's founding failure mode besides.
+
+**Then the simulation ran.** Before any of it reached a screen, a test threw
+three hundred simulated lives at the engine in which nothing whatsoever was
+related to anything. It reported a confident pattern on **254 of them.**
+
+That is the whole story of this feature. The first version — a half-point
+difference and a median sanity check — would have shipped something that
+invented a rule about the owner's own mind roughly six times out of seven, and
+handed it over with the authority of arithmetic. In a mental-health app that is
+worse than shipping nothing. Nothing about the code looked wrong; it typechecked,
+its unit tests passed, and its sentences read beautifully.
+
+The fix is a Welch t across the two groups — a difference measured in units of
+its own uncertainty, which unlike a raw gap scales with how noisy and how
+numerous the days are. The threshold is **calibrated rather than tabulated**,
+and that is the honest part: the textbook value would be a Bonferroni-corrected
+critical value, which assumes each day is independent of the last, and daily
+self-reports are nothing of the kind — a bad week is one event, not seven. So
+the bar was raised by simulation until the engine kept its mouth shut. At
+`MIN_T = 3.5` it speaks on 1 life in 300. A planted-signal test sits beside the
+noise test so the gates can never simply be cranked until nothing survives.
+
+Driven with a hundred days of synthetic history carrying exactly two real
+signals buried in noise, it found exactly those two — sleep against energy,
+sitting against clarity — and said nothing at all about training, tasks,
+entries, mood or tension. Seventy days of pure noise gets _"nothing stands out
+in them. That is an ordinary result."_
+
+Two rules hold the copy. **It never claims a cause**: sitting on clear days and
+being clear on days you sit look identical in this data, and `directionNote`
+says so at the same weight as the finding rather than shrinking it into fine
+print, because it is half of what is actually known. And **it never gives
+advice** — the moment a readout starts recommending, it is a coach, and this
+app does not have a coach in it. Both are tests.
+
+The screen ends by explaining its own method in four lines. Somebody reading a
+sentence about their own mind is owed the arithmetic that produced it, and an
+engine that cannot explain itself in a paragraph has no business telling anyone
+anything about themselves.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Seventeen pull
-requests merged, 535 tests, one principle held everywhere: the app rewards the
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Eighteen pull
+requests merged, 559 tests, one principle held everywhere: the app rewards the
 act and never punishes the absence.
 
 What is actually in it:
@@ -443,23 +496,20 @@ What is actually in it:
 | **The day**         | A course set for today or tomorrow and never marked. Six practices, each showing its offer rather than its absence. Hardening across four palettes, from paper to black, and the Sunny reading it back as a state and never a position. |
 | **The journey**     | The Log Pose. One dream that never scales down, four to seven Road Poneglyphs beneath it, one island at a time under each — finish it or sail past it with a reason, and nothing counted against a total.                               |
 | **The week**        | Setting Sail: the week read back, every needle looked at once, one heading named. And the rhythm — things that come back round, creating nothing until taken, so a day you let one pass leaves nothing behind.                          |
+| **The reading**     | Foresight: two kinds of day compared, and the difference reported only when it outruns the scatter. Calibrated by simulation to stay quiet — it never claims a cause and never gives advice.                                            |
 | **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. The Conqueror's burst, fired by exactly one thing. Seven sounds, sixty quotes. |
 
 **Charted next**, roughly in the order they make sense:
 
-1. **Foresight** — the app holds months of reads, sleep, sits, training and
-   struck tasks, and has never once said what it sees. Sentences before charts:
-   "clarity runs about a point higher the day after seven hours." It is the
-   payoff Observation is named for, and the only large piece still unbuilt.
-2. **The Flag** — three to five values in your own words, and the thing a Road
+1. **The Flag** — three to five values in your own words, and the thing a Road
    Poneglyph can be checked against. Small, and the last piece of Conqueror's
    from the concept doc still missing.
-3. **The island's wake** — struck tasks remembering which island they came
+2. **The island's wake** — struck tasks remembering which island they came
    from, so an arrival can say what it actually took. One column and two
    screens.
-4. **The Zoro theme** — the field keeps the violence, the instrument becomes a
+3. **The Zoro theme** — the field keeps the violence, the instrument becomes a
    sword. The seam is already cut; this is one file and a picker.
-5. **Native.** The PWA has carried it this far, but iOS cannot do reliable
+4. **Native.** The PWA has carried it this far, but iOS cannot do reliable
    notifications or a home-screen widget, and the Den Den Mushi taxonomy in
    the concept doc needs real notification channels.
 

@@ -93,6 +93,13 @@ export type Strings = {
   rhythmKindWeek: string;
   rhythmKindInterval: string;
 
+  foresightTitle: string;
+  foresightLabel: string;
+  foresightBlurb: string;
+  foresightWatching: string;
+  foresightEvidence: string;
+  foresightOpen: string;
+
   sailTitle: string;
   sailCta: string;
   sailWeekLabel: string;
@@ -226,6 +233,16 @@ const haki: Strings = {
   rhythmKindWeek: 'On days',
   rhythmKindInterval: 'Every so often',
 
+  // 未来視 — future sight, which is what 見聞色 reaches at its far end and
+  // what the eyes' glint is for.
+  foresightTitle: 'Foresight',
+  foresightLabel: 'Foresight',
+  foresightBlurb:
+    'What your own record has been saying. Two kinds of day, and how they read differently — drawn from your history, never from anyone else\u2019s advice.',
+  foresightWatching: 'Still watching',
+  foresightEvidence: 'Read from',
+  foresightOpen: 'All of it',
+
   sailTitle: 'Setting Sail',
   sailCta: 'Set sail',
   sailWeekLabel: 'The week behind',
@@ -332,6 +349,13 @@ const plain: Strings = {
   rhythmBlurb:
     'Tasks that repeat. Nothing is created until you tick it, so a day you skip one leaves nothing behind — it just comes back on its next day.',
   rhythmName: 'What repeats',
+
+  foresightTitle: 'Patterns',
+  foresightLabel: 'Patterns',
+  foresightBlurb:
+    'What your own check-ins have been saying. Two kinds of day, and how they read differently.',
+  foresightWatching: 'Still watching',
+  foresightOpen: 'All of it',
 
   sailTitle: 'Weekly review',
   sailCta: 'Start the review',
