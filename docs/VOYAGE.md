@@ -639,8 +639,8 @@ all the way from the glyph in the corner to the tab you arrived by.
 
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Nineteen pull
-requests merged, 562 tests, one principle held everywhere: the app rewards the
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-two pull
+requests merged, 634 tests, one principle held everywhere: the app rewards the
 act and never punishes the absence.
 
 What is actually in it:
@@ -662,14 +662,24 @@ What is actually in it:
 1. **The Flag** — three to five values in your own words, and the thing a Road
    Poneglyph can be checked against. Small, and the last piece of Conqueror's
    from the concept doc still missing.
-2. **The island's wake** — struck tasks remembering which island they came
-   from, so an arrival can say what it actually took. One column and two
-   screens.
-3. **The Zoro theme** — the field keeps the violence, the instrument becomes a
+2. **Soundings** — an island that is numeric by nature (a figure, a weight, a
+   count) allowed to log a number whenever one is taken, shown as the latest
+   and the line behind it. No target, no bar, no pace: the trend is the
+   information, and it obeys the no-denominator rule by carrying none.
+3. **Astern in the log** — "a year ago today you wrote", above the Logbook,
+   only when a past entry exists for the date. Memory as a source is already
+   this app's law; this is the feature that law was written for, and it wants
+   building before the first anniversary rather than after it.
+4. **The Zoro theme** — the field keeps the violence, the instrument becomes a
    sword. The seam is already cut; this is one file and a picker.
-4. **Native.** The PWA has carried it this far, but iOS cannot do reliable
+5. **Native.** The PWA has carried it this far, but iOS cannot do reliable
    notifications or a home-screen widget, and the Den Den Mushi taxonomy in
    the concept doc needs real notification channels.
+
+And the Gears are still parked on `/gears`, waiting on the page the owner has
+a clearer vision for than this record does: Haki is will, a Devil Fruit is
+ability, and the ability page is the career one. Nothing about it is designed
+yet, and that is the correct amount.
 
 And two debts worth naming. The ship and the fist are hand-plotted and it
 shows — both carry a **REPLACING THIS DRAWING** contract so a proper redraw
