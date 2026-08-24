@@ -144,6 +144,10 @@ export default function ArmamentScreen() {
   }
 
   const day = todayKey();
+  /** Whether today has already banked into the hardness window. */
+  const todayIn =
+    tasks.some((item) => item.committedFor === day && item.doneAt !== null) ||
+    sessions.some((item) => item.day === day);
   /**
    * A rhythm already taken today is a real struck task in `load.doneToday`,
    * so it must not also appear as an offer — hence the keys handed to
@@ -214,15 +218,23 @@ export default function ArmamentScreen() {
             accessibilityRole="image"
             accessibilityLabel={`Hardness, ${hardnessName(hardness.value)}`}
           >
+            {/* A perceptual floor on the lit length: day one is 1/28 ≈ 4%,
+                which is a sliver so thin the whole gauge reads as unlit —
+                after five struck tasks, which is exactly the moment it must
+                not. The label above still tells the true number; the floor
+                only guarantees that "lit at all" is visible at arm's
+                length. */}
             <Bolt
               track={palette.lineSoft}
               core={darkest(palette)}
               halo={palette.crimson}
-              fill={(hardness.value ?? 0) / 100}
+              fill={hardness.value === null ? 0 : Math.max(0.07, hardness.value / 100)}
             />
           </View>
         )}
-        <Text style={styles.message}>{hardnessMessage(hardness.value, hardness.days)}</Text>
+        <Text style={styles.message}>
+          {hardnessMessage(hardness.value, hardness.days, todayIn)}
+        </Text>
 
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
@@ -240,8 +252,15 @@ export default function ArmamentScreen() {
               and a total of 0m is being told something untrue. The capacity
               *verdict* below still reads committed work only, so a heavy
               rhythm day never triggers an over-capacity warning on its own. */}
+          {/* Remaining minutes while anything stands; once the list is clear
+              the figure flips to what was carried — "0m" over a column of
+              struck tasks reads as the day not counting. */}
           <Text style={[styles.carrying, load.read === 'over' && { color: palette.warn }]}>
-            {formatMinutes(load.openMinutes + standingMinutes)}
+            {load.openMinutes + standingMinutes > 0
+              ? formatMinutes(load.openMinutes + standingMinutes)
+              : load.doneMinutes > 0
+                ? `${formatMinutes(load.doneMinutes)} struck`
+                : formatMinutes(0)}
           </Text>
         </View>
 
@@ -295,7 +314,11 @@ export default function ArmamentScreen() {
 
         {today.map(({ item, done }) => (
           <TaskRow
-            key={item.id}
+            // A struck rhythm keeps the key its offer row had, so striking one
+            // is a re-render rather than an unmount — the same swallowed-
+            // emission bug the one-list comment below describes, which the
+            // rhythm rows quietly reintroduced by changing key mid-strike.
+            key={item.rhythmKey !== null ? `rhythm-${item.rhythmKey}` : item.id}
             task={item}
             done={done}
             note={cadenceOf(item.rhythmKey)}

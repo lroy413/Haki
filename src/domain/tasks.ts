@@ -161,6 +161,14 @@ export function formatMinutes(minutes: number): string {
 export function loadMessage(load: Load): string | null {
   if (load.read === 'empty') return 'Nothing pulled in for today yet.';
 
+  // A cleared list comes first: "0m still to carry" and "this belongs to
+  // another day" are both about work that is still open, and once everything
+  // is struck they read as the day not counting — the exact opposite of what
+  // happened.
+  if (load.open.length === 0 && load.doneToday.length > 0) {
+    return `The list is clear. ${formatMinutes(load.doneMinutes)} carried today.`;
+  }
+
   if (load.read === 'over') {
     return (
       `${formatMinutes(load.openMinutes + load.doneMinutes)} on today against about ` +

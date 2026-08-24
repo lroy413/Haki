@@ -150,7 +150,8 @@ describe('what it says', () => {
 
   it('never shames, at any value', () => {
     for (const v of VALUES) {
-      const text = `${hardnessName(v)} ${hardnessMessage(v, 4)}`.toLowerCase();
+      const text =
+        `${hardnessName(v)} ${hardnessMessage(v, 4)} ${hardnessMessage(v, 4, true)}`.toLowerCase();
       for (const word of ['failed', 'should', 'lazy', 'behind', 'finally', 'poor', 'bad']) {
         expect(text).not.toContain(word);
       }
@@ -160,5 +161,16 @@ describe('what it says', () => {
   it('tells a low window what moves it rather than what is missing', () => {
     expect(hardnessMessage(10, 3).toLowerCase()).toContain('one thing today');
     expect(hardnessMessage(null, 0).toLowerCase()).toContain('anything done in this tool');
+  });
+
+  it('acknowledges a day already banked instead of asking for it again', () => {
+    // Five tasks struck, and the line still read "one thing today moves it" —
+    // an ask already answered, which made the gauge feel dead. Once today has
+    // armament in it, the line has to say so.
+    expect(hardnessMessage(4, 1, true).toLowerCase()).toContain('today is in');
+    expect(hardnessMessage(4, 1, true)).not.toContain('One thing today');
+    expect(hardnessMessage(40, 12, true).toLowerCase()).toContain('today is in');
+    // A day not yet banked keeps the offer.
+    expect(hardnessMessage(10, 3, false).toLowerCase()).toContain('one thing today');
   });
 });

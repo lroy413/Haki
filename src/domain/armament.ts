@@ -120,11 +120,22 @@ export function hardnessName(value: number | null): string {
  * Says what the window has had in it and stops. Nothing here reads as a
  * verdict on a quiet month, because a quiet month is usually when somebody
  * most needs the app not to pile on.
+ *
+ * `todayIn` matters more than it looks: the owner struck five tasks and this
+ * line still said "one thing today moves it" — an ask he had already
+ * answered, which made the whole gauge read as dead. A day already banked has
+ * to be acknowledged as banked, or acting looks indistinguishable from not
+ * acting.
  */
-export function hardnessMessage(value: number | null, days: number): string {
+export function hardnessMessage(value: number | null, days: number, todayIn = false): string {
   if (value === null)
     return 'Anything done in this tool lands here — a task struck, a session logged.';
   if (value >= 80) return `${days} of the last 28 days had something in them.`;
+  if (todayIn) {
+    return days === 1
+      ? 'Today is in — the first of the 28. Each new day carries it further.'
+      : `Today is in — ${days} of the last 28. Each new day carries it further.`;
+  }
   if (value >= 30) return `${days} of the last 28. It climbs the day you come back.`;
   return `${days} of the last 28. One thing today moves it.`;
 }
