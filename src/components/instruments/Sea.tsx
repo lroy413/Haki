@@ -42,11 +42,21 @@ const TO = 350;
 
 type Water = { swell: number; crests: number; wake: number; lines: 1 | 2 | 3 };
 
+/**
+ * How much sea is running, 0..1 by hardening level.
+ *
+ * Exported because this is the app's *one* answer to that question: the
+ * settings chart draws its own water and it has to be the same water — flat
+ * calm on paper, full swell in the settled dark — or the two screens would
+ * disagree about the weather.
+ */
+export const SWELL: Record<HardeningLevel, number> = { 0: 0, 1: 0.35, 2: 0.7, 3: 1 };
+
 const STATE: Record<HardeningLevel, Water> = {
-  0: { swell: 0, crests: 0, wake: 0, lines: 1 },
-  1: { swell: 0.35, crests: 2, wake: 1, lines: 2 },
-  2: { swell: 0.7, crests: 5, wake: 2, lines: 3 },
-  3: { swell: 1, crests: 8, wake: 3, lines: 3 },
+  0: { swell: SWELL[0], crests: 0, wake: 0, lines: 1 },
+  1: { swell: SWELL[1], crests: 2, wake: 1, lines: 2 },
+  2: { swell: SWELL[2], crests: 5, wake: 2, lines: 3 },
+  3: { swell: SWELL[3], crests: 8, wake: 3, lines: 3 },
 };
 
 /**
@@ -57,11 +67,18 @@ const STATE: Record<HardeningLevel, Water> = {
  * every segment is flat and the path is a straight line — so calm water is the
  * same code with the wind taken out of it, rather than a special case.
  */
-function swellPath(y: number, amp: number, wavelength: number, rising: boolean): string {
+export function swellPath(
+  y: number,
+  amp: number,
+  wavelength: number,
+  rising: boolean,
+  from = FROM,
+  to = TO,
+): string {
   const half = wavelength / 2;
-  let d = `M ${FROM} ${y}`;
+  let d = `M ${from} ${y}`;
   let up = rising;
-  for (let x = FROM; x < TO; x += half) {
+  for (let x = from; x < to; x += half) {
     d += ` q ${(half / 2).toFixed(1)} ${(up ? -amp : amp).toFixed(2)} ${half.toFixed(1)} 0`;
     up = !up;
   }

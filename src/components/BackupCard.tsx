@@ -125,7 +125,7 @@ export function BackupCard() {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Your data</Text>
+      {/* No title: the page header names this card's island now. */}
       <Text style={styles.blurb}>
         Everything lives on this device and nothing is uploaded anywhere — so this is the only
         way it moves. Export before you switch phones or move to the native app.
@@ -209,7 +209,6 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.md,
     },
-    title: { ...type.title, color: c.ink },
     blurb: { ...type.small, color: c.inkDim, lineHeight: 20 },
 
     row: { flexDirection: 'row', gap: space.sm },

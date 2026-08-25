@@ -158,6 +158,11 @@ export type Strings = {
   keystoneBlurb: string;
   downstreamLabel: string;
 
+  settingsBlurb: string;
+  quietTitle: string;
+  dayTurnTitle: string;
+  dataTitle: string;
+
   dials: { energy: string; mood: string; clarity: string; tension: string };
   weatherPrompt: string;
   weatherHint: string;
@@ -342,6 +347,15 @@ const haki: Strings = {
     'When this slips, everything below it slips too. The warning fires on the first bad night, not after the week is gone.',
   downstreamLabel: 'What it carries',
 
+  // The settings chart. Each category is an island; the names are places,
+  // because that is what they are — you sail to one, change something, sail
+  // back. Quiet is the pair of mute switches, Daybreak is where the day
+  // turns over.
+  settingsBlurb: 'Every setting is an island. Tap one to go ashore.',
+  quietTitle: 'Quiet',
+  dayTurnTitle: 'Daybreak',
+  dataTitle: 'Your data',
+
   dials: { energy: 'Energy', mood: 'Mood', clarity: 'Clarity', tension: 'Tension' },
   weatherPrompt: 'The weather',
   weatherHint: 'One word for the sky today. Optional, every day.',
@@ -442,6 +456,10 @@ const plain: Strings = {
   todayLoad: "Today's list",
 
   keystoneTitle: 'Keystone habit',
+
+  settingsBlurb: 'Every setting, by category.',
+  quietTitle: 'Sound & effects',
+  dayTurnTitle: 'Day start',
 
   daysAtSea: (n) => `Day ${n}`,
 };

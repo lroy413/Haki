@@ -721,10 +721,46 @@ not a lens — with the pill washed in that colour and the kanji itself lit. Eac
 screen's mark in its top corner wears the same light. One screen, one colour,
 all the way from the glyph in the corner to the tab you arrived by.
 
+## The settings archipelago
+
+The owner asked for a modern settings screen — categories with their own pages
+— and then for the direction it should grow: the settings should eventually
+read as islands on the sea, the islands themselves the buttons. Since the hub
+was being rebuilt anyway, it was built that way from the start.
+
+The settings tab is now a chart. Six islands, each a category, each with its
+own landmark drawn in the same stroke language as the Sunny: **Whose will** is
+a peak flying a pennant in whatever colour 覇王色 currently burns — the one
+spot of colour on the chart, because it is data. **Quiet** is a low atoll with
+a palm, holding the two mute switches. **Daybreak** is a lighthouse, where the
+day turns over. **Keystone** is a stone arch with the keystone set in its
+crown. **Armament** is twin crags. **Your data** is a harbour with a jetty,
+because it is where things are loaded on and off. A dashed course is pencilled
+from island to island, and pressing anywhere in an island's band of sea goes
+ashore to its page, which carries the same island small and becalmed at its
+top.
+
+The water is the Sunny's own — same `swellPath`, same swell-by-hardening
+amounts, exported from `instruments/Sea.tsx` rather than copied — so the chart
+is flat calm on paper and running in the settled dark, and the two screens can
+never disagree about the weather. The water pools around each island rather
+than ruling across the screen, because six stacked full-width waterlines read
+as a ledger, which is exactly the template the chart exists to escape. The
+landmasses live in `instruments/Isles.tsx` behind the usual REPLACING THESE
+DRAWINGS contract; the row, the water and the plotted course are the system,
+in `IslandRow.tsx`.
+
+Plain mode gets no archipelago: the same six categories render as a plain
+list, same order, same pages. The pages themselves are the old settings
+cards, one category each — the crew picker, the two switches, the day-start
+stepper, the keystone and training forms, the backup card — with save buttons
+that now say "Saved" until you edit again, since on a pushed page you save
+and leave.
+
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-five
-pull requests merged, 674 tests, one principle held everywhere: the app
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-six
+pull requests merged, 704 tests, one principle held everywhere: the app
 rewards the act and never punishes the absence.
 
 What is actually in it:
@@ -739,6 +775,7 @@ What is actually in it:
 | **The journey**     | The Log Pose. One dream that never scales down, the Flag it sails under, four to seven Road Poneglyphs beneath it, one island at a time under each — finish it or sail past it with a reason, soundings on the ones that carry a number, and nothing counted against a total. |
 | **The week**        | Setting Sail: the week read back, every needle looked at once, one heading named. And the rhythm — things that come back round, creating nothing until taken, so a day you let one pass leaves nothing behind.                                                                |
 | **The reading**     | Foresight: two kinds of day compared, and the difference reported only when it outruns the scatter. Calibrated by simulation to stay quiet — it never claims a cause and never gives advice.                                                                                  |
+| **Settings**        | A chart: six islands, each a category with its own page, the course pencilled between them, the whole archipelago on the Sunny's own sea. Plain mode folds it into a list.                                                                                                    |
 | **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. The Conqueror's burst, fired by exactly one thing. Seven sounds, sixty quotes.                                       |
 
 **Charted next**, roughly in the order they make sense:
