@@ -598,6 +598,43 @@ paper catches nothing, the glow only grows with the level, plain mode gets
 the list — and none of it in a lens's colour, so the crew pennant remains
 the chart's one spot of colour.
 
+### The camp on the water
+
+Then the owner sent a second reference — a menu he'd had built for another
+app: a base camp at night, tents glowing warm under a snow-capped peak, each
+one labelled beneath. Make the archipelago feel like that. So the pools
+turned from pale ink-light to lamplight: each island is now a dark landmass
+whose _landmark_ is its light source — the lighthouse's lamp burns and
+throws its beams, the jetty hangs three lanterns and the warehouse keeps a
+window on, the summit keeps a beacon beside the pennant, the forge glows in
+the col, the lagoon holds the faintest shimmer on the chart. Above them the
+sky opened: stars in a fixed constellation, a soft-haloed moon, and a
+moonlit massif with a proper snow hem (`instruments/Skyline.tsx`, behind
+the usual replacing-drawings contract). Names moved beneath the islands,
+small caps the way a camp labels its tents, and an amber dateline — Day N
+at sea — stands over the title. One warmth for every lamp (`warn`, never a
+lens colour), paper keeps the pencilled chart, plain keeps the list.
+
+Two more photographs arrived — the glowing islands again, and Ha Long Bay
+full of lit cruise boats — and the sea itself came alive: every lamp now
+stands in the water as a broken shimmer column, small craft ride at anchor
+in each row's open water with their deck lights doubled below them, the
+moon leaves a glimmer on the first stretch of sea, haze rolls off the far
+shore, and one star burns brighter than the rest with a lens-spark. A bay
+is never empty; neither is this one.
+
+And the moon is tonight's moon. "Lunar accurate please," the owner said, so
+`domain/moon.ts` computes the real phase — days since a known new moon,
+folded into the synodic month, tested against the epoch and a solar
+eclipse — and the chart draws it: the lit limb on the waxing side, the
+terminator a half-ellipse breathing with the cosine of the phase angle,
+the maria placed as they are on the near side and clipped to the lit
+region, Tycho bright in the southern highlands, earthshine holding the
+dark of the disc. The halo and the moon's glimmer on the water both follow
+the illuminated fraction — a crescent barely warms the sky, a full moon
+owns it. The one deliberate exception to the day-boundary rule: the moon
+takes a plain date, because the sky does not keep the voyage's clock.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records

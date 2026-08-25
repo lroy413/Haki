@@ -130,12 +130,16 @@ the usual replacing-drawings contract. Four rules:
   a lens.
 - **Plain mode gets a plain list**, same categories, same order, same
   routes. The chart is a performance.
-- **At night the chart is lit, and the light is ink.** As the day hardens
-  each island gains a pool of light on the water (hot ring at the shore,
-  falling off in shells), the landmass brightens to full ink, and the
-  horizon's peaks fill in behind the archipelago. Same law as `lit()`:
-  paper catches nothing, the glow only grows, and it is never a lens
-  colour — the pennant stays the chart's one spot of colour.
+- **At night the chart is a scene, and the light is lamplight.** As the day
+  hardens the sky fills with stars behind a moonlit massif
+  (`instruments/Skyline.tsx`), each island becomes a dark landmass whose
+  landmark keeps a light — the lamp, the lanterns, the beacon — in a warm
+  pool on the water (hot ring at the shore, falling off in shells), and the
+  name sits beneath the island the way a camp labels its tents. Lamplight
+  is always `warn` — one warmth for the whole chart, never a lens colour —
+  so the crew pennant stays the chart's one lens-coloured mark. Same law as
+  `lit()`: paper catches nothing (the pencilled chart stays), the light
+  only grows, and plain mode gets the list.
 
 Adding a category = one entry in the hub's `islands` array, a page under
 `app/`, a `Stack.Screen` in `app/_layout.tsx`, and a landmass in `Isles.tsx`
@@ -225,7 +229,9 @@ there when you cut a new one**, or the next person re-cutting it is guessing.
 
 - **A day does not end at midnight.** `todayKey()` respects a configurable
   boundary (`voyage.dayStartHour`), so anything asking "what day is it" must go
-  through it rather than reading a `Date` itself. `loadSettings` applies the
+  through it rather than reading a `Date` itself. One deliberate exception:
+  `domain/moon.ts` takes a plain `Date`, because the settings chart's moon
+  shows the sky's real phase and the sky does not keep the voyage's clock. `loadSettings` applies the
   boundary before it computes anything, because everything after that line is
   wrong until it does.
 - **`src/domain/` is pure TypeScript with no React Native imports.** That is
