@@ -14,17 +14,21 @@ describe('the crews', () => {
     expect(isCrewName('')).toBe(false);
   });
 
-  it("gives Zoro's Conqueror's the green and leaves the rest alone", () => {
-    // His Haki is black and purple; the green is what Conqueror's adds. So
-    // exactly one accent moves, and it is the 覇王色 one.
+  it("gives Zoro's Conqueror's the green and his Armament the purple", () => {
+    // His Haki is black and purple — so the coating itself burns amethyst —
+    // and the green is what Conqueror's adds. Two lenses move; 見聞色 is not
+    // a key on the crew at all, which is how it stays violet under both.
     expect(crewFor('luffy').conquerors).toBe('violet');
     expect(crewFor('zoro').conquerors).toBe('jade');
+    expect(crewFor('luffy').armament).toBe('crimson');
+    expect(crewFor('zoro').armament).toBe('amethyst');
   });
 
-  it('carries a colour key rather than a colour', () => {
+  it('carries colour keys rather than colours', () => {
     // A crew that held a hex would be right on one of four palettes.
     for (const name of CREW_ORDER) {
       expect(crewFor(name).conquerors).not.toMatch(/^#/);
+      expect(crewFor(name).armament).not.toMatch(/^#/);
     }
   });
 

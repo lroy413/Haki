@@ -85,7 +85,7 @@ export default function ConquerorsScreen() {
   const router = useRouter();
   const { db } = useStore();
   const { t, palette, plainMode, hardening, crew: flying } = useHaki();
-  const lens = useMemo(() => underCrew(palette, flying.conquerors), [palette, flying]);
+  const lens = useMemo(() => underCrew(palette, flying), [palette, flying]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
   const pad = useTabInsets();
 

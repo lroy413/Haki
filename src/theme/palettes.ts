@@ -55,6 +55,17 @@ export type Palette = {
   jade: string;
   jadeSoft: string;
 
+  /**
+   * The coating. Zoro's 武装色 — his Haki is black and purple, so under his
+   * flag Armament's light moves off Luffy's crimson and onto this. A deep
+   * blue-purple on purpose: the signature violet is 見聞色's and 覇王色's, and
+   * a lens borrowing it would blur the legend the tab bar keeps. Same rule as
+   * jade: it lives here and is held to every floor, because a theme may not
+   * smuggle in a hex.
+   */
+  amethyst: string;
+  amethystSoft: string;
+
   glass: string;
   glassEdge: string;
 
@@ -115,6 +126,8 @@ const unhardened: Palette = {
   warnSoft: '#E6D5A8',
   jade: '#136B1B',
   jadeSoft: '#C6E4BE',
+  amethyst: '#3A2FA8',
+  amethystSoft: '#DCD6F1',
 
   // Denser than the dark palettes on purpose. A violet button scrolling under
   // a light bar shows straight through a thin fill, and the tab label is dark
@@ -150,6 +163,8 @@ const hardened: Palette = {
   warnSoft: '#382B10',
   jade: '#63E86E',
   jadeSoft: '#1B3E1E',
+  amethyst: '#A79BFF',
+  amethystSoft: '#2B2A5C',
 
   glass: 'rgba(38,42,56,0.66)',
   glassEdge: 'rgba(241,239,248,0.12)',
@@ -182,6 +197,8 @@ const set: Palette = {
   warnSoft: '#32260C',
   jade: '#57E163',
   jadeSoft: '#123015',
+  amethyst: '#9C8EFF',
+  amethystSoft: '#232250',
 
   glass: 'rgba(27,30,42,0.64)',
   glassEdge: 'rgba(237,235,245,0.11)',
@@ -214,6 +231,8 @@ const black: Palette = {
   warnSoft: '#2C2008',
   jade: '#4BDC58',
   jadeSoft: '#0E2712',
+  amethyst: '#968CFF',
+  amethystSoft: '#1D1C42',
 
   glass: 'rgba(18,20,31,0.62)',
   glassEdge: 'rgba(233,231,243,0.10)',
@@ -260,17 +279,28 @@ export function darkest(p: Palette): string {
 }
 
 /**
- * The palette as a given crew's 覇王色 sees it.
+ * The palette as a given crew's lenses see it.
  *
- * Every Conqueror's screen writes `c.violet` and means "the lens's colour",
- * not "purple" — so rather than teaching six screens that a crew exists, the
- * crew is applied to the palette once and the screens are handed the result.
- * Under Luffy it is the identity function; under Zoro the violet slots carry
- * Enma's green, which is the only thing his flag changes about colour.
+ * Every lens screen writes `c.violet` or `c.crimson` and means "the lens's
+ * colour", not "purple" or "red" — so rather than teaching a dozen screens
+ * that a crew exists, the crew is applied to the palette once and the screens
+ * are handed the result. Under Luffy it is the identity function; under Zoro
+ * the violet slots carry Enma's green (what 覇王色 adds) and the crimson
+ * slots carry the amethyst (his own coating — black and purple).
  *
- * Deliberately not applied globally: 見聞色 is violet under both crews, and a
- * blanket swap would turn the reading card and the eyes green as well.
+ * Deliberately not applied globally, and for two different reasons:
+ * 見聞色 is violet under both crews, so a blanket violet swap would turn the
+ * reading card and the eyes green; and crimson doubles as semantic red — a
+ * breach, a delete — which must never soften into a theme colour. A screen
+ * takes the lens palette only where it means the lens.
  */
-export function underCrew(p: Palette, conquerors: 'violet' | 'jade'): Palette {
-  return conquerors === 'violet' ? p : { ...p, violet: p.jade, violetSoft: p.jadeSoft };
+export function underCrew(
+  p: Palette,
+  crew: { conquerors: 'violet' | 'jade'; armament: 'crimson' | 'amethyst' },
+): Palette {
+  let out = p;
+  if (crew.conquerors === 'jade') out = { ...out, violet: p.jade, violetSoft: p.jadeSoft };
+  if (crew.armament === 'amethyst')
+    out = { ...out, crimson: p.amethyst, crimsonSoft: p.amethystSoft };
+  return out;
 }

@@ -64,7 +64,7 @@ export function NeedleCard({
   onDetail: () => void;
 }) {
   const { t, palette, plainMode, crew } = useHaki();
-  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
 
   const [mode, setMode] = useState<Mode>('idle');

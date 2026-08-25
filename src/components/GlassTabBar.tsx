@@ -68,7 +68,7 @@ function publish(height: number): void {
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { t, palette, plainMode, conquerors } = useHaki();
+  const { t, palette, plainMode, conquerors, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const tabs: Tab[] = [
@@ -100,7 +100,9 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
             if (!tab) return null;
 
             const { options } = descriptors[route.key];
-            const tint = focused ? lensTints(palette, conquerors)[index] : palette.inkFaint;
+            const tint = focused
+              ? lensTints(palette, conquerors, palette[crew.armament])[index]
+              : palette.inkFaint;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -164,12 +166,13 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
  * record in cyan, 見聞色 violet, 武装色 crimson, and settings in plain ink
  * because it is not a lens.
  *
- * 覇王色 is the one that moves. It burns whatever the crew currently flying
- * burns — the signature violet under Luffy, Enma's green under Zoro — which
- * is why it arrives as an argument rather than a token.
+ * 覇王色 and 武装色 both move with the crew — the signature violet and the
+ * crimson under Luffy, Enma's green and the amethyst coating under Zoro —
+ * which is why they arrive as arguments rather than tokens. 見聞色 never
+ * moves; it is violet under every flag.
  */
-function lensTints(c: Palette, conquerors: string): string[] {
-  return [c.cyan, c.violet, c.crimson, conquerors, c.inkDim];
+function lensTints(c: Palette, conquerors: string, armament: string): string[] {
+  return [c.cyan, c.violet, armament, conquerors, c.inkDim];
 }
 
 const makeStyles = (c: Palette) =>

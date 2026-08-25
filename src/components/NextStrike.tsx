@@ -1,4 +1,5 @@
 import { useHaki } from '../state/HakiProvider';
+import { underCrew } from '../theme/palettes';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -31,8 +32,9 @@ export function NextStrike({
   onOpenList: () => void;
   emptyLabel: string;
 }) {
-  const { palette } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { palette, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
 
   // Striking the last task swaps this card for the empty one. Counting the
   // strikes here and wrapping *both* branches in one Emission keeps that

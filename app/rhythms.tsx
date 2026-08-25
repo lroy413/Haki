@@ -25,6 +25,7 @@ import {
 } from '../src/domain/rhythm';
 import { DEFAULT_TASK_MINUTES, formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
+import { underCrew } from '../src/theme/palettes';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
@@ -62,8 +63,10 @@ const EMPTY: Draft = {
 
 export default function RhythmsScreen() {
   const { db } = useStore();
-  const { t, palette, plainMode, refresh } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, palette, plainMode, refresh, crew } = useHaki();
+  // The workshop is 武装色's back room, so it wears the lens's colour too.
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
 
   const [rhythms, setRhythms] = useState<Rhythm[]>([]);

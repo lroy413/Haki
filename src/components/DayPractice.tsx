@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
+import { underCrew } from '../theme/palettes';
 import { dayMessage, practice, type Practice, type PracticeKey } from '../domain/practice';
 import { levelName } from '../domain/hardening';
 import { font, radius, space, type } from '../theme/tokens';
@@ -47,8 +48,14 @@ function pairs(items: Practice[]): Practice[][] {
 }
 
 export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
-  const { acts, hardening, palette, plainMode, read } = useHaki();
+  const { acts, hardening, palette, plainMode, read, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  // 武装色 through the crew's eyes, and only 武装色: the violet rows here are
+  // Observation's, which never moves, so the conquerors slot is pinned.
+  const lens = useMemo(
+    () => underCrew(palette, { conquerors: 'violet', armament: crew.armament }),
+    [palette, crew],
+  );
   const items = useMemo(
     () => practice(acts, plainMode, read?.weather ?? null),
     [acts, plainMode, read],
@@ -69,7 +76,7 @@ export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
       {pairs(items).map((row, i) => (
         <View key={i} style={styles.row}>
           {row.map((item) => {
-            const tone = toneFor(palette, item.key);
+            const tone = toneFor(lens, item.key);
             return (
               <Pressable
                 key={item.key}

@@ -14,6 +14,7 @@ import { Dial } from '../src/components/Dial';
 import { useStore } from '../src/db/client';
 import { allSessions, logSession } from '../src/db/repo';
 import { useHaki } from '../src/state/HakiProvider';
+import { underCrew } from '../src/theme/palettes';
 import { gapClosedBy, returnMessage } from '../src/domain/training';
 import { play } from '../src/sound';
 import { todayKey } from '../src/domain/date';
@@ -33,8 +34,9 @@ const QUICK_KINDS = ['Push', 'Pull', 'Legs', 'Full body', 'Run', 'Conditioning']
 export default function SessionScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t, refresh, palette } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, refresh, palette, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
 
   const [kind, setKind] = useState('');
   const [minutes, setMinutes] = useState('');
@@ -90,7 +92,9 @@ export default function SessionScreen() {
   if (returned) {
     return (
       <View style={styles.returnScreen}>
-        <Text style={styles.returnKanji}>帰</Text>
+        {/* The signature violet under both crews — a Return is not a lens's
+            light, and the lens palette would turn it jade. */}
+        <Text style={[styles.returnKanji, { color: palette.violet }]}>帰</Text>
         <Text style={styles.returnTitle}>Return</Text>
         <Text style={styles.returnBody}>{returned}</Text>
         <Pressable
@@ -159,7 +163,7 @@ export default function SessionScreen() {
           label={t.trainingIntensity}
           value={intensity}
           onChange={setIntensity}
-          accent={palette.crimson}
+          accent={lens.crimson}
         />
 
         <View style={styles.field}>

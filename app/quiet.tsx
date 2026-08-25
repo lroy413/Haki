@@ -7,6 +7,7 @@ import { Toggle } from '../src/components/Toggle';
 import { useHaki } from '../src/state/HakiProvider';
 import { space, type } from '../src/theme/tokens';
 import { row } from '../src/theme/surfaces';
+import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -17,8 +18,11 @@ import type { Palette } from '../src/theme/palettes';
  */
 export default function QuietScreen() {
   const { db, settings, refreshSettings } = useStore();
-  const { palette } = useHaki();
+  const { palette, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  // The tint marks the switch as Armament's — the strike sound — so it
+  // follows the crew's coating.
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
 
   async function togglePlain(next: boolean) {
     await setPlainMode(db, next);
@@ -53,7 +57,7 @@ export default function QuietScreen() {
               interrupting it.
             </Text>
           </View>
-          <Toggle value={settings.soundOn} onValueChange={toggleSound} tint={palette.crimson} />
+          <Toggle value={settings.soundOn} onValueChange={toggleSound} tint={lens.crimson} />
         </View>
       </View>
     </SettingsPage>

@@ -39,7 +39,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function FlagScreen() {
   const { db } = useStore();
   const { t, palette, plainMode, hardening, crew } = useHaki();
-  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
 
