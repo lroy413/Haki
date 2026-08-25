@@ -24,6 +24,8 @@ import {
   openPoneglyph,
   setDream,
   wakesFor,
+  listFlag,
+  latestSoundings,
 } from '../../src/db/repo';
 import {
   ROAD_MAX,
@@ -46,6 +48,8 @@ import { useHaki } from '../../src/state/HakiProvider';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { lit, offer, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
+import { flagCheck, type Value } from '../../src/domain/flag';
+import type { Sounding } from '../../src/domain/soundings';
 import type { Palette } from '../../src/theme/palettes';
 
 /**
@@ -99,20 +103,26 @@ export default function ConquerorsScreen() {
   const [roadWhy, setRoadWhy] = useState('');
   /** The one line that speaks after something closes. Cleared on the next act. */
   const [said, setSaid] = useState<string | null>(null);
+  const [flag, setFlag] = useState<Value[]>([]);
+  const [depths, setDepths] = useState<Map<number, Sounding>>(new Map());
 
   const load = useCallback(async () => {
-    const [d, r, g, people, sail] = await Promise.all([
+    const [d, r, g, people, sail, values] = await Promise.all([
       getDream(db),
       listRoads(db),
       listPoneglyphs(db),
       listCarried(db),
       lastSailing(db),
+      listFlag(db),
     ]);
     setDreamState(d);
     setRoads(r);
     setGlyphs(g);
     setCrew(people.map((p) => p.name));
     setLastSail(sail?.day ?? null);
+    setFlag(values);
+    const openKeys = g.filter((x) => x.state === 'open').map((x) => x.key);
+    setDepths(await latestSoundings(db, openKeys));
     // The open islands' wakes: what has been struck under each so far.
     setWakes(
       await wakesFor(
@@ -299,6 +309,27 @@ export default function ConquerorsScreen() {
           )}
         </View>
 
+        {/* ---------------------------------------------------- the flag */}
+        {/* Under the Dream and above the fronts, which is the order the three
+            of them actually stand in: where you are going, what you sail
+            under, and what it takes to get there. */}
+        <Pressable
+          onPress={() => router.push('/flag')}
+          accessibilityRole="button"
+          accessibilityLabel={t.flagTitle}
+          style={({ pressed }) => [styles.flag, pressed && styles.pressed]}
+        >
+          <View style={styles.flagHead}>
+            <Text style={styles.flagLabel}>{t.flagTitle}</Text>
+            {plainMode ? null : <Text style={styles.flagGlyph}>旗</Text>}
+          </View>
+          {flag.length === 0 ? (
+            <Text style={styles.flagEmpty}>{t.flagEmpty}</Text>
+          ) : (
+            <Text style={styles.flagLine}>{flag.map((v) => v.text).join(' · ')}</Text>
+          )}
+        </Pressable>
+
         {/* -------------------------------------------- the road poneglyphs */}
 
         <View style={styles.section}>
@@ -311,6 +342,7 @@ export default function ConquerorsScreen() {
             key={needle.road.id}
             needle={needle}
             wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
+            depth={needle.next ? (depths.get(needle.next.key) ?? null) : null}
             onDetail={() => router.push(`/pillar?id=${needle.road.id}`)}
             onOpen={(title) => {
               setSaid(null);
@@ -328,6 +360,16 @@ export default function ConquerorsScreen() {
 
         {addingRoad ? (
           <View style={styles.card}>
+            {/* The flag, asked rather than enforced. There is no wrong answer,
+                nothing records what you decided, and naming the pillar anyway
+                costs exactly nothing. It is four seconds of thinking against
+                something you already wrote down. */}
+            {flagCheck(flag.length, plainMode) ? (
+              <View style={styles.check}>
+                <Text style={styles.checkAsk}>{flagCheck(flag.length, plainMode)}</Text>
+                <Text style={styles.checkValues}>{flag.map((v) => v.text).join(' · ')}</Text>
+              </View>
+            ) : null}
             <Text style={styles.fieldLabel}>{t.roadTitleField}</Text>
             <TextInput
               value={roadTitle}
@@ -455,6 +497,31 @@ const makeStyles = (c: Palette) =>
     sailLabelDue: { color: c.violet },
     sailGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
     sailLine: { ...type.body, color: c.inkDim, lineHeight: 21 },
+
+    flag: {
+      ...row(c),
+      borderColor: c.violet,
+      padding: space.lg,
+      gap: space.xs,
+      minHeight: 44,
+    },
+    flagHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    flagLabel: { ...type.label, color: c.violet },
+    flagGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    flagLine: { ...type.body, color: c.ink, lineHeight: 22 },
+    flagEmpty: { ...type.body, color: c.inkDim, lineHeight: 22 },
+
+    // The question rides a violet rail, the same mark the live island wears:
+    // this is the flag speaking, not the form.
+    check: {
+      borderLeftWidth: 2,
+      borderLeftColor: c.violet,
+      paddingLeft: space.md,
+      gap: space.xs,
+      marginBottom: space.xs,
+    },
+    checkAsk: { ...type.body, color: c.ink, lineHeight: 21 },
+    checkValues: { ...type.mono, color: c.violet },
 
     section: { gap: space.xs, marginTop: space.sm },
     sectionLabel: { ...type.label, color: c.inkFaint },

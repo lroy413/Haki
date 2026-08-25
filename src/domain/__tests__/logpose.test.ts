@@ -32,6 +32,7 @@ const road = (key: number, over: Partial<Road> = {}): Road => ({
 const glyph = (roadKey: number, over: Partial<Poneglyph> = {}): Poneglyph => ({
   id: Math.random(),
   key: Math.random(),
+  unit: null,
   roadKey,
   title: 'An island',
   state: 'open',

@@ -238,6 +238,12 @@ export const poneglyph = sqliteTable(
     closedOn: text('closed_on'),
     /** Why you sailed past. Only ever set on a passed island. */
     reason: text('reason'),
+    /**
+     * What this island's soundings are measured in. Null for the ordinary
+     * island, which is done-or-not; a unit is what makes one numeric by
+     * nature. See `domain/soundings.ts`.
+     */
+    unit: text('unit'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
   },
@@ -291,6 +297,40 @@ export const sailing = sqliteTable(
   (t) => [uniqueIndex('sailing_day_idx').on(t.day)],
 );
 
+/**
+ * The Flag — what you stand for, in three to five of your own words.
+ *
+ * No state column and no completion, on purpose: a value is not a task with
+ * a longer deadline. Nothing in the app records whether one was kept, and
+ * nothing counts how many pillars matched it. See `domain/flag.ts`.
+ */
+export const flagValue = sqliteTable('flag_value', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  text: text('text').notNull(),
+  setOn: text('set_on').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+/**
+ * One reading against one island, by that poneglyph's `createdAt`.
+ *
+ * There is no target column here and deliberately nowhere to add one: the
+ * moment a target exists, every reading becomes a distance from failure.
+ * See `domain/soundings.ts`.
+ */
+export const sounding = sqliteTable(
+  'sounding',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    islandKey: integer('island_key').notNull(),
+    value: real('value').notNull(),
+    day: text('day').notNull(),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('sounding_island_idx').on(t.islandKey)],
+);
+
 /** Small key/value bag. Typed accessors live in `settings.ts`. */
 export const setting = sqliteTable('setting', {
   key: text('key').primaryKey(),
@@ -311,3 +351,5 @@ export type RoadPoneglyphRow = typeof roadPoneglyph.$inferSelect;
 export type PoneglyphRow = typeof poneglyph.$inferSelect;
 export type RhythmRow = typeof rhythm.$inferSelect;
 export type SailingRow = typeof sailing.$inferSelect;
+export type FlagValueRow = typeof flagValue.$inferSelect;
+export type SoundingRow = typeof sounding.$inferSelect;

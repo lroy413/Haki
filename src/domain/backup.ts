@@ -92,6 +92,21 @@ export type RhythmBackup = {
   retiredAt: number | null;
 };
 
+export type FlagValueBackup = {
+  text: string;
+  setOn: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SoundingBackup = {
+  /** The island it was taken against, by that poneglyph's createdAt. */
+  islandKey: number;
+  value: number;
+  day: string;
+  createdAt: number;
+};
+
 export type SailingBackup = {
   day: string;
   heading: string;
@@ -166,6 +181,8 @@ export type BackupTables = {
   poneglyph: PoneglyphBackup[];
   rhythm: RhythmBackup[];
   sailing: SailingBackup[];
+  flagValue: FlagValueBackup[];
+  sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
   setting: SettingBackup[];
@@ -191,6 +208,8 @@ export const EMPTY_TABLES: BackupTables = {
   poneglyph: [],
   rhythm: [],
   sailing: [],
+  flagValue: [],
+  sounding: [],
   carried: [],
   task: [],
   setting: [],
@@ -288,8 +307,12 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     str(r.openedOn) &&
     nullableStr(r.closedOn) &&
     nullableStr(r.reason) &&
+    // `unit` arrived in schema v9 and is absent from every earlier export.
+    absentableStr(r.unit) &&
     num(r.createdAt) &&
     num(r.updatedAt),
+  flagValue: (r) => str(r.text) && str(r.setOn) && num(r.createdAt) && num(r.updatedAt),
+  sounding: (r) => num(r.islandKey) && num(r.value) && str(r.day) && num(r.createdAt),
   carried: (r) =>
     str(r.name) &&
     nullableStr(r.relationship) &&
@@ -412,6 +435,8 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   rhythm: (r) => String(r.createdAt),
   // One per day by definition, exactly like a course.
   sailing: (r) => r.day,
+  flagValue: (r) => String(r.createdAt),
+  sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),
   setting: (r) => r.key,

@@ -528,6 +528,51 @@ backups could not have (a pre-rhythm export would have silently dropped
 every task on import). New columns now validate as absent-or-null, which is
 what "added later" honestly means.
 
+## The flag, the depth, and a year ago today
+
+Three from the chart, and what unites them is that all three are records
+rather than mechanics — none of them can be won, and none of them counts
+anything you did not do.
+
+**The Flag** is the last piece of 覇王色 from the concept doc: pirates raise a
+flag to say what they stand for, and then everything else can be checked
+against it. Three to five values, in your own words, on one violet plate with
+旗 riding its corner. It sits on the Journey tab directly under the Dream,
+which is the order those two actually stand in — where you are going, then
+what you sail under, then the fronts it takes.
+
+It surfaces at exactly two moments and behaves differently at each. Naming a
+Road Poneglyph, it **asks**: "does this front serve the flag?", with the
+values on a violet rail beneath. There is no wrong answer, nothing records
+what you decided, and naming the pillar anyway costs nothing — it is four
+seconds of thinking against something you already wrote down. At Setting
+Sail, it is **read** rather than asked; the ritual has enough decisions in it
+already. And a value that no longer holds is deleted rather than retired —
+the one place this app does not keep the record, because a list of former
+values would be a monument to having changed your mind.
+
+**Soundings** are for the islands that are numeric by nature — a savings
+figure, a bodyweight, a word count — where done-or-not throws away everything
+that happened in between. Give such an island a unit and it grows a depth: the
+latest reading at display size, the line behind it drawn as a sparkline, and
+the readings listed with their dates. What is deliberately absent is the whole
+design: no target, and nowhere in the schema to put one; no delta, no pace, no
+projection, because "up two this week" invites the question of whether that
+was fast enough. **And no direction is good** — savings rising and a
+bodyweight rising are the same event to this module, so nothing is coloured,
+arrowed or worded by which way it went. There is a test for that specifically,
+because a helpful green arrow is exactly the kind of thing that arrives in a
+later pass and goes unnoticed.
+
+**Astern in the log** is the feature the "memory is a source, never a stick"
+law was written for. On a date an earlier year happens to have an entry, the
+Logbook grows one dashed card: _A year ago today, you wrote:_ and the words.
+Only years — a month ago is recent enough to remember, and the whole value is
+the distance. That means it is invisible for the first year, which is correct
+rather than a problem to solve with a shorter horizon. It counts nothing: not
+the anniversaries, not the years kept up. It hands back one thing you wrote
+and stops.
+
 ## The audit, and unequal chrome
 
 Two jobs in one pass: prove the tracking, then earn the screens their looks.
@@ -639,42 +684,38 @@ all the way from the glyph in the corner to the tab you arrived by.
 
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-two pull
-requests merged, 634 tests, one principle held everywhere: the app rewards the
-act and never punishes the absence.
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-four
+pull requests merged, 661 tests, one principle held everywhere: the app
+rewards the act and never punishes the absence.
 
 What is actually in it:
 
-|                     |                                                                                                                                                                                                                                         |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Sense**           | The Daily Read — four dials, thirty seconds. Will Reserve as a gauge that is never a score. The keystone cascade, which warns on the first bad night rather than after the week is gone.                                                |
-| **Act**             | Tasks shaped for a brain that shuts down facing forty of them: minute estimates, a small deliberate today, one Next Strike on the home screen. Gears at 25, 90 and 120 minutes with honest costs. Training with Returns.                |
-| **Still**           | Stillness at five, ten or fifteen minutes, with a ring that breathes — Observation's counterpart to the Gears, and the only thing here that costs nothing at all.                                                                       |
-| **Record**          | The Logbook, with a second door: one line, folded into today, asking nothing. Inherited Will. Export and import that merges and never deletes.                                                                                          |
-| **The day**         | A course set for today or tomorrow and never marked. Six practices, each showing its offer rather than its absence. Hardening across four palettes, from paper to black, and the Sunny reading it back as a state and never a position. |
-| **The journey**     | The Log Pose. One dream that never scales down, four to seven Road Poneglyphs beneath it, one island at a time under each — finish it or sail past it with a reason, and nothing counted against a total.                               |
-| **The week**        | Setting Sail: the week read back, every needle looked at once, one heading named. And the rhythm — things that come back round, creating nothing until taken, so a day you let one pass leaves nothing behind.                          |
-| **The reading**     | Foresight: two kinds of day compared, and the difference reported only when it outruns the scatter. Calibrated by simulation to stay quiet — it never claims a cause and never gives advice.                                            |
-| **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. The Conqueror's burst, fired by exactly one thing. Seven sounds, sixty quotes. |
+|                     |                                                                                                                                                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sense**           | The Daily Read — four dials, thirty seconds. Will Reserve as a gauge that is never a score. The keystone cascade, which warns on the first bad night rather than after the week is gone.                                                                                      |
+| **Act**             | Tasks shaped for a brain that shuts down facing forty of them: minute estimates, a small deliberate today, one Next Strike on the home screen. Gears at 25, 90 and 120 minutes with honest costs. Training with Returns.                                                      |
+| **Still**           | Stillness at five, ten or fifteen minutes, with a ring that breathes — Observation's counterpart to the Gears, and the only thing here that costs nothing at all.                                                                                                             |
+| **Record**          | The Logbook, with a second door: one line, folded into today, asking nothing. Inherited Will. Export and import that merges and never deletes.                                                                                                                                |
+| **The day**         | A course set for today or tomorrow and never marked. Six practices, each showing its offer rather than its absence. Hardening across four palettes, from paper to black, and the Sunny reading it back as a state and never a position.                                       |
+| **The journey**     | The Log Pose. One dream that never scales down, the Flag it sails under, four to seven Road Poneglyphs beneath it, one island at a time under each — finish it or sail past it with a reason, soundings on the ones that carry a number, and nothing counted against a total. |
+| **The week**        | Setting Sail: the week read back, every needle looked at once, one heading named. And the rhythm — things that come back round, creating nothing until taken, so a day you let one pass leaves nothing behind.                                                                |
+| **The reading**     | Foresight: two kinds of day compared, and the difference reported only when it outruns the scatter. Calibrated by simulation to stay quiet — it never claims a cause and never gives advice.                                                                                  |
+| **The performance** | An emission on every strike, reaching further with consistency. Two-frame impact frames with black lightning. Ambient weather that starts once hardened. The Conqueror's burst, fired by exactly one thing. Seven sounds, sixty quotes.                                       |
 
 **Charted next**, roughly in the order they make sense:
 
-1. **The Flag** — three to five values in your own words, and the thing a Road
-   Poneglyph can be checked against. Small, and the last piece of Conqueror's
-   from the concept doc still missing.
-2. **Soundings** — an island that is numeric by nature (a figure, a weight, a
-   count) allowed to log a number whenever one is taken, shown as the latest
-   and the line behind it. No target, no bar, no pace: the trend is the
-   information, and it obeys the no-denominator rule by carrying none.
-3. **Astern in the log** — "a year ago today you wrote", above the Logbook,
-   only when a past entry exists for the date. Memory as a source is already
-   this app's law; this is the feature that law was written for, and it wants
-   building before the first anniversary rather than after it.
-4. **The Zoro theme** — the field keeps the violence, the instrument becomes a
+1. **The Zoro theme** — the field keeps the violence, the instrument becomes a
    sword. The seam is already cut; this is one file and a picker.
-5. **Native.** The PWA has carried it this far, but iOS cannot do reliable
+2. **Native.** The PWA has carried it this far, but iOS cannot do reliable
    notifications or a home-screen widget, and the Den Den Mushi taxonomy in
    the concept doc needs real notification channels.
+3. **The Eternal Pose** — the concept doc's one goal that never recalibrates,
+   still unbuilt and still arguably covered by the Dream. Worth deciding
+   about rather than leaving on a list.
+4. **Encounters** — a light log of who you saw and how it went. The concept
+   doc's own argument for it is that loneliness is the largest untracked
+   variable in most people's mental health, and Foresight now exists to find
+   it if it is there.
 
 And the Gears are still parked on `/gears`, waiting on the page the owner has
 a clearer vision for than this record does: Haki is will, a Devil Fruit is
