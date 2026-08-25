@@ -6,6 +6,7 @@ import { formatSounding, type Sounding } from '../../domain/soundings';
 import { useHaki } from '../../state/HakiProvider';
 import { font, radius, space, type } from '../../theme/tokens';
 import { press, row } from '../../theme/surfaces';
+import { underCrew } from '../../theme/palettes';
 import type { Palette } from '../../theme/palettes';
 
 /**
@@ -62,8 +63,9 @@ export function NeedleCard({
   onStrike: (title: string) => void;
   onDetail: () => void;
 }) {
-  const { t, palette, plainMode } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, palette, plainMode, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
 
   const [mode, setMode] = useState<Mode>('idle');
   const [draft, setDraft] = useState('');

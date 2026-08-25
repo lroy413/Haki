@@ -50,6 +50,7 @@ import { lit, offer, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
 import { flagCheck, type Value } from '../../src/domain/flag';
 import type { Sounding } from '../../src/domain/soundings';
+import { underCrew } from '../../src/theme/palettes';
 import type { Palette } from '../../src/theme/palettes';
 
 /**
@@ -83,8 +84,9 @@ import type { Palette } from '../../src/theme/palettes';
 export default function ConquerorsScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, palette, plainMode, hardening } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, palette, plainMode, hardening, crew: flying } = useHaki();
+  const lens = useMemo(() => underCrew(palette, flying.conquerors), [palette, flying]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   const pad = useTabInsets();
 
   const [dream, setDreamState] = useState<{ text: string; setOn: string } | null>(null);
@@ -211,7 +213,7 @@ export default function ConquerorsScreen() {
         <PageHeading
           title={t.logPoseTitle}
           trailing={plainMode ? undefined : '覇王色'}
-          tint={palette.violet}
+          tint={lens.violet}
         />
 
         <Text style={styles.bearing}>{bearing(pose, plainMode)}</Text>
@@ -246,7 +248,7 @@ export default function ConquerorsScreen() {
 
         {/* The one thing on this screen that is never scaled down gets the
             king's colour thrown into the air around it. */}
-        <View style={[styles.dreamCard, lit(palette.violet, plainMode ? 0 : hardening)]}>
+        <View style={[styles.dreamCard, lit(lens.violet, plainMode ? 0 : hardening)]}>
           {plainMode ? null : <Text style={styles.dreamWatermark}>夢</Text>}
           <Text style={styles.dreamLabel}>{t.dreamLabel}</Text>
 

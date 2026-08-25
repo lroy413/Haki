@@ -38,6 +38,7 @@ import { SectionLabel } from '../src/components/SectionLabel';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
+import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -62,8 +63,9 @@ export default function PillarScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const navigation = useNavigation();
   const { db } = useStore();
-  const { t, palette, plainMode } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, palette, plainMode, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
 
   const roadId = Number(id);
@@ -206,7 +208,7 @@ export default function PillarScreen() {
             <SectionLabel
               label={t.soundingsLabel}
               trailing={plainMode ? undefined : '測深'}
-              tint={palette.violet}
+              tint={lens.violet}
             />
             <View style={styles.card}>
               <Text style={styles.islandTitle}>{open.title}</Text>
@@ -265,7 +267,7 @@ export default function PillarScreen() {
                       <Text style={styles.depthValue}>
                         {formatSounding(latest(soundings)!.value, open.unit)}
                       </Text>
-                      <SoundingLine soundings={soundings} tint={palette.violet} />
+                      <SoundingLine soundings={soundings} tint={lens.violet} />
                     </View>
                   ) : null}
 

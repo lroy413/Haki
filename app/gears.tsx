@@ -7,7 +7,6 @@ import { play } from '../src/sound';
 import { useStore } from '../src/db/client';
 import { gearSessionsOn, startGear } from '../src/db/repo';
 import {
-  GEARS,
   GEAR_ORDER,
   GEAR_SOUND,
   availability,
@@ -15,6 +14,8 @@ import {
   runningSession,
   type GearName,
   type GearSession,
+  styleFor,
+  focusBlurb,
 } from '../src/domain/gears';
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
@@ -40,7 +41,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function GearsScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, refresh, plainMode, palette } = useHaki();
+  const { t, refresh, plainMode, palette, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const insets = useSafeAreaInsets();
 
@@ -76,11 +77,7 @@ export default function GearsScreen() {
         { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
       ]}
     >
-      <Text style={styles.blurb}>
-        Focus, with honest costs. A finished third gear needs half an hour of recovery; the
-        fourth locks the rest of the day.{' '}
-        {inGear > 0 ? `${formatMinutes(inGear)} in gear today.` : ''}
-      </Text>
+      <Text style={styles.blurb}>{focusBlurb(crew.name)}</Text>
 
       {running ? (
         <Pressable
@@ -88,12 +85,14 @@ export default function GearsScreen() {
           accessibilityRole="button"
           style={({ pressed }) => [styles.gearRunning, pressed && styles.pressed]}
         >
-          <Text style={styles.gearRunningLabel}>{GEARS[running.gear].label} is running</Text>
+          <Text style={styles.gearRunningLabel}>
+            {styleFor(crew.name, running.gear).label} is running
+          </Text>
           <Text style={styles.gearRunningHint}>Tap to go back to it</Text>
         </Pressable>
       ) : (
         GEAR_ORDER.map((name) => {
-          const gear = GEARS[name];
+          const gear = styleFor(crew.name, name);
           const state = availability(name, gears, nowMs);
           return (
             <Pressable

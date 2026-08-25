@@ -4,6 +4,7 @@ import { onImpact } from '../impact';
 import { useHaki } from '../state/HakiProvider';
 import { darkest } from '../theme/palettes';
 import { Fist } from './instruments/Fist';
+import { Sword } from './instruments/Sword';
 import { Lightning } from './Lightning';
 import { ScratchField } from './ScratchField';
 
@@ -38,7 +39,7 @@ const FRAME_ONE_MS = 55;
 const FRAME_TWO_MS = 110;
 
 export function ImpactLayer() {
-  const { palette, intensity, plainMode, ryuo } = useHaki();
+  const { palette, intensity, plainMode, ryuo, crew } = useHaki();
   const [phase, setPhase] = useState<0 | 1 | 2>(0);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const reduceMotion = useRef(false);
@@ -97,7 +98,13 @@ export function ImpactLayer() {
       {/* The second frame kicks: slightly bigger, slightly off-true, the way
           the real frames shake between cels. */}
       <View style={[StyleSheet.absoluteFill, phase === 2 && styles.kick]}>
-        <Fist fill={body} rim={rim} sheen={ground} />
+        {/* The crew's own instrument. Same box, same three colours, same
+            aspect — the field above has no idea which one it is holding. */}
+        {crew.instrument === 'sword' ? (
+          <Sword fill={body} rim={rim} sheen={ground} />
+        ) : (
+          <Fist fill={body} rim={rim} sheen={ground} />
+        )}
       </View>
       {/* Over the fist, never under it: the crackle is on the outside of the
           coating. Its core is the fist's own colour so it inverts with

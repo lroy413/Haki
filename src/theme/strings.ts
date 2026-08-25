@@ -139,6 +139,9 @@ export type Strings = {
   trainingTitle: string;
   trainingSection: string;
   gearsTitle: string;
+  stylesTitle: string;
+  crewTitle: string;
+  crewBlurb: string;
   trainingLog: string;
   trainingEmpty: string;
   trainingThisWeek: string;
@@ -317,6 +320,11 @@ const haki: Strings = {
   // workout tracker.
   trainingSection: 'Training',
   gearsTitle: 'Gears',
+  // 刀流 — the sword styles, under Zoro's flag.
+  stylesTitle: 'Sword Styles',
+  crewTitle: 'Whose will',
+  crewBlurb:
+    'Changes the instrument the impact frame draws, and what 覇王色 burns. Nothing recorded changes — a session logged under one flag reads under the other.',
   trainingLog: 'Log a session',
   trainingEmpty: 'Nothing logged yet.',
   trainingThisWeek: 'This week',
@@ -401,6 +409,9 @@ const plain: Strings = {
   // needs its own word or the two read as the same heading twice.
   trainingSection: 'Workouts',
   gearsTitle: 'Focus',
+  stylesTitle: 'Focus',
+  crewTitle: 'Style',
+  crewBlurb: 'Changes the artwork and the accent colour. Nothing recorded changes.',
   hardnessLabel: 'Hardness',
 
   rhythmTitle: 'Repeating',

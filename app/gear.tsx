@@ -5,7 +5,6 @@ import * as Haptics from 'expo-haptics';
 import { useStore } from '../src/db/client';
 import { endGear, openGearSession } from '../src/db/repo';
 import {
-  GEARS,
   abandonMessage,
   completionMessage,
   durationMs,
@@ -13,6 +12,7 @@ import {
   remainingMs,
   type GearName,
   type GearSession,
+  styleFor,
 } from '../src/domain/gears';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
@@ -33,7 +33,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function GearScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { refresh, plainMode, palette } = useHaki();
+  const { refresh, plainMode, palette, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const params = useLocalSearchParams<{ gear?: string }>();
@@ -91,7 +91,7 @@ export default function GearScreen() {
   }, [session, now, outcome, finish]);
 
   const gearName = (session?.gear ?? params.gear ?? 'second') as GearName;
-  const gear = GEARS[gearName];
+  const gear = styleFor(crew.name, gearName);
   const tint = tintFor(palette, gearName);
 
   if (outcome) {

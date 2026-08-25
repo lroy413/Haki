@@ -42,6 +42,7 @@ import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import { row } from '../src/theme/surfaces';
 import { SectionLabel } from '../src/components/SectionLabel';
+import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -66,8 +67,9 @@ import type { Palette } from '../src/theme/palettes';
 export default function SailScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, palette, plainMode } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, palette, plainMode, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
 
   const [week, setWeek] = useState<WeekReading | null>(null);
