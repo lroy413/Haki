@@ -119,6 +119,16 @@ const HEAD = `${MARKER}
         if (window.visualViewport) {
           window.visualViewport.addEventListener('resize', settle);
         }
+        /* And at every entry to the app, not only at keyboard events: iOS
+           can restore a displaced viewport across suspends and relaunches,
+           and a pan restored at wake has no keyboard event to announce it.
+           pageshow covers cold and warm starts, visibilitychange covers
+           coming back from the app switcher. */
+        window.addEventListener('pageshow', settle);
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) settle();
+        });
+        settle();
       })();
 
       if ('serviceWorker' in navigator) {

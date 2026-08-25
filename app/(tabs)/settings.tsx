@@ -5,7 +5,7 @@ import { useStore } from '../../src/db/client';
 import { crewFor } from '../../src/domain/crew';
 import { describeDayStart } from '../../src/domain/date';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
-import { Horizon, IslandRow, anchorX } from '../../src/components/IslandRow';
+import { ChartSky, IslandRow, anchorX } from '../../src/components/IslandRow';
 import type { IsleKind } from '../../src/components/instruments/Isles';
 import { useHaki } from '../../src/state/HakiProvider';
 import { space, type } from '../../src/theme/tokens';
@@ -29,7 +29,7 @@ type Island = { kind: IsleKind; name: string; value: string; route: string };
 
 export default function SettingsScreen() {
   const { settings } = useStore();
-  const { t, palette, hardening, plainMode, conquerors } = useHaki();
+  const { t, palette, hardening, plainMode, conquerors, day } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
 
@@ -80,6 +80,9 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={[styles.content, pad]}>
+      {/* The dateline over the title, the way a camp knows its day on the
+          route. Part of the chart's performance, so plain mode skips it. */}
+      {plainMode ? null : <Text style={styles.kicker}>Day {day} at sea</Text>}
       <PageHeading
         title={t.tabs.settings.label}
         trailing={t.tabs.settings.glyph || undefined}
@@ -104,8 +107,8 @@ export default function SettingsScreen() {
         </View>
       ) : (
         <View style={styles.chart} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
-          {/* The far shore, before the first leg of the course. */}
-          {w > 0 ? <Horizon w={w} level={hardening} /> : null}
+          {/* The sky, the moon and the far shore, before the first leg. */}
+          {w > 0 ? <ChartSky w={w} level={hardening} /> : null}
           {w > 0
             ? islands.map((island, i) => (
                 <IslandRow
@@ -116,7 +119,6 @@ export default function SettingsScreen() {
                   side={sides[i]}
                   w={w}
                   prevX={i === 0 ? null : anchors[i - 1]}
-                  last={i === islands.length - 1}
                   level={hardening}
                   accent={conquerors}
                   onPress={() => router.push(island.route)}
@@ -139,6 +141,7 @@ const makeStyles = (c: Palette) =>
     content: { padding: space.lg, gap: space.lg },
 
     blurb: { ...type.small, color: c.inkDim, lineHeight: 20 },
+    kicker: { ...type.label, color: c.warn, marginBottom: -space.xs },
 
     // Full bleed: the sea runs to the screen edges, like the band the Sunny
     // sails in. The rows stack with no gap so the course legs join up.
