@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, {
   Circle,
+  ClipPath,
   Defs,
   Ellipse,
   G,
@@ -15,6 +16,7 @@ import { useHaki } from '../state/HakiProvider';
 import { SWELL, swellPath } from './instruments/Sea';
 import { ISLE_H, ISLE_W, ISLE_WATERLINE, Isle, type IsleKind } from './instruments/Isles';
 import { Skyline } from './instruments/Skyline';
+import type { MoonPhase } from '../domain/moon';
 import { space, type } from '../theme/tokens';
 import { press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
@@ -74,6 +76,136 @@ export function anchorX(side: 'left' | 'right', w: number): number {
 /** Where the moon hangs, as a fraction of the chart's width — shared with
  * `SeaLife`, whose water carries its glimmer directly below. */
 export const MOON_X = 0.82;
+
+/**
+ * The moon as it is tonight: the lit region is the real phase, and the
+ * face on it is the real face.
+ *
+ * The lit shape is the classic two-arc construction — the limb is half the
+ * disc's own circle, and the terminator is a half-ellipse whose width
+ * follows the cosine of the phase angle: a straight line at the quarters,
+ * bulging toward the lit limb as a crescent, away from it as a gibbous.
+ * Seen from the northern hemisphere the moon waxes on the right, so the
+ * lit side follows `waxing`.
+ *
+ * The maria are placed as they are on the near side — Imbrium and the
+ * Ocean of Storms to the west, Serenitatis and Tranquillitatis running
+ * south-east from centre, Crisium alone by the eastern limb, Tycho bright
+ * in the southern highlands — and clipped to the lit region, because the
+ * dark of the moon keeps its face to itself. What little shows there is
+ * earthshine: the whole disc, barely.
+ */
+function Moon({
+  cx,
+  cy,
+  r,
+  moon,
+  strength,
+}: {
+  cx: number;
+  cy: number;
+  r: number;
+  moon: MoonPhase;
+  strength: number;
+}) {
+  const { palette } = useHaki();
+  const { fraction, waxing } = moon;
+
+  // cos of the phase angle: +1 new, 0 at the quarters, -1 full.
+  const k = 1 - 2 * fraction;
+  const a = Math.abs(k) * r;
+
+  // Limb on the lit side, terminator back across the disc. Sweep flags:
+  // travelling top-to-bottom down the lit limb, then bottom-to-top along
+  // the terminator, which bulges toward the limb for a crescent (k > 0)
+  // and away from it for a gibbous (k < 0).
+  const lit =
+    fraction >= 0.985
+      ? 'full'
+      : fraction <= 0.015
+        ? 'none'
+        : `M 0 ${-r} A ${r} ${r} 0 0 ${waxing ? 1 : 0} 0 ${r}` +
+          ` A ${a.toFixed(2)} ${r} 0 0 ${k < 0 === waxing ? 1 : 0} 0 ${-r} Z`;
+
+  // The near side's seas, in disc coordinates (north up, east right).
+  const MARIA: [number, number, number, number, number][] = [
+    // [cx, cy, rx, ry, rotate]
+    [-7.2, -1.5, 3, 5.2, 14], // Oceanus Procellarum
+    [-3.4, -5.8, 3.2, 3, 0], // Mare Imbrium
+    [1.8, -6.4, 2.4, 2.2, 0], // Mare Serenitatis
+    [4.8, -3, 2.7, 2.3, -24], // Mare Tranquillitatis
+    [9.3, -4.8, 1.6, 1.2, -18], // Mare Crisium
+    [6.3, 1.6, 1.8, 2.2, 8], // Mare Fecunditatis
+    [3.6, 1.4, 1.3, 1.3, 0], // Mare Nectaris
+    [-4.4, 3.9, 2.9, 2, -6], // Mare Nubium into Humorum
+  ];
+
+  return (
+    <G transform={`translate(${cx}, ${cy})`}>
+      {/* The halo breathes with the phase — a crescent barely warms the
+          sky, a full moon owns it. */}
+      {[
+        { hr: 38, o: 0.03 },
+        { hr: 31, o: 0.045 },
+        { hr: 25, o: 0.06 },
+        { hr: 20, o: 0.08 },
+        { hr: 17, o: 0.1 },
+      ].map((sh) => (
+        <Circle
+          key={sh.hr}
+          cx={0}
+          cy={0}
+          r={sh.hr}
+          fill={palette.ink}
+          opacity={sh.o * strength * (0.3 + 0.7 * fraction)}
+        />
+      ))}
+
+      {/* Earthshine: the dark of the moon, present but only just. */}
+      <Circle cx={0} cy={0} r={r} fill={palette.ink} opacity={0.07} />
+      <Circle
+        cx={0}
+        cy={0}
+        r={r}
+        fill="none"
+        stroke={palette.ink}
+        strokeWidth={0.6}
+        opacity={0.16}
+      />
+
+      {lit === 'none' ? null : (
+        <>
+          <Defs>
+            <ClipPath id="moonLit">
+              {lit === 'full' ? <Circle cx={0} cy={0} r={r} /> : <Path d={lit} />}
+            </ClipPath>
+          </Defs>
+          {lit === 'full' ? (
+            <Circle cx={0} cy={0} r={r} fill={palette.ink} opacity={0.92} />
+          ) : (
+            <Path d={lit} fill={palette.ink} opacity={0.92} />
+          )}
+          <G clipPath="url(#moonLit)">
+            {MARIA.map(([mx, my, rx, ry, rot], i) => (
+              <Ellipse
+                key={i}
+                cx={mx}
+                cy={my}
+                rx={rx}
+                ry={ry}
+                transform={`rotate(${rot} ${mx} ${my})`}
+                fill={palette.bg}
+                opacity={0.3}
+              />
+            ))}
+            {/* Tycho, bright in the southern highlands. */}
+            <Circle cx={-1.2} cy={8.6} r={0.9} fill={palette.ink} opacity={1} />
+          </G>
+        </>
+      )}
+    </G>
+  );
+}
 
 /**
  * How hard an island's pool of light burns at each level. Zero on paper is
@@ -169,11 +301,14 @@ export function SeaLife({
   rows,
   level,
   moonX,
+  moonGlow,
 }: {
   w: number;
   rows: number;
   level: HardeningLevel;
   moonX: number;
+  /** Tonight's illuminated fraction — a new moon leaves the water dark. */
+  moonGlow: number;
 }) {
   const { palette } = useHaki();
   const strength = LUME[level];
@@ -217,7 +352,7 @@ export function SeaLife({
             height={1.7}
             rx={0.85}
             fill={palette.ink}
-            fillOpacity={sm.o * strength}
+            fillOpacity={sm.o * strength * (0.2 + 0.8 * moonGlow)}
           />
         ))}
 
@@ -298,7 +433,15 @@ export function SeaLife({
  * feet. Every position is a fixed rhythm scaled to the chart's width —
  * deterministic, so the sky never reshuffles between visits.
  */
-export function ChartSky({ w, level }: { w: number; level: HardeningLevel }) {
+export function ChartSky({
+  w,
+  level,
+  moon,
+}: {
+  w: number;
+  level: HardeningLevel;
+  moon: MoonPhase;
+}) {
   const { palette } = useHaki();
   const lit = level > 0;
   const H = lit ? 208 : 52;
@@ -412,28 +555,11 @@ export function ChartSky({ w, level }: { w: number; level: HardeningLevel }) {
         />
 
         {/* The moon, and its air. The one light up here — the lamplight
-            below is warm, the moon is not, and the difference is what makes
-            the lamps read as kept by somebody. */}
-        {[
-          { r: 38, o: 0.03 },
-          { r: 31, o: 0.045 },
-          { r: 25, o: 0.06 },
-          { r: 20, o: 0.08 },
-          { r: 17, o: 0.1 },
-        ].map((sh) => (
-          <Circle
-            key={sh.r}
-            cx={moonX}
-            cy={moonY}
-            r={sh.r}
-            fill={palette.ink}
-            opacity={sh.o * strength}
-          />
-        ))}
-        <Circle cx={moonX} cy={moonY} r={15} fill={palette.ink} opacity={0.92} />
-        <Circle cx={moonX - 4} cy={moonY - 3} r={3.2} fill={palette.bg} opacity={0.28} />
-        <Circle cx={moonX + 5} cy={moonY + 4} r={2.1} fill={palette.bg} opacity={0.22} />
-        <Circle cx={moonX + 1} cy={moonY - 7} r={1.5} fill={palette.bg} opacity={0.2} />
+            below is warm, the moon is not — and it is *tonight's* moon:
+            the lit limb, the terminator and the face are the real ones,
+            handed in from `domain/moon`. A crescent throws less light than
+            a full moon, so the halo breathes with the phase. */}
+        <Moon cx={moonX} cy={moonY} r={15} moon={moon} strength={strength} />
 
         {/* The massif, moonlit, standing on the horizon's own base line. */}
         <G transform={`translate(${w * 0.5 - 100}, ${farBase - 118})`}>

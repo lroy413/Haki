@@ -6,6 +6,7 @@ import { crewFor } from '../../src/domain/crew';
 import { describeDayStart } from '../../src/domain/date';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { ChartSky, IslandRow, MOON_X, SeaLife, anchorX } from '../../src/components/IslandRow';
+import { moonPhase } from '../../src/domain/moon';
 import type { IsleKind } from '../../src/components/instruments/Isles';
 import { useHaki } from '../../src/state/HakiProvider';
 import { space, type } from '../../src/theme/tokens';
@@ -36,6 +37,9 @@ export default function SettingsScreen() {
   // The chart's width, measured once — the water spans it and the islands
   // anchor to its edges, neither of which a percentage can do in an SVG.
   const [w, setW] = useState(0);
+
+  // Tonight's actual moon — the plain Date is deliberate; see domain/moon.
+  const moon = useMemo(() => moonPhase(new Date()), []);
 
   const islands: Island[] = [
     {
@@ -108,12 +112,18 @@ export default function SettingsScreen() {
       ) : (
         <View style={styles.chart} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
           {/* The sky, the moon and the far shore, before the first leg. */}
-          {w > 0 ? <ChartSky w={w} level={hardening} /> : null}
+          {w > 0 ? <ChartSky w={w} level={hardening} moon={moon} /> : null}
           {/* The rows, over a sea with life in it: haze off the far shore,
               the moon's glimmer, and small craft riding between islands. */}
           {w > 0 ? (
             <View>
-              <SeaLife w={w} rows={islands.length} level={hardening} moonX={MOON_X * w} />
+              <SeaLife
+                w={w}
+                rows={islands.length}
+                level={hardening}
+                moonX={MOON_X * w}
+                moonGlow={moon.fraction}
+              />
               {islands.map((island, i) => (
                 <IslandRow
                   key={island.kind}

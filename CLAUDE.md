@@ -229,7 +229,9 @@ there when you cut a new one**, or the next person re-cutting it is guessing.
 
 - **A day does not end at midnight.** `todayKey()` respects a configurable
   boundary (`voyage.dayStartHour`), so anything asking "what day is it" must go
-  through it rather than reading a `Date` itself. `loadSettings` applies the
+  through it rather than reading a `Date` itself. One deliberate exception:
+  `domain/moon.ts` takes a plain `Date`, because the settings chart's moon
+  shows the sky's real phase and the sky does not keep the voyage's clock. `loadSettings` applies the
   boundary before it computes anything, because everything after that line is
   wrong until it does.
 - **`src/domain/` is pure TypeScript with no React Native imports.** That is

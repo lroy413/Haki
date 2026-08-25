@@ -623,6 +623,18 @@ moon leaves a glimmer on the first stretch of sea, haze rolls off the far
 shore, and one star burns brighter than the rest with a lens-spark. A bay
 is never empty; neither is this one.
 
+And the moon is tonight's moon. "Lunar accurate please," the owner said, so
+`domain/moon.ts` computes the real phase — days since a known new moon,
+folded into the synodic month, tested against the epoch and a solar
+eclipse — and the chart draws it: the lit limb on the waxing side, the
+terminator a half-ellipse breathing with the cosine of the phase angle,
+the maria placed as they are on the near side and clipped to the lit
+region, Tycho bright in the southern highlands, earthshine holding the
+dark of the disc. The halo and the moon's glimmer on the water both follow
+the illuminated fraction — a crescent barely warms the sky, a full moon
+owns it. The one deliberate exception to the day-boundary rule: the moon
+takes a plain date, because the sky does not keep the voyage's clock.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records
