@@ -5,7 +5,7 @@ import { useStore } from '../../src/db/client';
 import { crewFor } from '../../src/domain/crew';
 import { describeDayStart } from '../../src/domain/date';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
-import { IslandRow, anchorX } from '../../src/components/IslandRow';
+import { Horizon, IslandRow, anchorX } from '../../src/components/IslandRow';
 import type { IsleKind } from '../../src/components/instruments/Isles';
 import { useHaki } from '../../src/state/HakiProvider';
 import { space, type } from '../../src/theme/tokens';
@@ -104,6 +104,8 @@ export default function SettingsScreen() {
         </View>
       ) : (
         <View style={styles.chart} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+          {/* The far shore, before the first leg of the course. */}
+          {w > 0 ? <Horizon w={w} level={hardening} /> : null}
           {w > 0
             ? islands.map((island, i) => (
                 <IslandRow
