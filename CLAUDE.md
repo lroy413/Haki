@@ -107,6 +107,27 @@ behind it.
 Screens pushed on top of the tabs — the Daily Read, a session, the course, an
 entry — keep their headers: they need a way back.
 
+## The settings chart
+
+Settings is an archipelago: six islands, each a category, each pressing
+through to its own page. `src/components/IslandRow.tsx` is the system — the
+band of sea, the pooled water, the dashed course — and
+`src/components/instruments/Isles.tsx` holds the landmass drawings behind the
+usual replacing-drawings contract. Three rules:
+
+- **The water is the Sunny's water.** `SWELL` and `swellPath` come from
+  `instruments/Sea.tsx`; never draw settings water with its own numbers, or
+  the chart and the home screen will disagree about the weather.
+- **One spot of colour**: the crew island's pennant flies `conquerors`
+  because it is data. Everything else on the chart is ink — settings is not
+  a lens.
+- **Plain mode gets a plain list**, same categories, same order, same
+  routes. The chart is a performance.
+
+Adding a category = one entry in the hub's `islands` array, a page under
+`app/`, a `Stack.Screen` in `app/_layout.tsx`, and a landmass in `Isles.tsx`
+with a landmark you can name in one word.
+
 ## Drawings are replaceable; systems are not
 
 `src/components/instruments/` holds the two hand-plotted SVGs — the Sunny and

@@ -99,6 +99,14 @@ function Chrome() {
         <Stack.Screen name="pillar" options={{ title: '' }} />
         <Stack.Screen name="flag" options={{ title: t.flagTitle }} />
         <Stack.Screen name="carried" options={{ title: t.carriedTitle }} />
+        {/* The settings archipelago — six islands off the settings chart,
+            each a page. See app/(tabs)/settings.tsx. */}
+        <Stack.Screen name="crew" options={{ title: t.crewTitle }} />
+        <Stack.Screen name="quiet" options={{ title: t.quietTitle }} />
+        <Stack.Screen name="daybreak" options={{ title: t.dayTurnTitle }} />
+        <Stack.Screen name="keystone" options={{ title: t.keystoneTitle }} />
+        <Stack.Screen name="training" options={{ title: t.trainingTitle }} />
+        <Stack.Screen name="data" options={{ title: t.dataTitle }} />
       </Stack>
       {/* The weather, over the content and under the frame: distant sky
           rather than interface. Silent until the day hardens. */}
