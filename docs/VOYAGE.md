@@ -615,6 +615,14 @@ small caps the way a camp labels its tents, and an amber dateline — Day N
 at sea — stands over the title. One warmth for every lamp (`warn`, never a
 lens colour), paper keeps the pencilled chart, plain keeps the list.
 
+Two more photographs arrived — the glowing islands again, and Ha Long Bay
+full of lit cruise boats — and the sea itself came alive: every lamp now
+stands in the water as a broken shimmer column, small craft ride at anchor
+in each row's open water with their deck lights doubled below them, the
+moon leaves a glimmer on the first stretch of sea, haze rolls off the far
+shore, and one star burns brighter than the rest with a lens-spark. A bay
+is never empty; neither is this one.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records

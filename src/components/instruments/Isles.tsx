@@ -282,10 +282,13 @@ function DataIsle({ ink, faint }: IsleColours) {
 /* ------------------------------------------------------------------ night */
 
 /** Banner Isle by night: the peak dark, the col keeping a beacon. */
-function CrewIsleLit({ ink, accent, body, lume }: IsleColours) {
+function CrewIsleLit({ ink, faint, accent, body, lume }: IsleColours) {
   return (
     <G>
       <Path d="M 14 44 L 44 14 L 60 28 L 70 23 L 106 44 Z" fill={body} />
+      {/* The moonward flank, a shade lighter, running to the shore — one
+          facet is what turns a filled triangle back into ground. */}
+      <Path d="M 44 14 L 60 28 L 70 23 L 82 34 L 92 44 L 44 44 Z" fill={faint} opacity={0.12} />
       <Path
         d="M 14 44 L 44 14 L 60 28 L 70 23 L 106 44"
         fill="none"
@@ -445,10 +448,13 @@ function KeystoneIsleLit({ ink, faint, body, lume }: IsleColours) {
 }
 
 /** Twin crags by night: dark blades, a forge kept burning in the col. */
-function TrainingIsleLit({ ink, body, lume }: IsleColours) {
+function TrainingIsleLit({ ink, faint, body, lume }: IsleColours) {
   return (
     <G>
       <Path d="M 14 44 L 36 10 L 48 28 L 54 20 L 62 30 L 82 6 L 104 44 Z" fill={body} />
+      {/* Each crag keeps a moonward face. */}
+      <Path d="M 36 10 L 48 28 L 42 32 L 32 20 Z" fill={faint} opacity={0.14} />
+      <Path d="M 82 6 L 94 26 L 86 30 L 76 16 Z" fill={faint} opacity={0.14} />
       <Path
         d="M 14 44 L 36 10 L 48 28 L 54 20 L 62 30 L 82 6 L 104 44"
         fill="none"

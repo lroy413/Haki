@@ -5,7 +5,7 @@ import { useStore } from '../../src/db/client';
 import { crewFor } from '../../src/domain/crew';
 import { describeDayStart } from '../../src/domain/date';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
-import { ChartSky, IslandRow, anchorX } from '../../src/components/IslandRow';
+import { ChartSky, IslandRow, MOON_X, SeaLife, anchorX } from '../../src/components/IslandRow';
 import type { IsleKind } from '../../src/components/instruments/Isles';
 import { useHaki } from '../../src/state/HakiProvider';
 import { space, type } from '../../src/theme/tokens';
@@ -109,8 +109,12 @@ export default function SettingsScreen() {
         <View style={styles.chart} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
           {/* The sky, the moon and the far shore, before the first leg. */}
           {w > 0 ? <ChartSky w={w} level={hardening} /> : null}
-          {w > 0
-            ? islands.map((island, i) => (
+          {/* The rows, over a sea with life in it: haze off the far shore,
+              the moon's glimmer, and small craft riding between islands. */}
+          {w > 0 ? (
+            <View>
+              <SeaLife w={w} rows={islands.length} level={hardening} moonX={MOON_X * w} />
+              {islands.map((island, i) => (
                 <IslandRow
                   key={island.kind}
                   kind={island.kind}
@@ -123,8 +127,9 @@ export default function SettingsScreen() {
                   accent={conquerors}
                   onPress={() => router.push(island.route)}
                 />
-              ))
-            : null}
+              ))}
+            </View>
+          ) : null}
         </View>
       )}
 

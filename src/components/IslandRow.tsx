@@ -71,6 +71,10 @@ export function anchorX(side: 'left' | 'right', w: number): number {
   return side === 'left' ? EDGE + ISLE_W / 2 : w - EDGE - ISLE_W / 2;
 }
 
+/** Where the moon hangs, as a fraction of the chart's width — shared with
+ * `SeaLife`, whose water carries its glimmer directly below. */
+export const MOON_X = 0.82;
+
 /**
  * How hard an island's pool of light burns at each level. Zero on paper is
  * the law, not a tuning choice: unhardened Haki does not shine, and neither
@@ -107,6 +111,15 @@ function LumePool({
     // rather than a haze that happens to be nearby.
     { rx: 21, ry: 3, o: 0.4 },
   ];
+  // The reflection: the light standing in the water as a broken column,
+  // dashes narrowing and fading with depth. This is what the bay photographs
+  // all share — a lamp is a dot, but a lamp *on water* is a streak.
+  const shimmer = [
+    { dy: 8, hw: 9, dx: -2, o: 0.3 },
+    { dy: 12.5, hw: 6.5, dx: 2.5, o: 0.22 },
+    { dy: 17.5, hw: 4.5, dx: -1.5, o: 0.15 },
+    { dy: 23, hw: 3, dx: 1.5, o: 0.09 },
+  ];
   return (
     <G>
       {shells.map((sh, i) => (
@@ -120,7 +133,158 @@ function LumePool({
           fillOpacity={sh.o * strength}
         />
       ))}
+      {shimmer.map((sm, i) => (
+        <Rect
+          key={`s${i}`}
+          x={ax + sm.dx - sm.hw}
+          y={wl + sm.dy}
+          width={sm.hw * 2}
+          height={1.7}
+          rx={0.85}
+          fill={lume}
+          fillOpacity={sm.o * strength}
+        />
+      ))}
     </G>
+  );
+}
+
+/**
+ * The sea between the islands, alive.
+ *
+ * The reference for the night chart is a bay after dark, and a bay is never
+ * empty: small craft ride at anchor between the islands, each a hull's
+ * shadow under two or three lights with a streak of them in the water. They
+ * are scenery, not buttons — fixed berths scaled to the chart, on the open
+ * side of each row, well away from the islands and their names — and they
+ * obey the lamplight law like everything else: none on paper, brighter as
+ * the day hardens, plain mode never sees the chart at all.
+ *
+ * Also here: the haze where the sky meets the first stretch of water, and
+ * the moon's glimmer on it — the sky band above ends at the far shore, so
+ * its light lands in this layer.
+ */
+export function SeaLife({
+  w,
+  rows,
+  level,
+  moonX,
+}: {
+  w: number;
+  rows: number;
+  level: HardeningLevel;
+  moonX: number;
+}) {
+  const { palette } = useHaki();
+  const strength = LUME[level];
+  if (strength === 0) return null;
+
+  // One berth per row on the row's open side: [x fraction, scale].
+  const BERTHS: [number, number][] = [
+    [0.68, 1],
+    [0.3, 0.8],
+    [0.82, 0.7],
+    [0.22, 1],
+    [0.58, 0.75],
+    [0.68, 0.85],
+  ];
+
+  const H = rows * ROW_H;
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Svg width="100%" height="100%">
+        <Defs>
+          <LinearGradient id="seaHaze" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={palette.surface} stopOpacity="0.5" />
+            <Stop offset="1" stopColor={palette.surface} stopOpacity="0" />
+          </LinearGradient>
+        </Defs>
+        {/* The haze the far shore leaves on the water. */}
+        <Rect x={0} y={0} width={w} height={110} fill="url(#seaHaze)" />
+
+        {/* The moon, standing in the first row's water. */}
+        {[
+          { dy: 4, hw: 10, o: 0.1 },
+          { dy: 9, hw: 7, o: 0.075 },
+          { dy: 15, hw: 5, o: 0.05 },
+          { dy: 22, hw: 3.5, o: 0.035 },
+        ].map((sm, i) => (
+          <Rect
+            key={`m${i}`}
+            x={moonX - sm.hw}
+            y={WL + sm.dy}
+            width={sm.hw * 2}
+            height={1.7}
+            rx={0.85}
+            fill={palette.ink}
+            fillOpacity={sm.o * strength}
+          />
+        ))}
+
+        {/* The craft, row by row. */}
+        {BERTHS.slice(0, rows).map(([fx, sc], row) => {
+          const cx = fx * w;
+          const cy = row * ROW_H + WL;
+          return (
+            <G key={row} transform={`translate(${cx}, ${cy}) scale(${sc})`}>
+              {/* Hull: a shadow on the water with a lit gunwale. */}
+              <Path
+                d="M -9 -1.5 Q 0 2.5 9 -1.5 L 7 1.5 Q 0 4 -7 1.5 Z"
+                fill={palette.surface2}
+              />
+              <Path
+                d="M -9 -1.5 Q 0 2.5 9 -1.5"
+                fill="none"
+                stroke={palette.ink}
+                strokeWidth={0.7}
+                opacity={0.35 * strength}
+              />
+              {/* Deck lights. */}
+              <Circle
+                cx={-4}
+                cy={-3}
+                r={1.1}
+                fill={palette.warn}
+                fillOpacity={0.9 * strength}
+              />
+              <Circle
+                cx={1}
+                cy={-3.4}
+                r={1.2}
+                fill={palette.warn}
+                fillOpacity={0.95 * strength}
+              />
+              <Circle
+                cx={5.5}
+                cy={-2.8}
+                r={1}
+                fill={palette.warn}
+                fillOpacity={0.85 * strength}
+              />
+              {/* And the lights again, in the water. */}
+              <Rect
+                x={-5}
+                y={4.5}
+                width={10}
+                height={1.4}
+                rx={0.7}
+                fill={palette.warn}
+                fillOpacity={0.22 * strength}
+              />
+              <Rect
+                x={-3}
+                y={8}
+                width={6}
+                height={1.3}
+                rx={0.65}
+                fill={palette.warn}
+                fillOpacity={0.12 * strength}
+              />
+            </G>
+          );
+        })}
+      </Svg>
+    </View>
   );
 }
 
@@ -216,7 +380,7 @@ export function ChartSky({ w, level }: { w: number; level: HardeningLevel }) {
     [0.55, 78, 0.8, 0.25],
   ];
   const strength = LUME[level];
-  const moonX = w * 0.82;
+  const moonX = MOON_X * w;
   const moonY = 44;
 
   return (
@@ -236,6 +400,16 @@ export function ChartSky({ w, level }: { w: number; level: HardeningLevel }) {
         {STARS.map(([fx, y, r, o], i) => (
           <Circle key={i} cx={fx * w} cy={y} r={r} fill={palette.ink} opacity={o * strength} />
         ))}
+        {/* One star brighter than the rest, with the cross-spark a lens
+            gives the brightest thing in frame. */}
+        <Circle cx={w * 0.3} cy={26} r={1.5} fill={palette.ink} opacity={0.85 * strength} />
+        <Path
+          d={`M ${w * 0.3 - 5.5} 26 L ${w * 0.3 + 5.5} 26 M ${w * 0.3} 20.5 L ${w * 0.3} 31.5`}
+          stroke={palette.ink}
+          strokeWidth={0.7}
+          opacity={0.4 * strength}
+          strokeLinecap="round"
+        />
 
         {/* The moon, and its air. The one light up here — the lamplight
             below is warm, the moon is not, and the difference is what makes
