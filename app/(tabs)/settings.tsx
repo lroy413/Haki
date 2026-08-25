@@ -10,7 +10,9 @@ import {
   View,
 } from 'react-native';
 import { BackupCard } from '../../src/components/BackupCard';
+import * as Haptics from 'expo-haptics';
 import { Toggle } from '../../src/components/Toggle';
+import { CREW_ORDER, crewFor, type CrewName } from '../../src/domain/crew';
 import { useStore } from '../../src/db/client';
 import {
   setDayStartHour,
@@ -18,6 +20,7 @@ import {
   setPlainMode,
   setSoundOn,
   setTraining,
+  setCrew,
 } from '../../src/db/settings';
 import { describeDayStart } from '../../src/domain/date';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
@@ -98,6 +101,13 @@ export default function SettingsScreen() {
     await refreshSettings();
   }
 
+  async function chooseCrew(next: CrewName) {
+    if (next === settings.crew) return;
+    void Haptics.selectionAsync();
+    await setCrew(db, next);
+    await refreshSettings();
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
@@ -108,6 +118,38 @@ export default function SettingsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <PageHeading title={t.tabs.settings.label} />
+
+        {/* Whose will this is. First card, because it changes the look of
+            every card under it. */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t.crewTitle}</Text>
+          <Text style={styles.blurb}>{t.crewBlurb}</Text>
+          <View style={styles.crewRow}>
+            {CREW_ORDER.map((name) => {
+              const option = crewFor(name);
+              const on = settings.crew === name;
+              return (
+                <Pressable
+                  key={name}
+                  onPress={() => void chooseCrew(name)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  accessibilityLabel={`${option.label}. ${option.blurb}`}
+                  style={({ pressed }) => [
+                    styles.crewCard,
+                    on && { borderColor: palette[option.conquerors] },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={[styles.crewName, on && { color: palette[option.conquerors] }]}>
+                    {option.label}
+                  </Text>
+                  <Text style={styles.crewBlurb}>{option.blurb}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
         <View style={styles.card}>
           <View style={styles.switchRow}>
@@ -287,6 +329,19 @@ const makeStyles = (c: Palette) =>
     },
     cardTitle: { ...type.title, color: c.ink },
     blurb: { ...type.small, color: c.inkDim, lineHeight: 20 },
+
+    crewRow: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
+    crewCard: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      padding: space.md,
+      gap: space.xs,
+      minHeight: 44,
+    },
+    crewName: { ...type.heading, fontSize: 15, color: c.ink },
+    crewBlurb: { ...type.small, fontSize: 13, color: c.inkDim, lineHeight: 18 },
 
     switchRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
     switchText: { flex: 1, gap: space.xs },

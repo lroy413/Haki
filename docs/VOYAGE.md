@@ -126,7 +126,8 @@ nail seated on it, tendons, wrist creases. Every fault was invisible in
 code and obvious in a screenshot.
 
 The architecture is the theme system's seam: the field owns the violence,
-the instrument owns the shape. Luffy's is a fist. Zoro's will be a sword.
+the instrument owns the shape. Luffy's is a fist. Zoro's is a sword — a
+promise this note carried for a long time before it was kept.
 
 ## The day, said out loud
 
@@ -528,6 +529,44 @@ backups could not have (a pre-rhythm export would have silently dropped
 every task on import). New columns now validate as absent-or-null, which is
 what "added later" honestly means.
 
+## Zoro's flag
+
+The theme seam was cut a long way back, when the impact frame was built: the
+field owns the violence, the instrument owns the shape. Luffy's is a fist;
+the note in `Fist.tsx` has said "Zoro's is a sword" ever since. This is that
+note being cashed.
+
+The owner set the terms: **his Haki is black and purple, and Conqueror's adds
+the green** — and instead of Gears he has his sword styles. Both halves of
+that turned out to matter. Because only 覇王色 changes colour, the swap is
+_scoped_: the Journey tab, the Dream, the Flag and the burst turn Enma's
+green, and 見聞色 stays violet, because Observation is violet under both
+crews. A global find-and-replace would have turned the reading card and the
+eyes green as well and lost the whole point.
+
+The mechanism is one function. A crew carries a colour _key_ rather than a
+colour — the palette moves through four levels and a hex would be right on
+one of them — and `underCrew` applies that key to the palette once. The
+Conqueror's screens go on writing `c.violet` and it now means "the lens's
+colour", which is what they always meant. Six screens changed by one line
+each.
+
+The Gears become **一刀流 Ittoryu, 二刀流 Nitoryu, 三刀流 Santoryu** — one
+blade, two, three — mapped onto the three lengths that already existed, by
+commitment rather than by canon power level. And the load-bearing rule: **the
+keys never move.** A session is `second | third | fourth` under either flag,
+so a year logged as Gear 3 reads as Nitoryu the moment you switch and as Gear
+3 again if you switch back. A theme that rewrote history would be a theme you
+could not try.
+
+Two things were caught by looking rather than by testing. The first sword ran
+corner to corner and pushed both ends out of frame — which left a long grey
+diagonal, a stick. What makes a katana legible at a glance is the _ends_: the
+tsuba and the wrapped hilt at one, the angled kissaki at the other. The second
+was that renaming the three cards left the word "gear" in every cost line
+underneath them. Both are now the subject of a test — the second literally:
+neither crew may speak the other's vocabulary.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records
@@ -684,8 +723,8 @@ all the way from the glyph in the corner to the tab you arrived by.
 
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-four
-pull requests merged, 661 tests, one principle held everywhere: the app
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-five
+pull requests merged, 674 tests, one principle held everywhere: the app
 rewards the act and never punishes the absence.
 
 What is actually in it:
@@ -704,15 +743,13 @@ What is actually in it:
 
 **Charted next**, roughly in the order they make sense:
 
-1. **The Zoro theme** — the field keeps the violence, the instrument becomes a
-   sword. The seam is already cut; this is one file and a picker.
-2. **Native.** The PWA has carried it this far, but iOS cannot do reliable
+1. **Native.** The PWA has carried it this far, but iOS cannot do reliable
    notifications or a home-screen widget, and the Den Den Mushi taxonomy in
    the concept doc needs real notification channels.
-3. **The Eternal Pose** — the concept doc's one goal that never recalibrates,
+2. **The Eternal Pose** — the concept doc's one goal that never recalibrates,
    still unbuilt and still arguably covered by the Dream. Worth deciding
    about rather than leaving on a list.
-4. **Encounters** — a light log of who you saw and how it went. The concept
+3. **Encounters** — a light log of who you saw and how it went. The concept
    doc's own argument for it is that loneliness is the largest untracked
    variable in most people's mental health, and Foresight now exists to find
    it if it is there.

@@ -57,7 +57,7 @@ const FIELDS = [
 ];
 
 export function ConquerorsLayer() {
-  const { palette, intensity, plainMode } = useHaki();
+  const { palette, intensity, plainMode, conquerors } = useHaki();
   const [live, setLive] = useState(false);
   const flash = useRef(new Animated.Value(0)).current;
   const reduceMotion = useRef(false);
@@ -138,7 +138,10 @@ export function ConquerorsLayer() {
           >
             <Lightning
               core={black}
-              halo={palette.violet}
+              // The crew's own colour: violet for Luffy, Enma's green
+              // for Zoro. The black core does not change — Conqueror's is
+              // black lightning under either flag.
+              halo={conquerors}
               width={field.width}
               count={field.count}
             />

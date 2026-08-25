@@ -68,7 +68,7 @@ function publish(height: number): void {
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { t, palette, plainMode } = useHaki();
+  const { t, palette, plainMode, conquerors } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const tabs: Tab[] = [
@@ -100,7 +100,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
             if (!tab) return null;
 
             const { options } = descriptors[route.key];
-            const tint = focused ? lensTints(palette)[index] : palette.inkFaint;
+            const tint = focused ? lensTints(palette, conquerors)[index] : palette.inkFaint;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -161,11 +161,15 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
  *
  * The same colours the screens themselves already use, so the bar reads as a
  * legend for the app rather than five copies of the accent: the day and its
- * record in cyan, 見聞色 violet, 武装色 crimson, 覇王色 the signature violet,
- * and settings in plain ink because it is not a lens.
+ * record in cyan, 見聞色 violet, 武装色 crimson, and settings in plain ink
+ * because it is not a lens.
+ *
+ * 覇王色 is the one that moves. It burns whatever the crew currently flying
+ * burns — the signature violet under Luffy, Enma's green under Zoro — which
+ * is why it arrives as an argument rather than a token.
  */
-function lensTints(c: Palette): string[] {
-  return [c.cyan, c.violet, c.crimson, c.violet, c.inkDim];
+function lensTints(c: Palette, conquerors: string): string[] {
+  return [c.cyan, c.violet, c.crimson, conquerors, c.inkDim];
 }
 
 const makeStyles = (c: Palette) =>

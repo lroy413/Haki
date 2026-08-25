@@ -18,6 +18,7 @@ import { useHaki } from '../src/state/HakiProvider';
 import { SectionLabel } from '../src/components/SectionLabel';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { lit, offer, plate, press, row } from '../src/theme/surfaces';
+import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -37,8 +38,9 @@ import type { Palette } from '../src/theme/palettes';
  */
 export default function FlagScreen() {
   const { db } = useStore();
-  const { t, palette, plainMode, hardening } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, palette, plainMode, hardening, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
 
   const [values, setValues] = useState<Value[]>([]);
@@ -89,7 +91,7 @@ export default function FlagScreen() {
         {/* The flag itself, flying. One plate, in the king's colour, with the
             values on it rather than in a list beneath it — the whole point is
             that they are one thing you sail under. */}
-        <View style={[styles.flag, lit(palette.violet, hardening)]}>
+        <View style={[styles.flag, lit(lens.violet, hardening)]}>
           {plainMode ? null : <Text style={styles.mark}>旗</Text>}
           <Text style={styles.flagLabel}>{t.flagTitle}</Text>
 

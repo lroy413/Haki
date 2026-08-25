@@ -38,7 +38,7 @@ void SplashScreen.preventAutoHideAsync();
  * a context it is itself rendering.
  */
 function Chrome() {
-  const { palette, t } = useHaki();
+  const { palette, t, crew } = useHaki();
 
   /**
    * Keep the browser's own chrome on the same ground as the app.
@@ -83,7 +83,10 @@ function Chrome() {
         <Stack.Screen name="sit" options={{ title: t.stillnessTitle }} />
         {/* The Gears' waiting room — off the Armament tab, ahead of the
             ability page. See the note at the top of app/gears.tsx. */}
-        <Stack.Screen name="gears" options={{ title: t.gearsTitle }} />
+        <Stack.Screen
+          name="gears"
+          options={{ title: crew.name === 'zoro' ? t.stylesTitle : t.gearsTitle }}
+        />
         {/* The workshop behind the day's offers. See app/rhythms.tsx. */}
         <Stack.Screen name="rhythms" options={{ title: t.rhythmTitle }} />
         {/* The weekly ritual. See app/sail.tsx. */}

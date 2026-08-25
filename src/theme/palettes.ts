@@ -47,6 +47,14 @@ export type Palette = {
   warn: string;
   warnSoft: string;
 
+  /**
+   * Enma's flame. Only the Zoro theme burns it — 覇王色 turns green when the
+   * crew changes — but it lives in the palette like every other colour and is
+   * held to the same floors, because a theme may not smuggle in a hex.
+   */
+  jade: string;
+  jadeSoft: string;
+
   glass: string;
   glassEdge: string;
 
@@ -105,6 +113,8 @@ const unhardened: Palette = {
   crimsonSoft: '#F3D8D9',
   warn: '#7A4A00',
   warnSoft: '#E6D5A8',
+  jade: '#136B1B',
+  jadeSoft: '#C6E4BE',
 
   // Denser than the dark palettes on purpose. A violet button scrolling under
   // a light bar shows straight through a thin fill, and the tab label is dark
@@ -138,6 +148,8 @@ const hardened: Palette = {
   crimsonSoft: '#3A1F21',
   warn: '#FFBB45',
   warnSoft: '#382B10',
+  jade: '#63E86E',
+  jadeSoft: '#1B3E1E',
 
   glass: 'rgba(38,42,56,0.66)',
   glassEdge: 'rgba(241,239,248,0.12)',
@@ -168,6 +180,8 @@ const set: Palette = {
   crimsonSoft: '#33191C',
   warn: '#FAB136',
   warnSoft: '#32260C',
+  jade: '#57E163',
+  jadeSoft: '#123015',
 
   glass: 'rgba(27,30,42,0.64)',
   glassEdge: 'rgba(237,235,245,0.11)',
@@ -198,6 +212,8 @@ const black: Palette = {
   crimsonSoft: '#2E1518',
   warn: '#F5A524',
   warnSoft: '#2C2008',
+  jade: '#4BDC58',
+  jadeSoft: '#0E2712',
 
   glass: 'rgba(18,20,31,0.62)',
   glassEdge: 'rgba(233,231,243,0.10)',
@@ -241,4 +257,20 @@ export function paletteFor(level: HardeningLevel): Palette {
  */
 export function darkest(p: Palette): string {
   return p.lightSurface ? p.ink : p.bg;
+}
+
+/**
+ * The palette as a given crew's 覇王色 sees it.
+ *
+ * Every Conqueror's screen writes `c.violet` and means "the lens's colour",
+ * not "purple" — so rather than teaching six screens that a crew exists, the
+ * crew is applied to the palette once and the screens are handed the result.
+ * Under Luffy it is the identity function; under Zoro the violet slots carry
+ * Enma's green, which is the only thing his flag changes about colour.
+ *
+ * Deliberately not applied globally: 見聞色 is violet under both crews, and a
+ * blanket swap would turn the reading card and the eyes green as well.
+ */
+export function underCrew(p: Palette, conquerors: 'violet' | 'jade'): Palette {
+  return conquerors === 'violet' ? p : { ...p, violet: p.jade, violetSoft: p.jadeSoft };
 }

@@ -17,6 +17,7 @@ import type { CarriedRow } from '../src/db/schema';
 import { useHaki } from '../src/state/HakiProvider';
 import { radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
+import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
 
 /**
@@ -38,8 +39,9 @@ import type { Palette } from '../src/theme/palettes';
  */
 export default function CarriedScreen() {
   const { db } = useStore();
-  const { t, palette } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, palette, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
 
   const [people, setPeople] = useState<CarriedRow[]>([]);

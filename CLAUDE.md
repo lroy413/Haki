@@ -119,6 +119,29 @@ because it is a system — swell, wavelength, phase, how much is running — and
 systems do not get thrown away when someone redraws the boat. Same rule for
 the impact frame: the field owns the violence, the instrument owns the shape.
 
+## A crew renames; it never restructures
+
+`domain/crew.ts` is the theme, and it is allowed to change exactly four
+things: what 覇王色 burns, which instrument the impact frame draws, what the
+focus sessions are called, and the word for the room they live in. Luffy
+flies by default because the app was drawn for him.
+
+- **The keys never move.** A focus session is `second | third | fourth` under
+  every flag, so a year logged as Gear 3 reads as Nitoryu the moment you
+  switch and as Gear 3 again if you switch back. A theme that rewrote history
+  would be a theme you could not try. There is a test.
+- **A crew carries a colour _key_, not a colour** (`'violet' | 'jade'`). The
+  palette moves through four levels; a crew holding a hex would be right on
+  one of them. `underCrew(palette, …)` applies it once and hands the result to
+  the Conqueror's screens, which go on writing `c.violet` meaning "the lens's
+  colour" — which is what they always meant.
+- **Only 覇王色 moves.** Zoro's Haki is black and purple; the green is what
+  Conqueror's _adds_. So the Journey tab, the Dream, the Flag and the burst
+  turn jade and nothing else does — 見聞色 is violet under both crews, which
+  is why the swap is scoped rather than global.
+- **Neither crew may speak the other's vocabulary.** The first pass renamed
+  the three cards and left "gear" in every cost line under them. Tested.
+
 ## The light a lens throws
 
 `lit(tint, level)` in `theme/surfaces.ts` puts a lens's own colour into the air

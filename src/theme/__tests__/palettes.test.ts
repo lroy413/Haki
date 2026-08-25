@@ -52,11 +52,16 @@ const SOLID: (keyof Palette)[] = [
   'crimsonSoft',
   'warn',
   'warnSoft',
+  'jade',
+  'jadeSoft',
   'specular',
   'onAccent',
 ];
 
-const ACCENTS: (keyof Palette)[] = ['violet', 'cyan', 'crimson', 'warn'];
+// jade is in here because a themed accent is still an accent: under the Zoro
+// crew it labels the Journey tab, the Dream and the burst, and it carries the
+// same eleven-point words the others do.
+const ACCENTS: (keyof Palette)[] = ['violet', 'cyan', 'crimson', 'warn', 'jade'];
 
 describe.each(LEVELS)('palette %i', (level) => {
   const p = paletteFor(level);
@@ -138,6 +143,7 @@ describe.each(LEVELS)('palette %i', (level) => {
       ['cyan', 'cyanSoft'],
       ['crimson', 'crimsonSoft'],
       ['warn', 'warnSoft'],
+      ['jade', 'jadeSoft'],
     ] as const;
     for (const [accent, soft] of pairs) {
       expect(contrast(p[soft], p.bg), `${where} ${soft} vs bg`).toBeGreaterThanOrEqual(1.08);

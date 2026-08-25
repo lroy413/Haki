@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
+import { crewFor, type Crew } from '../domain/crew';
 import { useStore } from '../db/client';
 import {
   allSessions,
@@ -44,6 +45,17 @@ import { preloadSounds, setSoundEnabled } from '../sound';
 
 type HakiState = {
   read: (DailyRead & { weather: string | null }) | null;
+  /** Whose will this is. See `domain/crew.ts`. */
+  crew: Crew;
+  /**
+   * What 覇王色 burns in, under the crew currently flying.
+   *
+   * Every screen that draws Conqueror's — the Journey tab, the Dream, the
+   * Flag, the burst, the tab bar's fourth glyph — reads this rather than
+   * `palette.violet`, so a crew change moves all of them at once and none of
+   * them has to know a crew exists.
+   */
+  conquerors: string;
   reserve: Reserve;
   cascade: CascadeVerdict;
   training: TrainingStatus;
@@ -279,6 +291,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   // Plain mode pins the ramp to the settled dark so a screenshare stays still.
   const level = settings.plainMode ? 3 : hardening;
   const palette = paletteFor(level);
+  const crew = crewFor(settings.crew);
 
   /**
    * The page itself wears the day's ground.
@@ -320,6 +333,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       hardening: level,
       acts,
       palette,
+      crew,
+      conquerors: palette[crew.conquerors],
       ryuo: (() => {
         // Plain mode turns the effects off, and reach is entirely an effect.
         const tier = settings.plainMode ? 0 : tierFor(ryuoDays);
@@ -347,6 +362,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       seeing,
       settings.plainMode,
       settings.setSailAt,
+      crew,
+      palette,
       refresh,
     ],
   );
