@@ -583,6 +583,21 @@ delete, the Tension dial, the Sunny's own flag. 見聞色 remains the lens
 that never moves, and the Return keeps the signature violet under both
 flags.
 
+### The chart at night
+
+The owner sent a photograph — an archipelago after dark, every island glowing
+in its own pool of light on black water, mountains behind — and asked for the
+settings chart to feel like that. It already knew how: the chart follows
+hardening, so the night look is simply what the chart becomes as the day is
+used. Each island now lies in a pool of the ink's own light — a hot ring at
+the shoreline, falling off in shells, with a soft bloom underneath — and the
+landmass brightens to full ink, foliage lit from within. A horizon of distant
+peaks stands behind the archipelago: pencilled outlines on paper, filled
+silhouettes in haze once the sea darkens. All of it under `lit()`'s law —
+paper catches nothing, the glow only grows with the level, plain mode gets
+the list — and none of it in a lens's colour, so the crew pennant remains
+the chart's one spot of colour.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records

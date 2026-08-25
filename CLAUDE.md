@@ -118,9 +118,9 @@ entry — keep their headers: they need a way back.
 
 Settings is an archipelago: six islands, each a category, each pressing
 through to its own page. `src/components/IslandRow.tsx` is the system — the
-band of sea, the pooled water, the dashed course — and
-`src/components/instruments/Isles.tsx` holds the landmass drawings behind the
-usual replacing-drawings contract. Three rules:
+band of sea, the pooled water, the dashed course, the horizon and the light —
+and `src/components/instruments/Isles.tsx` holds the landmass drawings behind
+the usual replacing-drawings contract. Four rules:
 
 - **The water is the Sunny's water.** `SWELL` and `swellPath` come from
   `instruments/Sea.tsx`; never draw settings water with its own numbers, or
@@ -130,6 +130,12 @@ usual replacing-drawings contract. Three rules:
   a lens.
 - **Plain mode gets a plain list**, same categories, same order, same
   routes. The chart is a performance.
+- **At night the chart is lit, and the light is ink.** As the day hardens
+  each island gains a pool of light on the water (hot ring at the shore,
+  falling off in shells), the landmass brightens to full ink, and the
+  horizon's peaks fill in behind the archipelago. Same law as `lit()`:
+  paper catches nothing, the glow only grows, and it is never a lens
+  colour — the pennant stays the chart's one spot of colour.
 
 Adding a category = one entry in the hub's `islands` array, a page under
 `app/`, a `Stack.Screen` in `app/_layout.tsx`, and a landmass in `Isles.tsx`
