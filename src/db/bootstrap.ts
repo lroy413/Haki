@@ -216,6 +216,37 @@ const MIGRATIONS: { version: number; up: string }[] = [
       ALTER TABLE daily_read ADD COLUMN weather TEXT;
     `,
   },
+  {
+    version: 9,
+    up: `
+      -- The Flag: three to five values, in the owner's own words. Nothing
+      -- here is ever checked off, so there is no state column and no date
+      -- beyond when it was raised.
+      CREATE TABLE IF NOT EXISTS flag_value (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        text        TEXT    NOT NULL,
+        set_on      TEXT    NOT NULL,
+        created_at  INTEGER NOT NULL,
+        updated_at  INTEGER NOT NULL
+      );
+
+      -- What an island's soundings are measured in ('kg', 'words', '£').
+      -- Its presence is what makes an island numeric by nature; null is the
+      -- ordinary case and means the island is done-or-not.
+      ALTER TABLE poneglyph ADD COLUMN unit TEXT;
+
+      -- One reading, taken whenever you wanted to know. No target column,
+      -- and deliberately nowhere to put one. See domain/soundings.ts.
+      CREATE TABLE IF NOT EXISTS sounding (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        island_key   INTEGER NOT NULL,
+        value        REAL    NOT NULL,
+        day          TEXT    NOT NULL,
+        created_at   INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS sounding_island_idx ON sounding (island_key);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

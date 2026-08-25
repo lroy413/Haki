@@ -11,7 +11,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useStore } from '../../src/db/client';
-import { listEntries } from '../../src/db/repo';
+import { listEntries, asternToday } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea } from '../../src/domain/date';
@@ -29,6 +29,7 @@ import { Eyes } from '../../src/components/instruments/Eyes';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { lit, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
+import { asternLine, type Astern } from '../../src/domain/astern';
 import type { Palette } from '../../src/theme/palettes';
 
 /** How much the floating button takes on top of the bar's own clearance. */
@@ -61,18 +62,23 @@ export default function ObservationScreen() {
 
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [reading, setReading] = useState<Foresight | null>(null);
+  const [astern, setAstern] = useState<Astern | null>(null);
 
   const load = useCallback(async () => {
-    const rows = await listEntries(db);
+    const [rows, back] = await Promise.all([listEntries(db), asternToday(db)]);
     setEntries(rows);
+    setAstern(back);
   }, [db]);
 
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
       void (async () => {
-        const rows = await listEntries(db);
-        if (!cancelled) setEntries(rows);
+        const [rows, back] = await Promise.all([listEntries(db), asternToday(db)]);
+        if (!cancelled) {
+          setEntries(rows);
+          setAstern(back);
+        }
         // A year of history is a real query, so it runs after the list the
         // screen is actually made of rather than racing it.
         const history = await historyForForesight(db, addDays(todayKey(), -365));
@@ -217,6 +223,30 @@ export default function ObservationScreen() {
             </Pressable>
 
             <SectionLabel label={t.entriesLabel} style={styles.sectionLabel} />
+
+            {/* What you wrote on this date in an earlier year — the feature
+                the "memory is a source, never a stick" rule was written for.
+                It appears only on the days an earlier year happens to have
+                one, which for most of the first year is never, and it counts
+                nothing: not the anniversaries, not the years kept up. */}
+            {astern ? (
+              <Pressable
+                onPress={() => router.push(`/entry/${astern.entry.id}`)}
+                accessibilityRole="button"
+                accessibilityLabel={`${asternLine(astern.years, plainMode)} ${astern.entry.body.trim()}`}
+                style={({ pressed }) => [styles.astern, pressed && styles.pressed]}
+              >
+                <View style={styles.asternHead}>
+                  <Text style={styles.asternLabel}>{t.asternLabel}</Text>
+                  {plainMode ? null : <Text style={styles.asternGlyph}>過去</Text>}
+                </View>
+                <Text style={styles.asternWhen}>{asternLine(astern.years, plainMode)}</Text>
+                <Text style={styles.asternBody} numberOfLines={3}>
+                  {astern.entry.body.trim()}
+                </Text>
+              </Pressable>
+            ) : null}
+
             <LogLine onLogged={() => void load()} />
           </View>
         }
@@ -329,6 +359,27 @@ const makeStyles = (c: Palette) =>
     settleGlyph: { fontFamily: font.display, fontSize: 15, color: c.cyan },
     settleLine: { ...type.body, color: c.ink, lineHeight: 21 },
     empty: { ...type.body, color: c.inkDim, textAlign: 'center', marginTop: space.xxxl },
+
+    // Quiet on purpose: a memory that arrives shouting is a memory you stop
+    // wanting. Dashed, because what it holds is not today's material.
+    astern: {
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: c.violet,
+      borderRadius: radius.md,
+      padding: space.lg,
+      gap: space.xs,
+      minHeight: 44,
+    },
+    asternHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    asternLabel: { ...type.label, color: c.violet },
+    asternGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    asternWhen: { ...type.mono, color: c.inkFaint },
+    asternBody: { ...type.body, color: c.ink, lineHeight: 22, fontStyle: 'italic' },
 
     row: {
       ...row(c),

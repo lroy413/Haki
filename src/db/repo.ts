@@ -10,6 +10,9 @@ import type { PracticeDepth, SitSession } from '../domain/stillness';
 import { normaliseHeading, type Course } from '../domain/course';
 import { appendLine, isWritable } from '../domain/logbook';
 import type { Poneglyph, PoneglyphState, Road } from '../domain/logpose';
+import { normaliseValue, type Value } from '../domain/flag';
+import { normaliseUnit, type Sounding } from '../domain/soundings';
+import { asternOn, type Astern } from '../domain/astern';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
 import type { DayRecord } from '../domain/foresight';
@@ -21,8 +24,10 @@ import {
   course,
   dailyRead,
   entry,
+  flagValue,
   gearSession,
   poneglyph,
+  sounding,
   rhythm,
   roadPoneglyph,
   sailing,
@@ -1011,6 +1016,7 @@ export async function listPoneglyphs(db: Db): Promise<Poneglyph[]> {
     openedOn: row.openedOn,
     closedOn: row.closedOn,
     reason: row.reason,
+    unit: row.unit,
   }));
 }
 
@@ -1097,4 +1103,121 @@ export async function writeSetting(db: Db, key: string, value: string): Promise<
     .insert(setting)
     .values({ key, value })
     .onConflictDoUpdate({ target: setting.key, set: { value } });
+}
+
+/* -------------------------------------------------------------- the flag */
+
+export async function listFlag(db: Db): Promise<Value[]> {
+  const rows = await db.select().from(flagValue).orderBy(flagValue.createdAt);
+  return rows.map((row) => ({
+    id: row.id,
+    key: row.createdAt,
+    text: row.text,
+    setOn: row.setOn,
+  }));
+}
+
+export async function addValue(db: Db, text: string): Promise<void> {
+  const clean = normaliseValue(text);
+  if (!clean) return;
+  const t = now();
+  await db
+    .insert(flagValue)
+    .values({ text: clean, setOn: todayKey(), createdAt: t, updatedAt: t });
+}
+
+export async function updateValue(db: Db, id: number, text: string): Promise<void> {
+  const clean = normaliseValue(text);
+  if (!clean) return;
+  await db.update(flagValue).set({ text: clean, updatedAt: now() }).where(eq(flagValue.id, id));
+}
+
+/**
+ * A value comes down rather than being retired.
+ *
+ * Everything else in this app keeps its history — a retired pillar keeps its
+ * islands, a stopped rhythm keeps its struck tasks — because those are
+ * records of things that happened. A value you no longer hold is not a
+ * record of anything; keeping a list of former values would be a monument to
+ * having changed your mind, which is the opposite of what a flag is for.
+ */
+export async function removeValue(db: Db, id: number): Promise<void> {
+  await db.delete(flagValue).where(eq(flagValue.id, id));
+}
+
+/* ------------------------------------------------------ astern in the log */
+
+/**
+ * What was written on this date in an earlier year, if anything.
+ *
+ * Reads the whole log rather than a window: the match is on month and day
+ * across every year there is, and a date-shaped SQL query for that is less
+ * legible than filtering in the domain, on a table that holds one row per
+ * entry per lifetime.
+ */
+export async function asternToday(db: Db, today: DayKey = todayKey()): Promise<Astern | null> {
+  const rows = await db.select({ id: entry.id, day: entry.day, body: entry.body }).from(entry);
+  return asternOn(rows, today);
+}
+
+/* -------------------------------------------------------------- soundings */
+
+export async function soundingsFor(db: Db, islandKey: number): Promise<Sounding[]> {
+  const rows = await db
+    .select()
+    .from(sounding)
+    .where(eq(sounding.islandKey, islandKey))
+    .orderBy(sounding.createdAt);
+  return rows.map((row) => ({
+    id: row.id,
+    islandKey: row.islandKey,
+    value: row.value,
+    day: row.day,
+    createdAt: row.createdAt,
+  }));
+}
+
+export async function takeSounding(db: Db, islandKey: number, value: number): Promise<void> {
+  await db.insert(sounding).values({ islandKey, value, day: todayKey(), createdAt: now() });
+}
+
+export async function dropSounding(db: Db, id: number): Promise<void> {
+  await db.delete(sounding).where(eq(sounding.id, id));
+}
+
+/**
+ * The most recent reading for each of these islands, keyed by island.
+ *
+ * One query for the whole tab rather than one per card. Only the latest is
+ * returned: the Conqueror's tab shows where you are, and the line behind you
+ * belongs on the pillar screen where there is room to read it.
+ */
+export async function latestSoundings(
+  db: Db,
+  islandKeys: number[],
+): Promise<Map<number, Sounding>> {
+  const out = new Map<number, Sounding>();
+  if (islandKeys.length === 0) return out;
+  const rows = await db
+    .select()
+    .from(sounding)
+    .where(inArray(sounding.islandKey, islandKeys))
+    .orderBy(sounding.createdAt);
+  for (const row of rows) {
+    // Ordered oldest first, so the last write for a key wins.
+    out.set(row.islandKey, {
+      id: row.id,
+      islandKey: row.islandKey,
+      value: row.value,
+      day: row.day,
+      createdAt: row.createdAt,
+    });
+  }
+  return out;
+}
+
+/** Set or clear what an island's readings are measured in. */
+export async function setIslandUnit(db: Db, id: number, unit: string | null): Promise<void> {
+  const clean = unit === null ? null : normaliseUnit(unit) || null;
+  await db.update(poneglyph).set({ unit: clean, updatedAt: now() }).where(eq(poneglyph.id, id));
 }

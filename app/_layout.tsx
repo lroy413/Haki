@@ -94,6 +94,7 @@ function Chrome() {
         {/* One Road Poneglyph. The title is set from the pillar itself once
             it loads, so the header carries its name rather than a category. */}
         <Stack.Screen name="pillar" options={{ title: '' }} />
+        <Stack.Screen name="flag" options={{ title: t.flagTitle }} />
         <Stack.Screen name="carried" options={{ title: t.carriedTitle }} />
       </Stack>
       {/* The weather, over the content and under the frame: distant sky

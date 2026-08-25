@@ -73,6 +73,17 @@ export type Strings = {
   strikePlaceholder: string;
   strikeAdded: string;
 
+  flagTitle: string;
+  flagBlurb: string;
+  flagAdd: string;
+  flagField: string;
+  flagEmpty: string;
+  asternLabel: string;
+  soundingsLabel: string;
+  soundingTake: string;
+  soundingField: string;
+  soundingUnitField: string;
+  soundingUnitCta: string;
   carriedTitle: string;
   carriedBlurb: string;
   carriedEmpty: string;
@@ -223,6 +234,24 @@ const haki: Strings = {
   strikePlaceholder: 'One thing today that moves this.',
   strikeAdded: 'On today.',
 
+  // 旗 — the flag a ship sails under. Three to five things, in your words.
+  flagTitle: 'The Flag',
+  flagBlurb:
+    'What you stand for, in your own words. Nothing here is ever completed, counted or checked off — it is what the rest of this gets measured against.',
+  flagAdd: 'Raise one',
+  flagField: 'In your own words',
+  flagEmpty: 'Nothing raised yet.',
+
+  // 過去 — what is behind you in the log. Only ever a source.
+  asternLabel: 'Astern',
+
+  // 測深 — a depth taken by dropping a line. No target, ever.
+  soundingsLabel: 'Soundings',
+  soundingTake: 'Take a sounding',
+  soundingField: 'The reading',
+  soundingUnitField: 'Measured in',
+  soundingUnitCta: 'Give it a unit',
+
   carriedTitle: 'Inherited Will',
   carriedBlurb:
     'The people whose dreams you carry. Nothing here nags, scores, or reminds you — it opens only when you open it.',
@@ -333,6 +362,13 @@ const plain: Strings = {
   logTitle: 'Journal',
   courseTitle: 'Intention',
   stillnessTitle: 'Meditation',
+  flagTitle: 'Values',
+  flagBlurb:
+    'What you stand for, in your own words. Nothing here is completed, counted or checked off — it is what the rest of this gets measured against.',
+  flagAdd: 'Add one',
+  asternLabel: 'From the archive',
+  soundingsLabel: 'Readings',
+  soundingTake: 'Log a reading',
   breathLabel: 'Breathing',
   settleTitle: 'Settle',
   settleLine: 'Two minutes of slow breathing, right here. Nothing else attached.',

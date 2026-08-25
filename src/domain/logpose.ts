@@ -98,6 +98,12 @@ export type Poneglyph = {
   closedOn: DayKey | null;
   /** Why you sailed past. Only ever set on a passed island. */
   reason: string | null;
+  /**
+   * What this island's soundings are measured in, or null for the ordinary
+   * island. Its presence is the whole switch: an island with a unit is
+   * numeric by nature and offers a depth to log. See `domain/soundings.ts`.
+   */
+  unit: string | null;
 };
 
 /** One Road Poneglyph, read: what it points at and what is astern of it. */

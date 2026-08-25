@@ -320,6 +320,13 @@ describe('key hygiene', () => {
         createdAt: 1,
         updatedAt: 1,
       },
+      flagValue: {
+        text: 'Finish what I start',
+        setOn: '2026-08-24',
+        createdAt: 1,
+        updatedAt: 1,
+      },
+      sounding: { islandKey: 1, value: 82.4, day: '2026-08-24', createdAt: 1 },
       task: {
         title: 'Something',
         minutes: 15,

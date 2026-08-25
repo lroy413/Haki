@@ -19,9 +19,22 @@ import {
   retireRoad,
   updateRoad,
   wakesFor,
+  setIslandUnit,
+  soundingsFor,
+  takeSounding,
 } from '../src/db/repo';
 import { reachedLine, stateName, type Poneglyph, type Road } from '../src/domain/logpose';
 import { wakeLine } from '../src/domain/tasks';
+import {
+  formatSounding,
+  latest,
+  newestFirst,
+  parseSounding,
+  soundingLine,
+  type Sounding,
+} from '../src/domain/soundings';
+import { SoundingLine } from '../src/components/logpose/SoundingLine';
+import { SectionLabel } from '../src/components/SectionLabel';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
@@ -60,6 +73,11 @@ export default function PillarScreen() {
     new Map(),
   );
   const [hasOpen, setHasOpen] = useState(false);
+  const [open, setOpen] = useState<Poneglyph | null>(null);
+  const [soundings, setSoundings] = useState<Sounding[]>([]);
+  const [reading, setReading] = useState('');
+  const [unitDraft, setUnitDraft] = useState('');
+  const [settingUnit, setSettingUnit] = useState(false);
   const [title, setTitle] = useState('');
   const [why, setWhy] = useState('');
 
@@ -72,7 +90,10 @@ export default function PillarScreen() {
       setWhy(mine.why ?? '');
       navigation.setOptions({ title: mine.title });
       const under = glyphs.filter((g) => g.roadKey === mine.key);
-      setHasOpen(under.some((g) => g.state === 'open'));
+      const live = under.find((g) => g.state === 'open') ?? null;
+      setHasOpen(live !== null);
+      setOpen(live);
+      setSoundings(live ? await soundingsFor(db, live.key) : []);
       setAstern(
         under
           .filter((g) => g.state !== 'open')
@@ -92,6 +113,22 @@ export default function PillarScreen() {
       void load();
     }, [load]),
   );
+
+  async function drop() {
+    const value = parseSounding(reading);
+    if (value === null || !open) return;
+    await takeSounding(db, open.key, value);
+    setReading('');
+    await load();
+  }
+
+  async function saveUnit() {
+    if (!unitDraft.trim() || !open) return;
+    await setIslandUnit(db, open.id, unitDraft);
+    setUnitDraft('');
+    setSettingUnit(false);
+    await load();
+  }
 
   if (!road) {
     return (
@@ -158,20 +195,149 @@ export default function PillarScreen() {
           ) : null}
         </View>
 
+        {/* --------------------------------------------------------- at sea */}
+        {/* Soundings live here rather than on the needle card: the tab is
+            where you act on the island, and this is where you look at it.
+            The section exists at all only once the island has a unit —
+            most islands are done-or-not, and a number field on those is an
+            invitation to invent a metric. */}
+        {open ? (
+          <>
+            <SectionLabel
+              label={t.soundingsLabel}
+              trailing={plainMode ? undefined : '測深'}
+              tint={palette.violet}
+            />
+            <View style={styles.card}>
+              <Text style={styles.islandTitle}>{open.title}</Text>
+
+              {open.unit === null ? (
+                settingUnit ? (
+                  <>
+                    <Text style={styles.fieldLabel}>{t.soundingUnitField}</Text>
+                    <TextInput
+                      value={unitDraft}
+                      onChangeText={setUnitDraft}
+                      autoFocus={Platform.OS !== 'web'}
+                      style={styles.input}
+                      placeholder="kg"
+                      placeholderTextColor={palette.inkFaint}
+                      accessibilityLabel={t.soundingUnitField}
+                      returnKeyType="done"
+                      onSubmitEditing={() => void saveUnit()}
+                    />
+                    <View style={styles.row}>
+                      <Pressable
+                        onPress={() => setSettingUnit(false)}
+                        accessibilityRole="button"
+                        style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+                      >
+                        <Text style={styles.ghostText}>Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => void saveUnit()}
+                        disabled={!unitDraft.trim()}
+                        accessibilityRole="button"
+                        style={({ pressed }) => [
+                          styles.filled,
+                          !unitDraft.trim() && styles.disabled,
+                          pressed && styles.pressed,
+                        ]}
+                      >
+                        <Text style={styles.filledText}>Save</Text>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : (
+                  <Pressable
+                    onPress={() => setSettingUnit(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.soundingUnitCta}
+                    style={({ pressed }) => [styles.quiet, pressed && styles.pressed]}
+                  >
+                    <Text style={styles.quietText}>{t.soundingUnitCta}</Text>
+                  </Pressable>
+                )
+              ) : (
+                <>
+                  {soundings.length > 0 ? (
+                    <View style={styles.depth}>
+                      <Text style={styles.depthValue}>
+                        {formatSounding(latest(soundings)!.value, open.unit)}
+                      </Text>
+                      <SoundingLine soundings={soundings} tint={palette.violet} />
+                    </View>
+                  ) : null}
+
+                  <Text style={styles.sectionNote}>
+                    {soundingLine(soundings.length, plainMode)}
+                  </Text>
+
+                  <TextInput
+                    value={reading}
+                    onChangeText={setReading}
+                    keyboardType="decimal-pad"
+                    style={styles.input}
+                    placeholder={open.unit}
+                    placeholderTextColor={palette.inkFaint}
+                    accessibilityLabel={t.soundingField}
+                    returnKeyType="done"
+                    onSubmitEditing={() => void drop()}
+                  />
+                  {/* Its own row. Beside the field the label clipped mid-word
+                      on a narrow phone, and shortening it would have left a
+                      button that does not say what it does. */}
+                  <Pressable
+                    onPress={() => void drop()}
+                    disabled={parseSounding(reading) === null}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.soundingTake}
+                    style={({ pressed }) => [
+                      styles.filled,
+                      parseSounding(reading) === null && styles.disabled,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text style={styles.filledText}>{t.soundingTake}</Text>
+                  </Pressable>
+
+                  {/* The readings themselves, newest first. Just the figures
+                      and their dates — no change between them, because a
+                      delta is a pace and a pace invites the question of
+                      whether it was fast enough. */}
+                  {newestFirst(soundings)
+                    .slice(0, 6)
+                    .map((s) => (
+                      <View key={s.id} style={styles.readingRow}>
+                        <Text style={styles.readingValue}>
+                          {formatSounding(s.value, open.unit)}
+                        </Text>
+                        <Text style={styles.readingDay}>{s.day}</Text>
+                      </View>
+                    ))}
+                </>
+              )}
+            </View>
+          </>
+        ) : null}
+
         {/* ------------------------------------------------------------ astern */}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t.islandHistory}</Text>
-          <Text style={styles.sectionNote}>{reachedLine(reached, plainMode)}</Text>
-        </View>
+        <SectionLabel label={t.islandHistory} />
 
+        {/* One sentence, not two. `reachedLine` already says "no islands
+            astern yet" at zero, and the empty state said it again directly
+            underneath — the same words twice, which reads as a stutter
+            rather than an empty state. */}
         {astern.length === 0 ? (
           <Text style={styles.empty}>
             {plainMode
               ? 'Nothing closed under this yet.'
               : 'No islands astern yet. The first one is the one you are sailing to.'}
           </Text>
-        ) : null}
+        ) : (
+          <Text style={styles.sectionNote}>{reachedLine(reached, plainMode)}</Text>
+        )}
 
         {astern.map((island) => (
           <View key={island.id} style={styles.card}>
@@ -270,6 +436,30 @@ const makeStyles = (c: Palette) =>
     islandTitle: { fontFamily: font.displayBold, fontSize: 17, color: c.ink, lineHeight: 22 },
     stampReached: { ...type.mono, color: c.violet, fontSize: 12 },
     wake: { ...type.mono, color: c.inkFaint, fontSize: 12 },
+
+    row: { flexDirection: 'row', gap: space.sm, alignItems: 'stretch' },
+
+    depth: { gap: space.xs, marginTop: space.xs },
+    // The one figure this screen is actually about, at the size of a figure
+    // that matters. It is a reading, never a result: nothing beside it says
+    // whether it is good.
+    depthValue: {
+      fontFamily: font.display,
+      fontSize: 34,
+      letterSpacing: -1,
+      color: c.ink,
+      fontVariant: ['tabular-nums'],
+    },
+    readingRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.lineSoft,
+      paddingTop: space.sm,
+    },
+    readingValue: { ...type.mono, color: c.ink, fontVariant: ['tabular-nums'] },
+    readingDay: { ...type.mono, color: c.inkFaint },
     // Not a warning colour. Sailing past is allowed and the record of it is
     // not a mark against anybody — it reads quieter than reaching, and that is
     // the only difference the styling is permitted to make.

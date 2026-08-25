@@ -22,6 +22,7 @@ import {
   listRoads,
   listSailings,
   setSail,
+  listFlag,
 } from '../src/db/repo';
 import type { CarriedRow, SailingRow } from '../src/db/schema';
 import {
@@ -33,6 +34,7 @@ import {
   type WeekReading,
 } from '../src/domain/sail';
 import { logPose, needleLine, type LogPose } from '../src/domain/logpose';
+import { flagAtSail, type Value } from '../src/domain/flag';
 import { addDays, todayKey } from '../src/domain/date';
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
@@ -73,6 +75,7 @@ export default function SailScreen() {
   const [previous, setPrevious] = useState<SailingRow | null>(null);
   const [past, setPast] = useState<SailingRow[]>([]);
   const [carried, setCarried] = useState<CarriedRow | null>(null);
+  const [flag, setFlag] = useState<Value[]>([]);
 
   const [heading, setHeading] = useState('');
   const [note, setNote] = useState('');
@@ -81,7 +84,7 @@ export default function SailScreen() {
   const load = useCallback(async () => {
     const today = todayKey();
     const from = addDays(today, -(SAIL_EVERY_DAYS - 1));
-    const [days, dream, roads, glyphs, last, history, people] = await Promise.all([
+    const [days, dream, roads, glyphs, last, history, people, values] = await Promise.all([
       actsBetween(db, from, today),
       getDream(db),
       listRoads(db),
@@ -89,7 +92,9 @@ export default function SailScreen() {
       lastSailing(db),
       listSailings(db, 6),
       listCarried(db),
+      listFlag(db),
     ]);
+    setFlag(values);
 
     const closedThisWeek = glyphs.filter((g) => g.closedOn && g.closedOn >= from);
     setWeek(
@@ -200,6 +205,24 @@ export default function SailScreen() {
         ) : null}
 
         {/* ---------------------------------------------------- the needles */}
+        {/* "Read the week, check the Flag, name the next island" — the
+            concept doc's order, and the flag sits in the middle of it
+            because it is what the needles get judged against. Read here,
+            never asked: the ritual has enough decisions in it already. */}
+        {flagAtSail(flag.length, plainMode) ? (
+          <>
+            <SectionLabel label={t.flagTitle} style={styles.spaced} />
+            <Text style={styles.flagAsk}>{flagAtSail(flag.length, plainMode)}</Text>
+            <View style={styles.flagList}>
+              {flag.map((value) => (
+                <Text key={value.id} style={styles.flagValue}>
+                  {value.text}
+                </Text>
+              ))}
+            </View>
+          </>
+        ) : null}
+
         <SectionLabel label={t.sailNeedlesLabel} style={styles.spaced} />
 
         {pose.needles.length === 0 ? (
@@ -346,6 +369,16 @@ const makeStyles = (c: Palette) =>
     },
     lastHeadingLabel: { ...type.label, fontSize: 11, color: c.inkFaint },
     lastHeadingText: { ...type.body, color: c.inkDim, fontStyle: 'italic', lineHeight: 21 },
+
+    flagAsk: { ...type.small, color: c.inkDim, lineHeight: 19 },
+    flagList: {
+      borderLeftWidth: 2,
+      borderLeftColor: c.violet,
+      paddingLeft: space.md,
+      gap: space.xs,
+      marginTop: space.xs,
+    },
+    flagValue: { fontFamily: font.displayBold, fontSize: 17, lineHeight: 23, color: c.ink },
 
     needle: {
       ...row(c),

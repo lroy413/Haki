@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { needleLine, reachedLine, type Needle } from '../../domain/logpose';
 import { wakeLine } from '../../domain/tasks';
+import { formatSounding, type Sounding } from '../../domain/soundings';
 import { useHaki } from '../../state/HakiProvider';
 import { font, radius, space, type } from '../../theme/tokens';
 import { press, row } from '../../theme/surfaces';
@@ -43,6 +44,7 @@ type Mode = 'idle' | 'naming' | 'passing' | 'striking';
 export function NeedleCard({
   needle,
   wake = null,
+  depth = null,
   onOpen,
   onReached,
   onPass,
@@ -52,6 +54,8 @@ export function NeedleCard({
   needle: Needle;
   /** What has been struck under the open island so far, if anything. */
   wake?: { struck: number; minutes: number } | null;
+  /** The island's most recent sounding, when it is one that takes them. */
+  depth?: Sounding | null;
   onOpen: (title: string) => void;
   onReached: () => void;
   onPass: (reason: string) => void;
@@ -115,6 +119,11 @@ export function NeedleCard({
               work happens rather than only at arrival. Absent until
               something has actually been struck. */}
           {wake && wakeLine(wake) ? <Text style={styles.wake}>{wakeLine(wake)}</Text> : null}
+          {/* Where the line last touched bottom. A reading, with nothing
+              beside it saying whether it is the right one. */}
+          {depth && needle.next.unit ? (
+            <Text style={styles.depth}>{formatSounding(depth.value, needle.next.unit)}</Text>
+          ) : null}
 
           {mode === 'passing' ? (
             <View style={styles.form}>
@@ -316,6 +325,12 @@ const makeStyles = (c: Palette) =>
     islandTitle: { ...type.title, fontSize: 21, color: c.ink, lineHeight: 27 },
     atSea: { ...type.mono, color: c.inkFaint, fontSize: 12 },
     wake: { ...type.mono, color: c.violet, fontSize: 12 },
+    depth: {
+      fontFamily: font.displayBold,
+      fontSize: 17,
+      color: c.ink,
+      fontVariant: ['tabular-nums'],
+    },
     spinning: { ...type.body, color: c.inkDim, lineHeight: 22 },
     astern: { ...type.mono, color: c.inkFaint, fontSize: 12 },
 
