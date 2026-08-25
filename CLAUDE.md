@@ -82,12 +82,19 @@ flash of the system font on a cold start.
 
 ## Chrome
 
-**The web shell is pinned, not measured.** `#root` is `position: fixed` on all
-four sides (`tools/pwa-head.mjs`). Every unit that claims to be the height of
-the screen — percentages, `-webkit-fill-available`, `dvh` — has now cost this
-app the same bug twice: a dead band under the tab bar on an iPhone. Nothing
-scrolls the document here, so pinning costs nothing. **Do not reintroduce a
-height calculation on the root.** The shell's background follows the live
+**The web shell is pinned, not measured — and the viewport gets put back.**
+`#root` is `position: fixed` on all four sides (`tools/pwa-head.mjs`). Every
+unit that claims to be the height of the screen — percentages,
+`-webkit-fill-available`, `dvh` — has cost this app the same bug twice: a dead
+band under the tab bar on an iPhone. Nothing scrolls the document here, so
+pinning costs nothing. **Do not reintroduce a height calculation on the
+root.** The bug then came back a third way that pinning cannot close: iOS
+standalone pans the layout viewport up for the keyboard and does not always
+pan it back, leaving the whole app — pinned root included — stranded above
+the bottom of the phone. The shell now scrolls any leftover pan to zero on
+`focusout` and visual-viewport resize (same file). If the band ever returns,
+check whether the viewport is _displaced_ before assuming something is
+mis-measured again. The shell's background follows the live
 palette (see `HakiProvider`), and the boot script paints the last known ground
 before the bundle parses.
 
