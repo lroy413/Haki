@@ -7,16 +7,20 @@
  * to the layer above; only the drawn object changes. Luffy's is a fist.
  * Zoro's is a sword.
  *
- * A crew changes four things and nothing else:
+ * A crew changes five things and nothing else:
  *
  * 1. **What 覇王色 burns.** Luffy's Conqueror's is the app's violet. Zoro's
  *    Haki is black and purple, and the green only arrives when Conqueror's
  *    does — Enma's flame down the blade — so under his crew the Journey tab,
- *    the Dream, the Flag and the burst turn jade while everything else holds.
- * 2. **The instrument** in the impact frame.
- * 3. **What the focus sessions are called.** Luffy shifts gears; Zoro draws
+ *    the Dream, the Flag and the burst turn jade.
+ * 2. **What 武装色 burns.** Luffy coats in crimson; Zoro's coating is the
+ *    black-and-purple itself, so under his flag Armament's light — the
+ *    hardness aura, the Do tab, the strike — moves to the amethyst.
+ *    見聞色 is violet under both crews; it is the one lens that never moves.
+ * 3. **The instrument** in the impact frame.
+ * 4. **What the focus sessions are called.** Luffy shifts gears; Zoro draws
  *    swords. Same three lengths, same costs, same rows in the database.
- * 4. **The word for the room they live in** — the Gears, or the Styles.
+ * 5. **The word for the room they live in** — the Gears, or the Styles.
  *
  * What a crew may *never* change is the shape of the data. The gear keys stay
  * `second | third | fourth` whichever crew is flying, so a year of sessions
@@ -38,6 +42,8 @@ export type Crew = {
    * right on one of them.
    */
   conquerors: 'violet' | 'jade';
+  /** Which palette token 武装色 burns in. Same rule: a key, never a colour. */
+  armament: 'crimson' | 'amethyst';
   /** Which drawing the impact frame reaches for. */
   instrument: 'fist' | 'sword';
 };
@@ -48,6 +54,7 @@ export const CREWS: Record<CrewName, Crew> = {
     label: 'Luffy',
     blurb: 'The fist, the gears, and violet lightning. How the app was drawn.',
     conquerors: 'violet',
+    armament: 'crimson',
     instrument: 'fist',
   },
   zoro: {
@@ -55,6 +62,7 @@ export const CREWS: Record<CrewName, Crew> = {
     label: 'Zoro',
     blurb: 'The blade, the sword styles, and Conqueror’s in Enma’s green.',
     conquerors: 'jade',
+    armament: 'amethyst',
     instrument: 'sword',
   },
 };

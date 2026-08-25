@@ -567,6 +567,22 @@ was that renaming the three cards left the word "gear" in every cost line
 underneath them. Both are now the subject of a test — the second literally:
 neither crew may speak the other's vocabulary.
 
+### And his own coating
+
+The first pass moved only 覇王色 and left Armament burning Luffy's crimson,
+which the owner caught the first time he stood on the Do tab under Zoro's
+flag: his Haki is black and purple, so the coating itself has to burn purple.
+The palette grew an amethyst — a deep blue-purple, deliberately apart from
+the signature violet so the tab bar's legend keeps five distinct lights —
+held to every contrast floor like the rest. The crew now carries a second
+colour key, `armament`, and `underCrew` swaps both lenses at once: under
+Zoro the hardness aura, the Do tab, the strike's rim and corona, the
+weather's halo and every 武装色 accent wear the amethyst, while crimson
+stays crimson everywhere it means something else — a keystone breach, a
+delete, the Tension dial, the Sunny's own flag. 見聞色 remains the lens
+that never moves, and the Return keeps the signature violet under both
+flags.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records
@@ -759,8 +775,8 @@ and leave.
 
 ## Where it stands
 
-**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-six
-pull requests merged, 704 tests, one principle held everywhere: the app
+**Live at [haki-lac.vercel.app](https://haki-lac.vercel.app).** Twenty-seven
+pull requests merged, 706 tests, one principle held everywhere: the app
 rewards the act and never punishes the absence.
 
 What is actually in it:

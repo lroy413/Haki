@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View, type ViewStyle } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
+import { underCrew } from '../theme/palettes';
 import { radius as radii } from '../theme/tokens';
 
 /**
@@ -37,7 +38,9 @@ export function Emission({
   children?: React.ReactNode;
   style?: ViewStyle;
 }) {
-  const { palette, intensity, ryuo } = useHaki();
+  const { palette, intensity, ryuo, crew } = useHaki();
+  // The corona is 武装色's performance, so it burns the crew's coating.
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const inner = useRef(new Animated.Value(0)).current;
   const outer = useRef(new Animated.Value(0)).current;
   // Its own value, on its own driver: a shadow cannot be animated natively,
@@ -95,10 +98,10 @@ export function Emission({
     const far = (to: number) => 1 + (to - 1) * ryuo.reach;
     return [
       { value: inner, colour: palette.warn, to: far(1.05), peak: 1, width: 3 },
-      { value: inner, colour: palette.crimson, to: far(1.13), peak: 0.95, width: 5 },
-      { value: outer, colour: palette.crimson, to: far(1.22), peak: 0.55, width: 3 },
+      { value: inner, colour: lens.crimson, to: far(1.13), peak: 0.95, width: 5 },
+      { value: outer, colour: lens.crimson, to: far(1.22), peak: 0.55, width: 3 },
     ];
-  }, [inner, outer, palette.warn, palette.crimson, ryuo.reach]);
+  }, [inner, outer, palette.warn, lens.crimson, ryuo.reach]);
 
   return (
     <View style={style}>
@@ -116,8 +119,8 @@ export function Emission({
           {
             borderRadius: radius,
             borderWidth: 1,
-            borderColor: palette.crimson,
-            shadowColor: palette.crimson,
+            borderColor: lens.crimson,
+            shadowColor: lens.crimson,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.9,
             shadowRadius: 22,

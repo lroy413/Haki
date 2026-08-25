@@ -30,6 +30,7 @@ import {
 } from '../../src/db/repo';
 import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
+import { underCrew } from '../../src/theme/palettes';
 import { returnMessage } from '../../src/domain/training';
 import {
   backlog,
@@ -79,8 +80,11 @@ const MINUTE_CHIPS = [5, 15, 30, 60, 120];
 export default function ArmamentScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, training, load, hardness, refresh, plainMode, palette, hardening } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { t, training, load, hardness, refresh, plainMode, palette, hardening, crew } =
+    useHaki();
+  // 武装色 through the crew's eyes: crimson under Luffy, amethyst under Zoro.
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   const pad = useTabInsets();
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -213,7 +217,7 @@ export default function ArmamentScreen() {
         <PageHeading
           title={t.trainingTitle}
           trailing={plainMode ? undefined : '武装色'}
-          tint={palette.crimson}
+          tint={lens.crimson}
         />
 
         {/*
@@ -224,7 +228,7 @@ export default function ArmamentScreen() {
         */}
         {/* 武装色's own light. The lens that measures the day is the thing
             the day lights up. */}
-        <View style={[styles.hardnessCard, lit(palette.crimson, plainMode ? 0 : hardening)]}>
+        <View style={[styles.hardnessCard, lit(lens.crimson, plainMode ? 0 : hardening)]}>
           <View style={styles.head}>
             <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
             <Text style={styles.carrying}>
@@ -250,7 +254,7 @@ export default function ArmamentScreen() {
               <Bolt
                 track={palette.lineSoft}
                 core={darkest(palette)}
-                halo={palette.crimson}
+                halo={lens.crimson}
                 fill={hardness.value === null ? 0 : Math.max(0.07, hardness.value / 100)}
               />
             </View>
@@ -548,7 +552,7 @@ export default function ArmamentScreen() {
           <Stat
             label={t.trainingThisWeek}
             value={`${training.sessionsThisWeek}/${training.weeklyTarget}`}
-            tone={palette.crimson}
+            tone={lens.crimson}
           />
           <Stat
             label={t.trainingSinceLast}
@@ -580,8 +584,12 @@ export default function ArmamentScreen() {
                 .filter(Boolean)
                 .join(' · ')}
             </Text>
+            {/* The Return keeps the signature violet under both crews: it is
+                not a lens's light, and the lens palette would turn it jade. */}
             {item.closedGap > 0 ? (
-              <Text style={styles.sessionReturn}>{returnMessage(item.closedGap)}</Text>
+              <Text style={[styles.sessionReturn, { color: palette.violet }]}>
+                {returnMessage(item.closedGap)}
+              </Text>
             ) : null}
           </View>
         ))}
@@ -618,8 +626,9 @@ function TaskRow({
   /** A rhythm's cadence, shown beside the estimate. */
   note?: string;
 }) {
-  const { palette } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { palette, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   // Only on the way to done. Undoing something is not an act of will.
   const [strikes, setStrikes] = useState(0);
 
@@ -720,8 +729,9 @@ function TaskRow({
 }
 
 function Stat({ label, value, tone }: { label: string; value: string | null; tone: string }) {
-  const { palette } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const { palette, crew } = useHaki();
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
+  const styles = useMemo(() => makeStyles(lens), [lens]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statLabel} numberOfLines={1}>

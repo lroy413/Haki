@@ -85,6 +85,42 @@ const HEAD = `${MARKER}
         }
       } catch (e) {}
 
+      /* THE VIEWPORT GETS PUT BACK.
+
+         Pinning #root fixed what the shell *paints* — the ground now runs to
+         the bottom of the phone no matter what. But iOS has one more move:
+         when the keyboard opens in a standalone app it pans the whole layout
+         viewport upward, and when the keyboard goes it does not always pan
+         it back. The root is pinned to that viewport, so the app — tab bar,
+         content, everything — sits stranded the pan's height above the
+         bottom, over ground the shell is dutifully painting. Third form of
+         the same bug, and the first one pinning cannot close, because
+         nothing is mis-measured: the viewport itself is displaced.
+
+         So the shell puts it back. Whenever focus leaves an input or the
+         visual viewport changes size, any leftover pan is scrolled to zero.
+         The document itself never scrolls (overflow is hidden and nothing
+         relies on it), so this is a no-op in every healthy state — it only
+         acts when iOS has left the viewport somewhere it never returns from
+         on its own. The retries exist because the keyboard animation
+         finishes after the events that announce it. */
+      (function () {
+        function level() {
+          var vv = window.visualViewport;
+          var panned = (window.scrollY || 0) + (vv && vv.offsetTop ? vv.offsetTop : 0);
+          if (panned > 0.5) window.scrollTo(0, 0);
+        }
+        function settle() {
+          setTimeout(level, 60);
+          setTimeout(level, 420);
+        }
+        window.addEventListener('focusout', settle);
+        window.addEventListener('orientationchange', settle);
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', settle);
+        }
+      })();
+
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
           navigator.serviceWorker.register('/sw.js').catch(function () {

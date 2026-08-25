@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PALETTES, darkest, paletteFor, type Palette } from '../palettes';
+import { PALETTES, darkest, paletteFor, underCrew, type Palette } from '../palettes';
 import { levelName, type HardeningLevel } from '../../domain/hardening';
 
 /**
@@ -54,14 +54,17 @@ const SOLID: (keyof Palette)[] = [
   'warnSoft',
   'jade',
   'jadeSoft',
+  'amethyst',
+  'amethystSoft',
   'specular',
   'onAccent',
 ];
 
-// jade is in here because a themed accent is still an accent: under the Zoro
-// crew it labels the Journey tab, the Dream and the burst, and it carries the
-// same eleven-point words the others do.
-const ACCENTS: (keyof Palette)[] = ['violet', 'cyan', 'crimson', 'warn', 'jade'];
+// jade and amethyst are in here because a themed accent is still an accent:
+// under the Zoro crew one labels the Journey tab, the Dream and the burst and
+// the other carries the whole of 武装色 — hardness, the Do tab, the strike —
+// and both carry the same eleven-point words the others do.
+const ACCENTS: (keyof Palette)[] = ['violet', 'cyan', 'crimson', 'warn', 'jade', 'amethyst'];
 
 describe.each(LEVELS)('palette %i', (level) => {
   const p = paletteFor(level);
@@ -144,6 +147,7 @@ describe.each(LEVELS)('palette %i', (level) => {
       ['crimson', 'crimsonSoft'],
       ['warn', 'warnSoft'],
       ['jade', 'jadeSoft'],
+      ['amethyst', 'amethystSoft'],
     ] as const;
     for (const [accent, soft] of pairs) {
       expect(contrast(p[soft], p.bg), `${where} ${soft} vs bg`).toBeGreaterThanOrEqual(1.08);
@@ -163,6 +167,35 @@ describe.each(LEVELS)('palette %i', (level) => {
 
   it('lifts a card off the ground', () => {
     expect(contrast(p.surface, p.bg), `${where} surface vs bg`).toBeGreaterThanOrEqual(1.04);
+  });
+});
+
+describe('the palette under a crew', () => {
+  const luffy = { conquerors: 'violet', armament: 'crimson' } as const;
+  const zoro = { conquerors: 'jade', armament: 'amethyst' } as const;
+
+  it('is untouched under Luffy', () => {
+    for (const level of LEVELS) {
+      expect(underCrew(paletteFor(level), luffy)).toBe(paletteFor(level));
+    }
+  });
+
+  it("moves exactly the two lenses under Zoro, and 見聞色's slots are not among them", () => {
+    for (const level of LEVELS) {
+      const p = paletteFor(level);
+      const lens = underCrew(p, zoro);
+      // 覇王色: the violet slot carries Enma's green.
+      expect(lens.violet, `level ${level}`).toBe(p.jade);
+      expect(lens.violetSoft, `level ${level}`).toBe(p.jadeSoft);
+      // 武装色: the crimson slot carries the coating.
+      expect(lens.crimson, `level ${level}`).toBe(p.amethyst);
+      expect(lens.crimsonSoft, `level ${level}`).toBe(p.amethystSoft);
+      // And nothing else moves — cyan, ink, grounds all hold, so a screen
+      // that takes the lens palette cannot drift anywhere it did not mean to.
+      const { violet, violetSoft, crimson, crimsonSoft, ...rest } = lens;
+      const { violet: v2, violetSoft: vs2, crimson: c2, crimsonSoft: cs2, ...base } = p;
+      expect(rest, `level ${level}`).toEqual(base);
+    }
   });
 });
 

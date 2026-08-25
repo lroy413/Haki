@@ -82,12 +82,19 @@ flash of the system font on a cold start.
 
 ## Chrome
 
-**The web shell is pinned, not measured.** `#root` is `position: fixed` on all
-four sides (`tools/pwa-head.mjs`). Every unit that claims to be the height of
-the screen — percentages, `-webkit-fill-available`, `dvh` — has now cost this
-app the same bug twice: a dead band under the tab bar on an iPhone. Nothing
-scrolls the document here, so pinning costs nothing. **Do not reintroduce a
-height calculation on the root.** The shell's background follows the live
+**The web shell is pinned, not measured — and the viewport gets put back.**
+`#root` is `position: fixed` on all four sides (`tools/pwa-head.mjs`). Every
+unit that claims to be the height of the screen — percentages,
+`-webkit-fill-available`, `dvh` — has cost this app the same bug twice: a dead
+band under the tab bar on an iPhone. Nothing scrolls the document here, so
+pinning costs nothing. **Do not reintroduce a height calculation on the
+root.** The bug then came back a third way that pinning cannot close: iOS
+standalone pans the layout viewport up for the keyboard and does not always
+pan it back, leaving the whole app — pinned root included — stranded above
+the bottom of the phone. The shell now scrolls any leftover pan to zero on
+`focusout` and visual-viewport resize (same file). If the band ever returns,
+check whether the viewport is _displaced_ before assuming something is
+mis-measured again. The shell's background follows the live
 palette (see `HakiProvider`), and the boot script paints the last known ground
 before the bundle parses.
 
@@ -142,10 +149,10 @@ the impact frame: the field owns the violence, the instrument owns the shape.
 
 ## A crew renames; it never restructures
 
-`domain/crew.ts` is the theme, and it is allowed to change exactly four
-things: what 覇王色 burns, which instrument the impact frame draws, what the
-focus sessions are called, and the word for the room they live in. Luffy
-flies by default because the app was drawn for him.
+`domain/crew.ts` is the theme, and it is allowed to change exactly five
+things: what 覇王色 burns, what 武装色 burns, which instrument the impact
+frame draws, what the focus sessions are called, and the word for the room
+they live in. Luffy flies by default because the app was drawn for him.
 
 - **The keys never move.** A focus session is `second | third | fourth` under
   every flag, so a year logged as Gear 3 reads as Nitoryu the moment you
@@ -156,10 +163,15 @@ flies by default because the app was drawn for him.
   one of them. `underCrew(palette, …)` applies it once and hands the result to
   the Conqueror's screens, which go on writing `c.violet` meaning "the lens's
   colour" — which is what they always meant.
-- **Only 覇王色 moves.** Zoro's Haki is black and purple; the green is what
-  Conqueror's _adds_. So the Journey tab, the Dream, the Flag and the burst
-  turn jade and nothing else does — 見聞色 is violet under both crews, which
-  is why the swap is scoped rather than global.
+- **Two lenses move; 見聞色 never does.** Zoro's Haki is black and purple —
+  so his 武装色 burns the amethyst (the hardness aura, the Do tab, the
+  strike's rim and corona, the weather's halo) — and the green is what
+  Conqueror's _adds_, so the Journey tab, the Dream, the Flag and the burst
+  turn jade. 見聞色 is violet under both crews, and crimson doubles as
+  semantic red (a breach, a delete, the Sunny's own flag), which is why
+  `underCrew` is applied per screen rather than globally: a screen takes the
+  lens palette only where it means the lens. The Return keeps the signature
+  violet under both flags — it is not a lens's light.
 - **Neither crew may speak the other's vocabulary.** The first pass renamed
   the three cards and left "gear" in every cost line under them. Tested.
 

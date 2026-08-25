@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
+import { underCrew } from '../theme/palettes';
 import { darkest } from '../theme/palettes';
 import { nextGapMs, weatherFor } from '../domain/ambient';
 import { Lightning } from './Lightning';
@@ -60,7 +61,7 @@ const FLICKER = [
 ];
 
 export function AmbientHaki() {
-  const { palette, hardening, intensity, plainMode } = useHaki();
+  const { palette, hardening, intensity, plainMode, crew } = useHaki();
   const { width, height } = useWindowDimensions();
 
   const flash = useRef(new Animated.Value(0)).current;
@@ -132,7 +133,9 @@ export function AmbientHaki() {
   return (
     <View pointerEvents="none" style={styles.layer}>
       <Animated.View style={[StyleSheet.absoluteFill, style]}>
-        <Lightning core={core} halo={palette.crimson} width={weather.width} />
+        {/* The weather is hardening made visible — 武装色's doing — so its
+            halo follows the crew's coating. */}
+        <Lightning core={core} halo={underCrew(palette, crew).crimson} width={weather.width} />
       </Animated.View>
     </View>
   );

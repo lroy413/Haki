@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 import { onImpact } from '../impact';
 import { useHaki } from '../state/HakiProvider';
+import { underCrew } from '../theme/palettes';
 import { darkest } from '../theme/palettes';
 import { Fist } from './instruments/Fist';
 import { Sword } from './instruments/Sword';
@@ -83,7 +84,9 @@ export function ImpactLayer() {
   // Frame one inverts the ground; frame two flips back darker than it began.
   const ground = phase === 1 ? palette.ink : palette.bg;
   const body = phase === 1 ? palette.bg : palette.ink;
-  const rim = phase === 1 ? palette.warn : palette.crimson;
+  // Phase 2's rim is the coating's colour — crimson under Luffy, amethyst
+  // under Zoro, whose lightning is black and purple in every reference.
+  const rim = phase === 1 ? palette.warn : underCrew(palette, crew).crimson;
   // The darkest colour this palette owns, whichever frame is up: on paper that
   // is the ink, on the dark palettes it is the ground itself. The lightning is
   // black in both, and does not invert with everything else.

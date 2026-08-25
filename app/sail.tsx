@@ -68,7 +68,7 @@ export default function SailScreen() {
   const router = useRouter();
   const { db } = useStore();
   const { t, palette, plainMode, crew } = useHaki();
-  const lens = useMemo(() => underCrew(palette, crew.conquerors), [palette, crew]);
+  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
 

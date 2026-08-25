@@ -12,12 +12,13 @@ import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
 import { setTaskDone } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
+import { underCrew } from '../../src/theme/palettes';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { press, row } from '../../src/theme/surfaces';
 import type { Palette } from '../../src/theme/palettes';
 
 export default function Home() {
-  const { palette } = useHaki();
+  const { palette, crew } = useHaki();
 
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
@@ -141,7 +142,10 @@ export default function Home() {
         <Text
           style={[
             styles.stripCount,
-            { color: training.inGap ? palette.warn : palette.crimson },
+            // Armament's stat on the home screen, so it wears the coating —
+            // amethyst under Zoro. The keystone breach above stays crimson:
+            // that one is semantic red, not a lens.
+            { color: training.inGap ? palette.warn : underCrew(palette, crew).crimson },
           ]}
         >
           {training.sessionsThisWeek}/{training.weeklyTarget}
