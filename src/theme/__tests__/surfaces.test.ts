@@ -37,11 +37,28 @@ describe('the light a lens throws', () => {
   });
 
   it('stays an aura rather than a wash', () => {
-    // Centred, so it reads as light coming off the card rather than as the
-    // card being dropped on something.
+    // This used to require a perfectly centred offset, on the reasoning that
+    // light coming off all four sides reads as emission. It does — and that
+    // turned out to be the problem rather than the goal: at the settled dark
+    // the Reserve plate became a lamp and outshouted the number inside it.
+    //
+    // So the aura now falls slightly, and what the test protects is the two
+    // ways that can go wrong: it must not wash the screen, and it must not
+    // slide so far that it stops being light and becomes a slab's drop
+    // shadow. The offset stays a small fraction of the spread, which is the
+    // difference between a glow that settles and a card that is dropped on
+    // something.
     for (const level of [1, 2, 3] as const) {
-      expect(lit(TINT, level).shadowOffset).toEqual({ width: 0, height: 0 });
-      expect(Number(lit(TINT, level).shadowOpacity)).toBeLessThan(1);
+      const style = lit(TINT, level);
+      const offset = style.shadowOffset as { width: number; height: number };
+      const radius = Number(style.shadowRadius);
+
+      expect(offset.width, `level ${level} drifts sideways`).toBe(0);
+      expect(offset.height, `level ${level} rises`).toBeGreaterThanOrEqual(0);
+      expect(offset.height, `level ${level} has dropped`).toBeLessThan(radius / 3);
+
+      // Quiet enough to sit under a screen for eleven hours.
+      expect(Number(style.shadowOpacity), `level ${level} washes`).toBeLessThanOrEqual(0.4);
     }
   });
 });

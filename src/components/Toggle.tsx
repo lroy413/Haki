@@ -13,12 +13,19 @@ import { useHaki } from '../state/HakiProvider';
  */
 const PlatformSwitch = Switch as ComponentType<SwitchProps & { activeThumbColor?: string }>;
 
-export function Toggle({ tint, ...props }: SwitchProps & { tint?: string }) {
+/**
+ * `tint` is required, and deliberately has no default.
+ *
+ * It used to fall back to violet, which meant a switch dropped onto any
+ * screen quietly wore 見聞色's colour — the exact way *one screen, one
+ * light* gets broken. A control that cannot be mounted without naming its
+ * light cannot drift.
+ */
+export function Toggle({ tint, ...props }: SwitchProps & { tint: string }) {
   const { palette } = useHaki();
-  const on = tint ?? palette.violet;
   return (
     <PlatformSwitch
-      trackColor={{ true: on, false: palette.line }}
+      trackColor={{ true: tint, false: palette.line }}
       thumbColor={palette.ink}
       activeThumbColor={palette.ink}
       ios_backgroundColor={palette.line}

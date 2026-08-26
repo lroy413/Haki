@@ -541,7 +541,7 @@ const makeStyles = (c: Palette) =>
 
     flag: {
       ...row(c),
-      borderColor: c.violet,
+      borderColor: c.line,
       padding: space.lg,
       gap: space.xs,
       minHeight: 44,

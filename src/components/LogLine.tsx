@@ -16,11 +16,19 @@ import type { Palette } from '../theme/palettes';
  * where the journal lives, and the home screen, which keeps a quick way in
  * because the door that asks nothing should be one tap from where the day
  * starts. One implementation, or the two drift.
+ *
+ * **It takes its colour from the screen that mounts it.** This is the rule
+ * the app calls *one screen, one light*, and a shared control is the one
+ * place it is easy to break: written on the home screen, this button was
+ * cyan, and it stayed cyan when it was reused on the violet tab. A teal
+ * button on a violet screen is not a small thing — it is the app looking
+ * like two apps. So `tint` is required and has no default: a control that
+ * cannot be mounted without naming its light cannot drift.
  */
-export function LogLine({ onLogged }: { onLogged?: () => void }) {
+export function LogLine({ onLogged, tint }: { onLogged?: () => void; tint: string }) {
   const { db } = useStore();
   const { t, palette, refresh } = useHaki();
-  const styles = useMemo(() => makeStyles(palette), [palette]);
+  const styles = useMemo(() => makeStyles(palette, tint), [palette, tint]);
 
   const [line, setLine] = useState('');
   const [saving, setSaving] = useState(false);
@@ -71,7 +79,7 @@ export function LogLine({ onLogged }: { onLogged?: () => void }) {
   );
 }
 
-const makeStyles = (c: Palette) =>
+const makeStyles = (c: Palette, tint: string) =>
   StyleSheet.create({
     capture: { flexDirection: 'row', gap: space.sm },
     input: {
@@ -89,7 +97,7 @@ const makeStyles = (c: Palette) =>
     log: {
       justifyContent: 'center',
       paddingHorizontal: space.lg,
-      backgroundColor: c.cyan,
+      backgroundColor: tint,
       borderRadius: radius.md,
     },
     logDisabled: { opacity: 0.4 },

@@ -247,7 +247,8 @@ export default function ObservationScreen() {
               </Pressable>
             ) : null}
 
-            <LogLine onLogged={() => void load()} />
+            {/* 見聞色's own light: this door stands on the violet tab. */}
+            <LogLine onLogged={() => void load()} tint={palette.violet} />
           </View>
         }
         ListEmptyComponent={<Text style={styles.empty}>{t.logEmpty}</Text>}
@@ -268,17 +269,19 @@ export default function ObservationScreen() {
         )}
       />
 
-      <Pressable
-        onPress={() => router.push('/entry/new')}
-        accessibilityRole="button"
-        style={({ pressed }) => [
-          styles.fab,
-          { bottom: pad.paddingBottom },
-          pressed && styles.pressed,
-        ]}
-      >
-        <Text style={styles.fabText}>{t.newEntry}</Text>
-      </Pressable>
+      {/* Sized to its own words and centred, rather than a slab from edge
+          to edge. The screen already has one filled violet button in the
+          log line; a second one at full width made the two of them argue
+          about which was the action. */}
+      <View pointerEvents="box-none" style={[styles.fabDock, { bottom: pad.paddingBottom }]}>
+        <Pressable
+          onPress={() => router.push('/entry/new')}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+        >
+          <Text style={styles.fabText}>{t.newEntry}</Text>
+        </Pressable>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -323,8 +326,12 @@ const makeStyles = (c: Palette) =>
 
     foresight: {
       ...plate(c),
-      borderColor: c.cyan,
-      borderTopColor: c.cyan,
+      // Neutral edge. Foresight keeps its cyan label and its cyan light —
+      // an outline as well made three of the four blocks on this screen
+      // shout at once, and a screen where everything is emphasised has no
+      // emphasis at all.
+      borderColor: c.line,
+      borderTopColor: c.specular,
       backgroundColor: c.cyanSoft,
       padding: space.lg,
       gap: space.xs,
@@ -345,7 +352,7 @@ const makeStyles = (c: Palette) =>
 
     settle: {
       ...row(c),
-      borderColor: c.cyan,
+      borderColor: c.line,
       padding: space.lg,
       gap: space.xs,
       minHeight: 44,
@@ -365,7 +372,7 @@ const makeStyles = (c: Palette) =>
     astern: {
       borderWidth: 1,
       borderStyle: 'dashed',
-      borderColor: c.violet,
+      borderColor: c.line,
       borderRadius: radius.md,
       padding: space.lg,
       gap: space.xs,
@@ -390,15 +397,22 @@ const makeStyles = (c: Palette) =>
     rowBody: { ...type.body, color: c.ink, lineHeight: 21 },
     pressed: { ...press },
 
-    fab: {
+    // The dock spans the screen so the pill inside it can centre; `bottom`
+    // comes from the insets at the call site, stacked above the floating
+    // tab bar rather than under it, on every phone.
+    fabDock: {
       position: 'absolute',
       left: space.lg,
       right: space.lg,
-      // `bottom` comes from the insets at the call site: stacked above the
-      // floating tab bar rather than under it, on every phone.
+      alignItems: 'center',
+    },
+    fab: {
       backgroundColor: c.violet,
-      borderRadius: radius.md,
-      paddingVertical: space.lg,
+      borderRadius: radius.pill,
+      paddingVertical: space.md,
+      paddingHorizontal: space.xl,
+      minHeight: 44,
+      justifyContent: 'center',
       alignItems: 'center',
       shadowColor: c.shadow,
       shadowOpacity: 1,
