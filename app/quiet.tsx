@@ -44,7 +44,13 @@ export default function QuietScreen() {
               Swaps labels and turns the effects off. For waiting rooms and screenshares.
             </Text>
           </View>
-          <Toggle value={settings.plainMode} onValueChange={togglePlain} />
+          {/* Plain mode governs the whole performance, so it wears the
+              signature violet rather than any one lens's colour. */}
+          <Toggle
+            value={settings.plainMode}
+            onValueChange={togglePlain}
+            tint={palette.violet}
+          />
         </View>
       </View>
 

@@ -206,6 +206,21 @@ The tab bar is the legend: each tab burns its own lens colour when focused
 (cyan, violet, crimson, violet, plain ink for settings), and each screen's mark
 in its top corner wears the same one. **One screen, one light.**
 
+That rule breaks in exactly one way, so there is a test for it
+(`oneLight.test.ts`): a control written on one screen and reused on another
+carries its birthplace's colour with it. The Do tab spent months crimson with
+teal chips, a teal checkbox and a teal primary button, while the crimson watch
+chips sat directly under them — the file disagreed with itself, which is the
+tell that nobody chose it. **A shared control takes `tint` from the screen
+that mounts it, and the prop has no default**: a control that cannot be
+mounted without naming its light cannot drift.
+
+**And there is one glow, not several.** `lit()` is it. The Reserve gauge used
+to roll its own — a 24-point radius at 0.55 — so retuning the constant did
+nothing to the loudest element in the app. Anything that wants a lens's light
+goes through `lit()` and may scale what it returns; nothing writes its own
+`shadowColor`.
+
 ## Sound
 
 Effects live in `assets/sounds/` and are declared in `src/sound/sounds.ts` —

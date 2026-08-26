@@ -1,3 +1,4 @@
+import { lit } from '../theme/surfaces';
 import { useHaki } from '../state/HakiProvider';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -31,11 +32,12 @@ const STATE_WORD: Record<Reserve['state'], string> = {
  * number stay exactly as legible at 5 as they are at 95.
  */
 export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props) {
-  const { palette } = useHaki();
+  const { palette, hardening, plainMode } = useHaki();
 
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const tone = reserveColor(palette)[reserve.state];
   const filled = reserve.value ?? 0;
+  const glow = lit(tone, plainMode ? 0 : hardening);
 
   return (
     <View
@@ -43,10 +45,14 @@ export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props)
         styles.card,
         {
           borderColor: reserve.value === null ? palette.line : tone,
-          shadowColor: tone,
-          shadowOpacity: 0.55 * intensity,
-          shadowRadius: 24 * intensity,
-          elevation: Math.round(12 * intensity),
+          // One glow system. This used to roll its own — 0.55 opacity at a
+          // 24 radius — which meant retuning `lit()` did nothing to the
+          // loudest element in the app, and the Reserve plate went on
+          // outshouting the number printed inside it. The intensity still
+          // modulates it, because a Reserve running low is exactly when the
+          // app is supposed to visibly run out of Haki alongside you.
+          ...glow,
+          shadowOpacity: Number(glow.shadowOpacity ?? 0) * intensity,
         },
       ]}
     >

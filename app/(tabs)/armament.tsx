@@ -455,7 +455,9 @@ export default function ArmamentScreen() {
                 pressed && styles.pressed,
               ]}
             >
-              <Text style={styles.addTodayText}>{t.addToToday}</Text>
+              <Text style={[styles.addTodayText, !title.trim() && styles.addDisabledText]}>
+                {t.addToToday}
+              </Text>
             </Pressable>
             <Pressable
               onPress={() => void add(tomorrow)}
@@ -557,7 +559,7 @@ export default function ArmamentScreen() {
           <Stat
             label={t.trainingSinceLast}
             value={since === null ? null : String(since)}
-            tone={training.inGap ? palette.warn : palette.cyan}
+            tone={training.inGap ? palette.warn : lens.crimson}
           />
         </View>
 
@@ -802,7 +804,9 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    boxOn: { backgroundColor: c.cyan, borderColor: c.cyan },
+    // Striking is 武装色's act, so the box that fills carries its
+    // colour — crimson under Luffy, the amethyst coating under Zoro.
+    boxOn: { backgroundColor: c.crimson, borderColor: c.crimson },
     tick: { color: c.onAccent, fontSize: 15, fontFamily: font.displayBold },
     taskBody: { flex: 1, gap: 1 },
     taskTitle: { ...type.body, fontSize: 16, color: c.ink },
@@ -813,7 +817,7 @@ const makeStyles = (c: Palette) =>
       paddingLeft: space.sm,
       paddingRight: space.md,
     },
-    secondaryText: { ...type.mono, fontSize: 12, color: c.cyan },
+    secondaryText: { ...type.mono, fontSize: 12, color: c.crimson },
     removeText: { ...type.mono, fontSize: 12, color: c.inkFaint },
 
     /* ------------------------------------------------------------ capture */
@@ -843,15 +847,18 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.xs,
       alignItems: 'center',
     },
-    chipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
-    watchOn: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
-    watchTextOn: { color: c.crimson },
+    chipOn: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
+    // Watches sit directly under the duration chips and now share their
+    // colour, so they separate on *weight* instead: a watch is chosen by
+    // filling it, a duration by outlining it.
+    watchOn: { borderColor: c.crimson, backgroundColor: c.crimson },
+    watchTextOn: { color: c.onAccent },
     chipText: { ...type.mono, fontSize: 12, color: c.inkDim },
-    chipTextOn: { color: c.cyan },
+    chipTextOn: { color: c.crimson },
     addRow: { flexDirection: 'row', gap: space.sm },
     addToday: {
       flex: 2,
-      backgroundColor: c.cyan,
+      backgroundColor: c.crimson,
       borderRadius: radius.sm,
       paddingVertical: space.md,
       alignItems: 'center',
@@ -866,7 +873,17 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
     },
     addLaterText: { ...type.heading, fontSize: 13, color: c.inkDim },
-    addDisabled: { opacity: 0.4 },
+    // An empty composer drops the fill instead of dimming it. Forty percent
+    // of a cool colour still reads as a button; forty percent of a warm one
+    // reads as mud, and this button is warm on both crews. An outline says
+    // "not yet" without pretending to be a slab.
+    addDisabled: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: c.line,
+      opacity: 0.75,
+    },
+    addDisabledText: { color: c.inkFaint },
 
     /* ------------------------------------------------------------ backlog */
     disclosure: {

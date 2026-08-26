@@ -98,8 +98,10 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     card: {
       ...plate(c),
-      borderColor: c.crimson,
-      borderTopColor: c.crimson,
+      // Neutral. The Reserve above this is the home screen's one lit
+      // plate; a crimson outline here made the two of them compete.
+      borderColor: c.line,
+      borderTopColor: c.specular,
       padding: space.lg,
       gap: space.md,
     },

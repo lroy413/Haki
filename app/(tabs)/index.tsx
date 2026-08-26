@@ -109,7 +109,8 @@ export default function Home() {
       {/* The journal's small door, kept on home when the journal moved into
           the Observation tab. One line, folded into today's entry — the door
           that asks nothing stays one tap from where the day starts. */}
-      <LogLine />
+      {/* Cyan: the home screen is the day and its record. */}
+      <LogLine tint={palette.cyan} />
 
       {/*
         Everything you do already counts — the acts feed a weight, the weight

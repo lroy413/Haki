@@ -109,12 +109,17 @@ export const press: ViewStyle = {
  */
 export function lit(tint: string, level: HardeningLevel): ViewStyle {
   if (level === 0) return {};
-  const strength = { 1: 0.4, 2: 0.55, 3: 0.7 }[level];
+  const strength = { 1: 0.22, 2: 0.3, 3: 0.38 }[level];
   return {
     shadowColor: tint,
     shadowOpacity: strength,
-    shadowRadius: 16 + level * 3,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6 + level * 2,
+    shadowRadius: 10 + level * 2,
+    // Offset downward rather than centred. A halo of equal weight on all
+    // four sides reads as *emission* — the card becomes a lamp, and at the
+    // settled dark the Reserve plate was outshouting the number inside it.
+    // Light that falls from above and pools under the card reads as
+    // *weight*, which is what a plate under its lens's light should be.
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4 + level,
   };
 }
