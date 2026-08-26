@@ -31,6 +31,7 @@ import {
 import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { underCrew } from '../../src/theme/palettes';
+import { Steel } from '../../src/components/instruments/Steel';
 import { returnMessage } from '../../src/domain/training';
 import {
   backlog,
@@ -86,6 +87,9 @@ export default function ArmamentScreen() {
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
   const pad = useTabInsets();
+  // A lens's material is a performance: plain mode gets none, and paper
+  // catches nothing — a plate on parchment is parchment.
+  const material = !plainMode && hardening > 0;
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRow[]>([]);
@@ -228,7 +232,25 @@ export default function ArmamentScreen() {
         */}
         {/* 武装色's own light. The lens that measures the day is the thing
             the day lights up. */}
-        <View style={[styles.hardnessCard, lit(lens.crimson, plainMode ? 0 : hardening)]}>
+        <View
+          style={[
+            styles.hardnessCard,
+            material && styles.hardnessSteel,
+            lit(lens.crimson, plainMode ? 0 : hardening),
+          ]}
+        >
+          {/* 武装色 coats. The plate is black metal and the light on it comes
+              up with the hardness — the concept doc's armour you can see,
+              and deliberately not a bar: you cannot read the figure off how
+              bright a surface is. */}
+          {material ? (
+            <Steel
+              face={palette.steelFace}
+              deep={palette.steelDeep}
+              sheen={palette.steelSheen}
+              hardness={(hardness.value ?? 0) / 100}
+            />
+          ) : null}
           <View style={styles.head}>
             <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
             <Text style={styles.carrying}>
@@ -756,6 +778,14 @@ const makeStyles = (c: Palette) =>
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     // The lens's own readout, raised: the one plate on this screen.
     hardnessCard: { ...plate(c), padding: space.lg, gap: space.sm, marginBottom: space.xs },
+    // On steel the plate supplies nothing of its own, and the drawing is
+    // clipped to the card's corners.
+    hardnessSteel: {
+      backgroundColor: c.steelFace,
+      borderColor: c.steelSheen,
+      borderTopColor: c.steelSheen,
+      overflow: 'hidden',
+    },
     sectionLabel: { ...type.label, color: c.inkFaint },
     // The way into the workshop, sitting on the label rather than as a button
     // of its own — the day's work is the subject of this section, not this.

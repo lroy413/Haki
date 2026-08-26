@@ -690,6 +690,51 @@ Motion arrived with it: `Rise` is the entire vocabulary — fade up a short
 distance, quickly, settle, staggered forty milliseconds a card. Plain mode
 gets none of it, and neither does anyone who asked the OS for less.
 
+## What each Haki is made of
+
+A visual sweep of all eighteen screens produced a verdict worth writing
+down: _well-built and under-composed_. The systems were strong — four tested
+palettes, three real faces, hand-drawn instruments, contrast floors that
+hold — and what was missing was composition. Eight findings; the first three
+were constants, and they moved every screen at once.
+
+The volume came down. `lit()` was throwing a twenty-five point radius at
+seventy percent opacity, which turned the Reserve plate into a lamp that
+outshouted the number printed inside it; it falls slightly now instead of
+ringing all four sides, because light pooling under a card reads as weight
+and a halo of equal weight everywhere reads as emission. Retuning the
+constant turned out not to be enough, and the reason is the useful part: the
+Reserve gauge rolled _its own_ glow and bypassed `lit()` entirely. The
+loudest element in the app was not on the system built to control it.
+
+The lens leak went with it. The Do tab was crimson with teal chips, a teal
+checkbox and a teal primary, while its crimson watch chips sat directly
+underneath — the file disagreed with itself, which is how you know nobody
+chose it. Shared controls now take a required `tint` with no default,
+because a default is precisely how the colour of the screen a control was
+born on becomes the colour it wears everywhere else.
+
+Then the real one. The sweep's sharpest finding was that the stone card on
+the Journey tab looked designed and the four rectangles above it did not, on
+the same screen — and that gap was never about the Log Pose. One element in
+the app was made of a material and the rest were made of `borderRadius`.
+
+So each lens got a material of its own, and each is what that Haki actually
+is rather than a texture chosen to look expensive. 見聞色 is **still
+water**: perception is a surface you read things off, so its plate is dark
+violet-tinted water with a reflection lying on it and rings spreading as far
+as the day's reading has opened. 武装色 is **hardened steel**: Busoshoku
+coats, so its plate is black metal with a raked band of light across it and
+a lit top edge, and the light comes up with the hardness — the concept
+doc's armour you can see, finally armour rather than a percentage in a box.
+覇王色 keeps the stone it already had.
+
+Both new materials obey the licence every performance in this app obeys:
+plain mode gets none, and paper catches nothing. The stone stays the
+exception, because a poneglyph is an object and not a mood. Each carries
+exactly one variable and it is always light, never a figure — you cannot
+read a score off a surface, which is the same rule `lit()` operates under.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records

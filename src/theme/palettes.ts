@@ -96,6 +96,36 @@ export type Palette = {
   /** What grows on a slab nobody has visited in a century. */
   moss: string;
 
+  /**
+   * The other two lens materials.
+   *
+   * 覇王色 got stone, and stone turned out to be the thing that made one
+   * card on the Journey tab look designed while the four above it looked
+   * like `borderRadius`. So the other two lenses get a material of their
+   * own, and each is what that Haki *is* rather than a texture chosen to
+   * look expensive:
+   *
+   *   **見聞色 is still water.** Perception is a surface you read things
+   *   off. Its plate is dark violet-tinted water with a reflection in it,
+   *   and rings spread across it as the day's reading opens.
+   *
+   *   **武装色 is hardened steel.** Busoshoku coats. Its plate is black
+   *   metal whose specular edge sharpens as hardness climbs — the concept
+   *   doc's "armour you can see", finally armour rather than a percentage
+   *   in a box.
+   *
+   * Like the stone these do not move with the ramp, and unlike the stone
+   * they are only ever *shown* on the hardened palettes: a plate on paper
+   * is paper, because paper catches nothing. `face` is the body, `deep`
+   * the bottom of it, `sheen` the light on the surface.
+   */
+  waterFace: string;
+  waterDeep: string;
+  waterSheen: string;
+  steelFace: string;
+  steelDeep: string;
+  steelSheen: string;
+
   glass: string;
   glassEdge: string;
 
@@ -151,6 +181,13 @@ const STONE = {
   stoneIsleLip: '#5A79B8',
   onStone: '#F4EFE6',
   moss: '#5F7A3F',
+
+  waterFace: '#241A3D',
+  waterDeep: '#0B0714',
+  waterSheen: '#7B5AB8',
+  steelFace: '#241A1C',
+  steelDeep: '#090506',
+  steelSheen: '#7A5F63',
 } as const;
 
 /** 0 — Unhardened. Paper. Nothing logged today yet. */
