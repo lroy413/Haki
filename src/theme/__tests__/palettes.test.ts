@@ -56,6 +56,14 @@ const SOLID: (keyof Palette)[] = [
   'jadeSoft',
   'amethyst',
   'amethystSoft',
+  'stoneRoad',
+  'stoneRoadCarve',
+  'stoneRoadLip',
+  'stoneIsle',
+  'stoneIsleCarve',
+  'stoneIsleLip',
+  'onStone',
+  'moss',
   'specular',
   'onAccent',
 ];
@@ -158,6 +166,68 @@ describe.each(LEVELS)('palette %i', (level) => {
         `${where} ${accent} on ${soft}`,
       ).toBeGreaterThanOrEqual(4.5);
     }
+  });
+
+  it('carries text on the poneglyph stone at AAA, on both stones', () => {
+    // The stone is a background the app writes titles, bodies and labels
+    // onto, and it is the one ground that does not move with the ramp — so
+    // if `onStone` is ever wrong it is wrong on all four palettes at once.
+    for (const stone of ['stoneRoad', 'stoneIsle'] as const) {
+      expect(
+        contrast(p.onStone, p[stone]),
+        `${where} onStone on ${stone}`,
+      ).toBeGreaterThanOrEqual(7);
+    }
+  });
+
+  it('cuts a glyph you can read as carved rather than printed', () => {
+    // An incision is a shadow and its lower edge catches the light. Both
+    // have to separate from the body or the inscription flattens into a
+    // pattern; neither may separate so far that the texture starts
+    // competing with the words on top of it.
+    for (const [body, carve, lip] of [
+      ['stoneRoad', 'stoneRoadCarve', 'stoneRoadLip'],
+      ['stoneIsle', 'stoneIsleCarve', 'stoneIsleLip'],
+    ] as const) {
+      expect(contrast(p[body], p[carve]), `${where} ${carve} in ${body}`).toBeGreaterThan(1.35);
+      expect(contrast(p[body], p[carve]), `${where} ${carve} in ${body}`).toBeLessThan(3);
+      expect(contrast(p[lip], p[body]), `${where} ${lip} on ${body}`).toBeGreaterThan(1.35);
+      expect(contrast(p[lip], p[body]), `${where} ${lip} on ${body}`).toBeLessThan(3);
+    }
+  });
+
+  it('keeps the stone the same object on every palette', () => {
+    // Eight hundred years old and indifferent to what time it is. Every
+    // level carries identical stone, so a card cannot drift into looking
+    // like a different artifact halfway down the ramp.
+    const first = paletteFor(0);
+    for (const key of [
+      'stoneRoad',
+      'stoneRoadCarve',
+      'stoneRoadLip',
+      'stoneIsle',
+      'stoneIsleCarve',
+      'stoneIsleLip',
+      'onStone',
+      'moss',
+    ] as const) {
+      expect(p[key], `${where} ${key}`).toBe(first[key]);
+    }
+  });
+
+  it('tells the two stones apart at a glance', () => {
+    // Red pillar, blue island. Both are deliberately dark, so a contrast
+    // ratio cannot see the difference between them — the ratio measures
+    // lightness and what separates these is *hue*. So the test asks the
+    // real question: does the red stone lean red, and the blue one blue?
+    const rgb = (hex: string) => {
+      const n = parseInt(hex.slice(1), 16);
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+    };
+    const road = rgb(p.stoneRoad);
+    const isle = rgb(p.stoneIsle);
+    expect(road.r - road.b, `${where} road leans red`).toBeGreaterThan(40);
+    expect(isle.b - isle.r, `${where} isle leans blue`).toBeGreaterThan(40);
   });
 
   it('draws a hairline you can actually see', () => {

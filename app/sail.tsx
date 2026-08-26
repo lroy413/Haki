@@ -23,6 +23,7 @@ import {
   listSailings,
   setSail,
   listFlag,
+  readPose,
 } from '../src/db/repo';
 import type { CarriedRow, SailingRow } from '../src/db/schema';
 import {
@@ -35,6 +36,7 @@ import {
 } from '../src/domain/sail';
 import { logPose, needleLine, type LogPose } from '../src/domain/logpose';
 import { flagAtSail, type Value } from '../src/domain/flag';
+import { poseLine, type EternalPose } from '../src/domain/eternal';
 import { addDays, todayKey } from '../src/domain/date';
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
@@ -78,6 +80,7 @@ export default function SailScreen() {
   const [past, setPast] = useState<SailingRow[]>([]);
   const [carried, setCarried] = useState<CarriedRow | null>(null);
   const [flag, setFlag] = useState<Value[]>([]);
+  const [eternal, setEternal] = useState<EternalPose>({ held: null, carried: [] });
 
   const [heading, setHeading] = useState('');
   const [note, setNote] = useState('');
@@ -86,17 +89,20 @@ export default function SailScreen() {
   const load = useCallback(async () => {
     const today = todayKey();
     const from = addDays(today, -(SAIL_EVERY_DAYS - 1));
-    const [days, dream, roads, glyphs, last, history, people, values] = await Promise.all([
-      actsBetween(db, from, today),
-      getDream(db),
-      listRoads(db),
-      listPoneglyphs(db),
-      lastSailing(db),
-      listSailings(db, 6),
-      listCarried(db),
-      listFlag(db),
-    ]);
+    const [days, dream, roads, glyphs, last, history, people, values, bearing] =
+      await Promise.all([
+        actsBetween(db, from, today),
+        getDream(db),
+        listRoads(db),
+        listPoneglyphs(db),
+        lastSailing(db),
+        listSailings(db, 6),
+        listCarried(db),
+        listFlag(db),
+        readPose(db),
+      ]);
     setFlag(values);
+    setEternal(bearing);
 
     const closedThisWeek = glyphs.filter((g) => g.closedOn && g.closedOn >= from);
     setWeek(
@@ -222,6 +228,19 @@ export default function SailScreen() {
                 </Text>
               ))}
             </View>
+          </>
+        ) : null}
+
+        {/* And the bearing that does not move. Read at the ritual and
+            nowhere else in it — the whole point of an Eternal Pose is that
+            it is the one thing the weekly read never has to decide about.
+            Deliberately last before the needles: everything after this gets
+            looked at with it in view. */}
+        {eternal.held ? (
+          <>
+            <SectionLabel label={t.eternalTitle} style={styles.spaced} />
+            <Text style={styles.flagValue}>{eternal.held.text}</Text>
+            <Text style={styles.flagAsk}>{poseLine(eternal, todayKey(), plainMode)}</Text>
           </>
         ) : null}
 

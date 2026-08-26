@@ -78,6 +78,16 @@ export type Strings = {
   flagAdd: string;
   flagField: string;
   flagEmpty: string;
+
+  eternalTitle: string;
+  eternalBlurb: string;
+  eternalSetCta: string;
+  eternalField: string;
+  eternalPlaceholder: string;
+  eternalTakeNew: string;
+  eternalLetGoField: string;
+  eternalCarriedLabel: string;
+
   asternLabel: string;
   soundingsLabel: string;
   soundingTake: string;
@@ -250,6 +260,17 @@ const haki: Strings = {
   flagField: 'In your own words',
   flagEmpty: 'Nothing raised yet.',
 
+  // 不変 — the Eternal Pose. One bearing, and it does not recalibrate.
+  eternalTitle: 'The Eternal Pose',
+  eternalBlurb:
+    'A Log Pose finds the next island. An Eternal Pose points at one place forever, so you can always find your way back to it. One line: the thing you come back to when the week has gone sideways. Nothing here is ever ticked, counted or scored.',
+  eternalSetCta: 'Take a bearing',
+  eternalField: 'The one thing',
+  eternalPlaceholder: 'I do not go a day without…',
+  eternalTakeNew: 'Take a new bearing',
+  eternalLetGoField: 'Why this one is being let go',
+  eternalCarriedLabel: 'Carried before',
+
   // 過去 — what is behind you in the log. Only ever a source.
   asternLabel: 'Astern',
 
@@ -388,6 +409,12 @@ const plain: Strings = {
   flagBlurb:
     'What you stand for, in your own words. Nothing here is completed, counted or checked off — it is what the rest of this gets measured against.',
   flagAdd: 'Add one',
+  eternalTitle: 'The one thing',
+  eternalBlurb:
+    'One line: the thing you come back to when a week has gone sideways. It is never ticked, counted or scored — it is here to be read.',
+  eternalSetCta: 'Set it',
+  eternalTakeNew: 'Change it',
+  eternalCarriedLabel: 'Before this',
   asternLabel: 'From the archive',
   soundingsLabel: 'Readings',
   soundingTake: 'Log a reading',

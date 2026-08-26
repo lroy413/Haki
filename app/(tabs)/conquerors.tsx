@@ -17,6 +17,7 @@ import {
   addTask,
   closePoneglyph,
   getDream,
+  readPose,
   lastSailing,
   listCarried,
   listPoneglyphs,
@@ -49,6 +50,8 @@ import { font, radius, space, type } from '../../src/theme/tokens';
 import { lit, offer, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
 import { flagCheck, type Value } from '../../src/domain/flag';
+import { lostLine, poseLine, type EternalPose } from '../../src/domain/eternal';
+import { Rise } from '../../src/components/Rise';
 import type { Sounding } from '../../src/domain/soundings';
 import { underCrew } from '../../src/theme/palettes';
 import type { Palette } from '../../src/theme/palettes';
@@ -106,16 +109,18 @@ export default function ConquerorsScreen() {
   /** The one line that speaks after something closes. Cleared on the next act. */
   const [said, setSaid] = useState<string | null>(null);
   const [flag, setFlag] = useState<Value[]>([]);
+  const [eternal, setEternal] = useState<EternalPose>({ held: null, carried: [] });
   const [depths, setDepths] = useState<Map<number, Sounding>>(new Map());
 
   const load = useCallback(async () => {
-    const [d, r, g, people, sail, values] = await Promise.all([
+    const [d, r, g, people, sail, values, bearing] = await Promise.all([
       getDream(db),
       listRoads(db),
       listPoneglyphs(db),
       listCarried(db),
       lastSailing(db),
       listFlag(db),
+      readPose(db),
     ]);
     setDreamState(d);
     setRoads(r);
@@ -123,6 +128,7 @@ export default function ConquerorsScreen() {
     setCrew(people.map((p) => p.name));
     setLastSail(sail?.day ?? null);
     setFlag(values);
+    setEternal(bearing);
     const openKeys = g.filter((x) => x.state === 'open').map((x) => x.key);
     setDepths(await latestSoundings(db, openKeys));
     // The open islands' wakes: what has been struck under each so far.
@@ -145,6 +151,10 @@ export default function ConquerorsScreen() {
     [dream, roads, glyphs],
   );
   const room = roadRoom(pose.needles.length, plainMode);
+  // Every needle turning: no island at sea anywhere. The ordinary state of a
+  // week that came apart, and the one the Eternal Pose was built for.
+  const allSpinning =
+    pose.needles.length > 0 && pose.needles.every((needle) => needle.next === null);
 
   async function saveDream() {
     if (!dreamDraft.trim()) return;
@@ -311,6 +321,34 @@ export default function ConquerorsScreen() {
           )}
         </View>
 
+        {/* -------------------------------------------- the eternal pose */}
+        {/* Straight under the Dream, because the two are a pair and the pair
+            is the point: the Dream is where you are going, this is what you
+            come back to. Out and back, in that order. */}
+        <Pressable
+          onPress={() => router.push('/eternal')}
+          accessibilityRole="button"
+          accessibilityLabel={
+            eternal.held ? `${t.eternalTitle}: ${eternal.held.text}` : t.eternalTitle
+          }
+          style={({ pressed }) => [styles.flag, pressed && styles.pressed]}
+        >
+          <View style={styles.flagHead}>
+            <Text style={styles.flagLabel}>{t.eternalTitle}</Text>
+            {plainMode ? null : <Text style={styles.flagGlyph}>不変</Text>}
+          </View>
+          {eternal.held ? (
+            <Text style={styles.flagLine}>{eternal.held.text}</Text>
+          ) : (
+            <Text style={styles.flagEmpty}>{poseLine(eternal, todayKey(), plainMode)}</Text>
+          )}
+          {/* The moment this instrument exists for: nothing open under any
+              pillar, and a Log Pose with nothing to point at. */}
+          {allSpinning && lostLine(eternal) ? (
+            <Text style={styles.lost}>{lostLine(eternal)}</Text>
+          ) : null}
+        </Pressable>
+
         {/* ---------------------------------------------------- the flag */}
         {/* Under the Dream and above the fronts, which is the order the three
             of them actually stand in: where you are going, what you sail
@@ -339,25 +377,26 @@ export default function ConquerorsScreen() {
           <Text style={styles.room}>{room.note}</Text>
         </View>
 
-        {pose.needles.map((needle) => (
-          <NeedleCard
-            key={needle.road.id}
-            needle={needle}
-            wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
-            depth={needle.next ? (depths.get(needle.next.key) ?? null) : null}
-            onDetail={() => router.push(`/pillar?id=${needle.road.id}`)}
-            onOpen={(title) => {
-              setSaid(null);
-              void openPoneglyph(db, needle.road.key, title).then(load);
-            }}
-            onReached={() => {
-              if (needle.next) void reached(needle.next.id);
-            }}
-            onPass={(reason) => {
-              if (needle.next) void passed(needle.next.id, reason);
-            }}
-            onStrike={(title) => void strike(title, needle.next?.key ?? null)}
-          />
+        {pose.needles.map((needle, i) => (
+          <Rise key={needle.road.id} delay={40 * i}>
+            <NeedleCard
+              needle={needle}
+              wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
+              depth={needle.next ? (depths.get(needle.next.key) ?? null) : null}
+              onDetail={() => router.push(`/pillar?id=${needle.road.id}`)}
+              onOpen={(title) => {
+                setSaid(null);
+                void openPoneglyph(db, needle.road.key, title).then(load);
+              }}
+              onReached={() => {
+                if (needle.next) void reached(needle.next.id);
+              }}
+              onPass={(reason) => {
+                if (needle.next) void passed(needle.next.id, reason);
+              }}
+              onStrike={(title) => void strike(title, needle.next?.key ?? null)}
+            />
+          </Rise>
         ))}
 
         {addingRoad ? (
@@ -512,6 +551,9 @@ const makeStyles = (c: Palette) =>
     flagGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
     flagLine: { ...type.body, color: c.ink, lineHeight: 22 },
     flagEmpty: { ...type.body, color: c.inkDim, lineHeight: 22 },
+    // Only ever shown when every needle is spinning. Quiet on purpose: it
+    // is a fact about the instrument, not a nudge about the week.
+    lost: { ...type.mono, fontSize: 12, color: c.violet, marginTop: space.xs },
 
     // The question rides a violet rail, the same mark the live island wears:
     // this is the flag speaking, not the form.

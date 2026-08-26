@@ -6,6 +6,7 @@ import { formatSounding, type Sounding } from '../../domain/soundings';
 import { useHaki } from '../../state/HakiProvider';
 import { font, radius, space, type } from '../../theme/tokens';
 import { press, row } from '../../theme/surfaces';
+import { Stone } from '../instruments/Stone';
 import { underCrew } from '../../theme/palettes';
 import type { Palette } from '../../theme/palettes';
 
@@ -32,6 +33,20 @@ import type { Palette } from '../../theme/palettes';
  * cost you weeks. Sailing past costs one sentence, because a decision you
  * cannot be bothered to write down is not a decision, it is the drift wearing
  * a different coat.
+ *
+ * ---
+ *
+ * **The card is the stone.** A Road Poneglyph is red rock in canon and an
+ * ordinary Poneglyph is blue, which is a hierarchy this feature already had
+ * and was drawing in borders: the pillar is the red slab, and the island at
+ * sea under it is a blue slab set into it. Nothing needs explaining after
+ * that — the two are never confusable, and the thing you are looking at
+ * looks like the thing it is named after. Plain mode drops both back to
+ * ordinary cards, because a texture is a performance.
+ *
+ * The inscription is seeded from the pillar's own title, so each one carries
+ * its own permanent glyphs — rename it and the stone is recut, which is
+ * correct: it is a different sentence now.
  *
  * **Strike it** is the third door and the one that gets used daily: it takes
  * the island — which is weeks wide and not strikeable — and turns it into one
@@ -65,7 +80,10 @@ export function NeedleCard({
 }) {
   const { t, palette, plainMode, crew } = useHaki();
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
-  const styles = useMemo(() => makeStyles(lens), [lens]);
+  // Stone is a ground of its own: it does not move with the palette, so
+  // everything written on it takes its colours from the stone rather than
+  // from the day.
+  const styles = useMemo(() => makeStyles(lens, !plainMode), [lens, plainMode]);
 
   const [mode, setMode] = useState<Mode>('idle');
   const [draft, setDraft] = useState('');
@@ -83,7 +101,16 @@ export function NeedleCard({
   }
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, !plainMode && styles.stoneCard]}>
+      {plainMode ? null : (
+        <Stone
+          seed={needle.road.title}
+          body={palette.stoneRoad}
+          carve={palette.stoneRoadCarve}
+          lip={palette.stoneRoadLip}
+          moss={palette.moss}
+        />
+      )}
       {/* The header is the way into the pillar's own screen: its history, its
           reasons, and the only place it can be retired. */}
       <Pressable
@@ -106,7 +133,17 @@ export function NeedleCard({
       <View style={styles.rule} />
 
       {needle.next ? (
-        <View style={styles.island}>
+        <View style={[styles.island, !plainMode && styles.islandStone]}>
+          {plainMode ? null : (
+            <Stone
+              seed={`${needle.road.title}~${needle.next.title}`}
+              body={palette.stoneIsle}
+              carve={palette.stoneIsleCarve}
+              lip={palette.stoneIsleLip}
+              moss={palette.moss}
+              round={radius.sm}
+            />
+          )}
           {/* Two Texts, not one string. The label face is IBM Plex Mono,
               which has no CJK — a kanji inside it falls through to whatever
               the system has and lands on a different baseline at a different
@@ -292,58 +329,113 @@ export function NeedleCard({
   );
 }
 
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
+/**
+ * Two grounds, one card.
+ *
+ * On stone every colour comes from the slab — `onStone` at a few opacities
+ * for the hierarchy, and the lens colour kept for exactly two things: the
+ * kanji marks and the filled button. A violet label on dark red rock
+ * measures under the text floor and looks like a mistake; a violet *button*
+ * on it is the brightest thing on the card, which is what a call to action
+ * is for.
+ *
+ * In plain mode there is no stone and this is the ordinary card it always
+ * was, unchanged.
+ */
+const makeStyles = (c: Palette, stone: boolean) => {
+  const ink = stone ? c.onStone : c.ink;
+  const dim = stone ? c.onStone : c.inkDim;
+  const faint = stone ? c.onStone : c.inkFaint;
+  // Hierarchy on stone is opacity, because the slab only supplies one ink.
+  const dimO = stone ? 0.78 : 1;
+  const faintO = stone ? 0.62 : 1;
+
+  return StyleSheet.create({
     card: {
       ...row(c),
       padding: space.lg,
       gap: space.md,
     },
-    // The row is 44 tall whatever is in it, and a pillar with no "why" under a
-    // one-line title only fills 24 of that. Left top-aligned, the slack all
-    // fell below the title and opened a hole above the rule on exactly the
-    // cards with the least in them. Stretching the text block and centring
-    // inside it splits the slack instead, so short and tall cards space the
-    // same.
+    // The slab is an absolutely-filled SVG, so the card has to clip it and
+    // supply nothing of its own behind it.
+    stoneCard: {
+      backgroundColor: c.stoneRoad,
+      borderColor: c.stoneRoadCarve,
+      overflow: 'hidden',
+      // Rock has weight. This is the one place a card in this app is
+      // allowed to sit off the page rather than on it.
+      shadowColor: c.shadow,
+      shadowOpacity: 1,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 5,
+    },
+
     head: { flexDirection: 'row', gap: space.md, minHeight: 44 },
     headText: { flex: 1, gap: space.xs, justifyContent: 'center' },
-    title: { fontFamily: font.displayBold, fontSize: 19, color: c.ink, lineHeight: 24 },
-    why: { ...type.small, color: c.inkFaint, lineHeight: 18 },
-    glyph: { fontFamily: font.display, fontSize: 22, color: c.violet, alignSelf: 'center' },
+    title: { fontFamily: font.displayBold, fontSize: 19, color: ink, lineHeight: 24 },
+    why: { ...type.small, color: faint, opacity: faintO, lineHeight: 18 },
+    glyph: {
+      fontFamily: font.display,
+      fontSize: 22,
+      color: stone ? c.onStone : c.violet,
+      opacity: stone ? 0.55 : 1,
+      alignSelf: 'center',
+    },
 
-    rule: { height: 1, backgroundColor: c.lineSoft },
+    rule: { height: 1, backgroundColor: stone ? c.stoneRoadCarve : c.lineSoft, opacity: 0.7 },
 
     // The rail marks the needle's live edge: this is the one part of the
-    // card that is at sea rather than on record.
+    // card that is at sea rather than on record. On stone the island is a
+    // slab of its own, so the rail becomes the seam around it.
     island: {
       gap: space.sm,
       borderLeftWidth: 2,
       borderLeftColor: c.violet,
       paddingLeft: space.md,
     },
+    islandStone: {
+      borderLeftWidth: 0,
+      padding: space.md,
+      borderRadius: radius.sm,
+      borderWidth: 1,
+      borderColor: c.stoneIsleCarve,
+      borderTopColor: c.stoneIsleLip,
+      backgroundColor: c.stoneIsle,
+      overflow: 'hidden',
+    },
     islandLabelRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-    islandGlyph: { fontFamily: font.display, fontSize: 13, color: c.violet },
-    islandLabel: { ...type.label, color: c.violet, fontSize: 11 },
-    islandTitle: { ...type.title, fontSize: 21, color: c.ink, lineHeight: 27 },
-    atSea: { ...type.mono, color: c.inkFaint, fontSize: 12 },
-    wake: { ...type.mono, color: c.violet, fontSize: 12 },
+    islandGlyph: {
+      fontFamily: font.display,
+      fontSize: 13,
+      color: stone ? c.onStone : c.violet,
+    },
+    islandLabel: {
+      ...type.label,
+      color: stone ? c.onStone : c.violet,
+      opacity: stone ? 0.72 : 1,
+      fontSize: 11,
+    },
+    islandTitle: { ...type.title, fontSize: 21, color: ink, lineHeight: 27 },
+    atSea: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
+    wake: { ...type.mono, color: stone ? c.onStone : c.violet, opacity: dimO, fontSize: 12 },
     depth: {
       fontFamily: font.displayBold,
       fontSize: 17,
-      color: c.ink,
+      color: ink,
       fontVariant: ['tabular-nums'],
     },
-    spinning: { ...type.body, color: c.inkDim, lineHeight: 22 },
-    astern: { ...type.mono, color: c.inkFaint, fontSize: 12 },
+    spinning: { ...type.body, color: dim, opacity: dimO, lineHeight: 22 },
+    astern: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
 
     form: { gap: space.sm },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
+    fieldLabel: { ...type.label, color: faint, opacity: faintO, fontSize: 11 },
     input: {
       ...type.body,
-      color: c.ink,
-      backgroundColor: c.surface2,
+      color: ink,
+      backgroundColor: stone ? c.stoneIsleCarve : c.surface2,
       borderWidth: 1,
-      borderColor: c.line,
+      borderColor: stone ? c.stoneIsleLip : c.line,
       borderRadius: radius.sm,
       paddingHorizontal: space.md,
       paddingVertical: space.md,
@@ -352,39 +444,48 @@ const makeStyles = (c: Palette) =>
     inputTall: { minHeight: 76, textAlignVertical: 'top' },
 
     row: { flexDirection: 'row', gap: space.sm },
+    // On stone the call to action is bone, not violet. A bright violet slab
+    // on blue rock is two loud materials arguing; the same button cut in the
+    // stone's own light reads as part of the object, and is still the
+    // brightest thing on the card — which is all a primary action needs to
+    // be. Plain mode has no stone and keeps the lens colour.
     filled: {
       flex: 1,
-      backgroundColor: c.violet,
+      backgroundColor: stone ? c.onStone : c.violet,
       borderRadius: radius.sm,
       paddingVertical: space.md,
       minHeight: 44,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    filledText: {
+      ...type.heading,
+      fontSize: 15,
+      color: stone ? c.stoneIsleCarve : c.onAccent,
+    },
     ghost: {
       flex: 1,
       borderWidth: 1,
-      borderColor: c.line,
+      borderColor: stone ? c.onStone : c.line,
       borderRadius: radius.sm,
       paddingVertical: space.md,
       minHeight: 44,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    ghostText: { ...type.heading, fontSize: 15, color: c.inkDim },
+    ghostText: { ...type.heading, fontSize: 15, color: dim, opacity: dimO },
     // Not a warning colour and not red-for-failure: sailing past is allowed.
     // It is bordered rather than filled so the two doors are visibly not the
     // same weight, which is the only ranking this card does.
-    danger: { borderColor: c.violet },
-    dangerText: { ...type.heading, fontSize: 15, color: c.violet },
-    invite: { borderColor: c.violet, borderStyle: 'dashed' },
-    inviteText: { ...type.heading, fontSize: 15, color: c.violet },
+    danger: { borderColor: stone ? c.onStone : c.violet },
+    dangerText: { ...type.heading, fontSize: 15, color: stone ? c.onStone : c.violet },
+    invite: { borderColor: stone ? c.onStone : c.violet, borderStyle: 'dashed' },
+    inviteText: { ...type.heading, fontSize: 15, color: stone ? c.onStone : c.violet },
     disabled: { opacity: 0.4 },
 
     strike: {
       borderWidth: 1,
-      borderColor: c.line,
+      borderColor: stone ? c.stoneIsleLip : c.line,
       borderStyle: 'dashed',
       borderRadius: radius.sm,
       paddingVertical: space.md,
@@ -392,6 +493,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    strikeText: { ...type.mono, color: c.inkDim, fontSize: 12 },
+    strikeText: { ...type.mono, color: dim, opacity: dimO, fontSize: 12 },
     pressed: { ...press },
   });
+};

@@ -247,6 +247,32 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS sounding_island_idx ON sounding (island_key);
     `,
   },
+  {
+    version: 10,
+    up: `
+      -- The Eternal Pose: the one bearing that never recalibrates.
+      --
+      -- Rows are bearings, not settings. The one being held is the row with
+      -- ended_on NULL, and there is at most one of those; taking a new
+      -- bearing ends the old one in place rather than overwriting it,
+      -- because the record of what you used to steer by is worth keeping.
+      --
+      -- Deliberately absent, and not to be added later: any column that
+      -- could carry a tick, a count, a target or a last-kept date. This is
+      -- read, never tracked — see domain/eternal.ts.
+      CREATE TABLE IF NOT EXISTS eternal_pose (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        text        TEXT    NOT NULL,
+        set_on      TEXT    NOT NULL,
+        -- The day it stopped being the one, and the line written when it
+        -- was let go. Both null while it is held.
+        ended_on    TEXT,
+        reason      TEXT,
+        created_at  INTEGER NOT NULL,
+        updated_at  INTEGER NOT NULL
+      );
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

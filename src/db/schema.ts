@@ -331,6 +331,23 @@ export const sounding = sqliteTable(
   (t) => [index('sounding_island_idx').on(t.islandKey)],
 );
 
+/**
+ * One bearing of the Eternal Pose. The held one has no `endedOn`.
+ *
+ * No state column, no count, no target, and nowhere to put one: this is the
+ * one thing in the app that is read rather than tracked. See
+ * `domain/eternal.ts` for why that is load-bearing.
+ */
+export const eternalPose = sqliteTable('eternal_pose', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  text: text('text').notNull(),
+  setOn: text('set_on').notNull(),
+  endedOn: text('ended_on'),
+  reason: text('reason'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
 /** Small key/value bag. Typed accessors live in `settings.ts`. */
 export const setting = sqliteTable('setting', {
   key: text('key').primaryKey(),
@@ -353,3 +370,4 @@ export type RhythmRow = typeof rhythm.$inferSelect;
 export type SailingRow = typeof sailing.$inferSelect;
 export type FlagValueRow = typeof flagValue.$inferSelect;
 export type SoundingRow = typeof sounding.$inferSelect;
+export type EternalPoseRow = typeof eternalPose.$inferSelect;

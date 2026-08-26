@@ -635,6 +635,61 @@ the illuminated fraction — a crescent barely warms the sky, a full moon
 owns it. The one deliberate exception to the day-boundary rule: the moon
 takes a plain date, because the sky does not keep the voyage's clock.
 
+## The stone, and the bearing that does not move
+
+The owner asked for two things at once: build the Eternal Pose, and make the
+app look like it costs money. They turned out to be the same chapter.
+
+**The Eternal Pose** had been on the charted-next list for months with a
+question mark against it — the concept doc lists it beside the Log Pose and
+then calls it "the dream", and read that way it is the Dream with a second
+name. The canon settles it: a Log Pose finds the next island, an Eternal
+Pose points at one place forever so you can always find your way back. The
+Dream is what you sail toward; this is what you come back to. For somebody
+whose stated problem is consistency, the second one is the more useful
+instrument on a bad week, and it was the one missing.
+
+It is read, never tracked. No tick, no count, no calendar, nowhere to add
+one — a non-negotiable with a streak attached is a shame machine pointed at
+the one thing you promised yourself, and the test that matters asserts the
+only number it carries cannot be made smaller by anything you do. Replacing
+a bearing costs a written line; rewording one costs nothing, because only
+the sentence changed. Bearings you let go are _carried_, and keep the days
+they had. It surfaces on the Journey tab under the Dream, at Setting Sail,
+and — the moment it exists for — when every needle is spinning and the Log
+Pose has nothing to say.
+
+**The stone** came from the owner's poneglyph references, and canon handed
+over the hierarchy for free: Road Poneglyphs are red, ordinary Poneglyphs
+are blue. So a pillar is a red slab and the island at sea under it is a blue
+slab set into it — a distinction the feature had been drawing in border
+colours since it shipped. Each slab carries a deterministic inscription
+seeded from its own title, cut twice (a shadow and its lit edge) so the
+glyphs read as carved rather than printed, with moss where water sits. The
+stone is the one colour set that does not move with the hardening ramp: it
+is an object, not a mood.
+
+It shipped near-black through the first screenshot pass. The cause was worth
+writing down — a pillar called "Master the blade" produced the SVG id
+`face-Master the blade`, spaces and all, which resolves to nothing and
+paints black. The tell was that the text on top stayed bright: an opacity
+bug dims everything, a bad paint reference dims only what it paints. Reading
+the pixels back found it in one pass where staring at the render had not.
+
+And the lightning changed. The owner mentioned he preferred the bolt in the
+original concept document to the one in the app, and he was right for a
+reason neither of us had named: they are two different drawings and the app
+was using the wrong one. The burst is hard, mitred and radial — a fist
+landing. Weather is a long thin bolt falling from above with its jag
+enveloped by a sine, so it leaves the cloud clean, wanders, and arrives
+clean. The ambient layer had been rotating the burst around the screen,
+which reads as a firework rather than a storm. `instruments/SkyBolt.tsx` is
+the concept doc's own bolt, and every flicker now generates a new one.
+
+Motion arrived with it: `Rise` is the entire vocabulary — fade up a short
+distance, quickly, settle, staggered forty milliseconds a card. Plain mode
+gets none of it, and neither does anyone who asked the OS for less.
+
 ## The flag, the depth, and a year ago today
 
 Three from the chart, and what unites them is that all three are records
