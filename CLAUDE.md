@@ -336,6 +336,85 @@ message contains a question mark and no congratulation.
 Inherited Will surfaces here and nowhere else — the concept doc's rule kept
 exactly: at the weekly ritual, never on a schedule, never on a failure screen.
 
+## The poneglyph stone
+
+The Log Pose cards are cut into rock, and canon hands the hierarchy over
+free: **Road Poneglyphs are red, ordinary Poneglyphs are blue.** So a pillar
+is a red slab and the island at sea under it is a blue slab set into it, and
+the two can never be confused. `instruments/Stone.tsx` draws it under the
+usual replacing-drawings contract; the inscription is seeded from the
+pillar's own title, so each carries permanent glyphs of its own.
+
+- **The stone does not move with the ramp.** It is the only colour set in
+  the app spread unchanged into all four palettes, because a poneglyph is an
+  object rather than a mood — eight hundred years old and indifferent to
+  what time it is. There is a test.
+- **Text on stone comes from the stone**, never the palette's ink: `onStone`
+  at a few opacities, held to AAA on both slabs. The lens colour survives
+  only on the kanji marks — a violet label on dark rock measures under the
+  floor, and the call to action is cut in the stone's own light instead.
+- A cut is a shadow with a lit near edge: every glyph is stroked twice,
+  `carve` then `lip` one unit below. Drop the lip and the slab flattens into
+  wallpaper.
+- **Never build an SVG id out of user text.** A pillar called "Master the
+  blade" produced `url(#face-Master the blade)`, which resolves to nothing
+  and paints _black_. Both slabs shipped near-black through a screenshot
+  review because the text on top stayed bright — an opacity bug dims
+  everything, a bad paint reference dims only what it paints. Ids are hashed
+  now. Read the pixels back rather than trusting the render.
+
+## Two lightnings, and they are not interchangeable
+
+`Lightning.tsx` is a **burst**: hard, mitred, thrown radially off a contact
+point. It is a fist landing and it belongs to the impact frame.
+`instruments/SkyBolt.tsx` is **weather**: one long bolt falling from above,
+thin and faint with a soft halo, forking once or twice. The ambient layer
+spent months rotating the burst around the screen, which reads as a firework
+going off behind the app rather than as a storm over the horizon.
+
+The bolt is the concept document's own — `docs/concept.html` has run it
+behind the pages from the start. **The jag is enveloped by a sine**, so the
+deviation is zero at both ends and greatest in the middle: it leaves the
+cloud clean, wanders, and arrives clean. That is the whole difference
+between struck and scribbled. Every flicker generates a new one; the burst
+stays fixed, on purpose.
+
+## The Eternal Pose
+
+The concept doc lists it beside the Log Pose and then calls it "the dream",
+which is why it sat unbuilt: read that way it is the Dream with a second
+name. The canon settles it — a Log Pose finds the next island, an **Eternal
+Pose points at one place forever so you can always find your way back**. So:
+the Dream is what you sail toward, the Eternal Pose is what you come back
+to, and for someone whose stated problem is consistency the second one is
+the more useful on a bad week.
+
+- **It is never tracked, ticked or counted, and there is nowhere to add it.**
+  A non-negotiable with a streak attached is a shame machine pointed at the
+  one thing somebody promised themselves. The only figure it carries counts
+  days since it was taken — it cannot be made smaller by anything you do,
+  and there is a test asserting exactly that.
+- **Replacing one costs a written line**, the same asymmetry as sailing past
+  an island. The first is free. Rewording is not replacing: the days it has
+  been held are the same days, because only the sentence changed.
+- **The record is kinder than the event.** A bearing you let go was
+  _carried_, and it keeps the days it had.
+- It reads on the Journey tab, at Setting Sail, and — the moment it exists
+  for — when every needle is spinning and the Log Pose has nothing to point
+  at.
+
+## Motion
+
+`components/Rise.tsx` is the whole vocabulary: fade up a short distance,
+quickly, and settle. Nothing bounces, slides in from off-screen, or spins. A
+screen of cards staggered forty milliseconds apart reads as the page
+assembling itself; a hundred and fifty apart reads as a wait.
+
+Same law as `lit()`: **plain mode gets none of it**, and neither does anyone
+who asked the OS for less motion. It only ever runs on arrival — a card that
+replayed its entrance on re-render animates under every keystroke in the
+form inside it.
+
 ## The Log Pose
 
 覇王色 is **the lens with no meter**, and that is a decision rather than an

@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNotNull, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lte } from 'drizzle-orm';
 import type { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
@@ -11,6 +11,7 @@ import { normaliseHeading, type Course } from '../domain/course';
 import { appendLine, isWritable } from '../domain/logbook';
 import type { Poneglyph, PoneglyphState, Road } from '../domain/logpose';
 import { normaliseValue, type Value } from '../domain/flag';
+import type { EternalPose } from '../domain/eternal';
 import { normaliseUnit, type Sounding } from '../domain/soundings';
 import { asternOn, type Astern } from '../domain/astern';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
@@ -25,6 +26,7 @@ import {
   dailyRead,
   entry,
   flagValue,
+  eternalPose,
   gearSession,
   poneglyph,
   sounding,
@@ -1143,6 +1145,75 @@ export async function updateValue(db: Db, id: number, text: string): Promise<voi
  */
 export async function removeValue(db: Db, id: number): Promise<void> {
   await db.delete(flagValue).where(eq(flagValue.id, id));
+}
+
+/* ------------------------------------------------------ the eternal pose */
+
+export async function readPose(db: Db): Promise<EternalPose> {
+  const rows = await db.select().from(eternalPose).orderBy(desc(eternalPose.createdAt));
+  const bearings = rows.map((row) => ({
+    id: row.id,
+    text: row.text,
+    setOn: row.setOn,
+    endedOn: row.endedOn,
+    reason: row.reason,
+  }));
+  return {
+    held: bearings.find((b) => b.endedOn === null) ?? null,
+    carried: bearings.filter((b) => b.endedOn !== null),
+  };
+}
+
+/**
+ * Take a bearing.
+ *
+ * The reason belongs to the bearing being *let go*, not the one being taken
+ * — you write down why you stopped steering by something, never why you
+ * started. Setting the first one needs no reason and takes none.
+ *
+ * The old row is ended in place rather than deleted: the record of what you
+ * used to steer by is worth keeping, and it is kept as *carried* rather
+ * than as anything with a verdict in it.
+ */
+export async function takeBearing(db: Db, text: string, reason: string): Promise<void> {
+  const clean = text.trim();
+  if (!clean) return;
+  const t = now();
+  const today = todayKey();
+
+  const held = await db.select().from(eternalPose).where(isNull(eternalPose.endedOn)).limit(1);
+
+  if (held.length > 0) {
+    const line = reason.trim();
+    // Replacing one you are holding costs a written line. Without it the
+    // call is a no-op rather than a silent swap — the friction is the
+    // feature, and a caller that forgets it must not quietly bypass it.
+    if (!line) return;
+    await db
+      .update(eternalPose)
+      .set({ endedOn: today, reason: line, updatedAt: t })
+      .where(eq(eternalPose.id, held[0].id));
+  }
+
+  await db
+    .insert(eternalPose)
+    .values({ text: clean, setOn: today, createdAt: t, updatedAt: t });
+}
+
+/**
+ * Edit the wording of the bearing you hold, without ending it.
+ *
+ * Rewording is not replacing: the days it has been held are the same days,
+ * because the commitment did not change — only the sentence did. Ending one
+ * bearing to sharpen a phrase would make the record lie.
+ */
+export async function rewordBearing(db: Db, text: string): Promise<void> {
+  const clean = text.trim();
+  if (!clean) return;
+  await db
+    .update(eternalPose)
+    .set({ text: clean, updatedAt: now() })
+    .where(isNull(eternalPose.endedOn));
 }
 
 /* ------------------------------------------------------ astern in the log */

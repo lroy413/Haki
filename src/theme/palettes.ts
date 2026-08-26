@@ -66,6 +66,36 @@ export type Palette = {
   amethyst: string;
   amethystSoft: string;
 
+  /**
+   * The poneglyph stone.
+   *
+   * These are the only colours in the app that do **not** move with the
+   * hardening ramp, and that is the point: a poneglyph is a physical object
+   * eight hundred years old. It is the same stone at dawn and at midnight,
+   * so the same eight values are spread into all four palettes rather than
+   * hand-set per level. On paper it reads as an artifact laid on the chart;
+   * on black it reads as the slab itself.
+   *
+   * Canon supplies the hierarchy for free, and it happens to be exactly the
+   * one this app needs: **Road Poneglyphs are red, ordinary Poneglyphs are
+   * blue.** So a pillar is a red slab and the island at sea under it is a
+   * blue slab inset into it, and the two are never confusable.
+   *
+   * `carve` is the incision — darker than the body, because a cut into
+   * stone is a shadow. `lip` is the lit lower edge of that cut, which is
+   * what stops the glyphs reading as printed rather than carved.
+   */
+  stoneRoad: string;
+  stoneRoadCarve: string;
+  stoneRoadLip: string;
+  stoneIsle: string;
+  stoneIsleCarve: string;
+  stoneIsleLip: string;
+  /** Text and rules drawn on stone. Near-white on every palette. */
+  onStone: string;
+  /** What grows on a slab nobody has visited in a century. */
+  moss: string;
+
   glass: string;
   glassEdge: string;
 
@@ -104,6 +134,25 @@ export type Palette = {
   lightSurface: boolean;
 };
 
+/**
+ * The stone, spread into every palette unchanged.
+ *
+ * Written once because it is one object. If a level ever needs its own
+ * stone, the honest way is to hand-set all eight there — never to
+ * interpolate these, which is the reason the four palettes are hand-written
+ * in the first place.
+ */
+const STONE = {
+  stoneRoad: '#8A2B30',
+  stoneRoadCarve: '#4A1418',
+  stoneRoadLip: '#C05056',
+  stoneIsle: '#2C4676',
+  stoneIsleCarve: '#12203A',
+  stoneIsleLip: '#5A79B8',
+  onStone: '#F4EFE6',
+  moss: '#5F7A3F',
+} as const;
+
 /** 0 — Unhardened. Paper. Nothing logged today yet. */
 const unhardened: Palette = {
   bg: '#EDE7DA',
@@ -138,6 +187,7 @@ const unhardened: Palette = {
   specular: '#C6BBA2',
   shadow: 'rgba(23,19,9,0.16)',
   onAccent: '#FFFFFF',
+  ...STONE,
   lightSurface: true,
 };
 
@@ -172,6 +222,7 @@ const hardened: Palette = {
   specular: '#4C5266',
   shadow: 'rgba(0,0,0,0.34)',
   onAccent: '#0A0B12',
+  ...STONE,
   lightSurface: false,
 };
 
@@ -206,6 +257,7 @@ const set: Palette = {
   specular: '#565C77',
   shadow: 'rgba(0,0,0,0.42)',
   onAccent: '#0A0B12',
+  ...STONE,
   lightSurface: false,
 };
 
@@ -240,6 +292,7 @@ const black: Palette = {
   specular: '#616787',
   shadow: 'rgba(0,0,0,0.52)',
   onAccent: '#0A0B12',
+  ...STONE,
   lightSurface: false,
 };
 

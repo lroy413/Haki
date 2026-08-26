@@ -1,16 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  Animated,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, Animated, StyleSheet, View } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
 import { underCrew } from '../theme/palettes';
 import { darkest } from '../theme/palettes';
 import { nextGapMs, weatherFor } from '../domain/ambient';
-import { Lightning } from './Lightning';
+import { SkyBolt } from './instruments/SkyBolt';
 
 /**
  * The weather: lightning in the background, as the day hardens.
@@ -25,24 +19,18 @@ import { Lightning } from './Lightning';
  * opacity to read as distant sky rather than as interface, sitting under the
  * impact frame and over everything else, and never taking a touch.
  *
- * Each flicker lands somewhere different. The bolts themselves are one fixed
- * field — regenerating geometry per strike would be work for nothing — so
- * variety comes from throwing the whole field off-centre and turning it, which
- * at this opacity is indistinguishable from a new one.
+ * **Every flicker is a new bolt.** This used to throw one fixed field of
+ * burst geometry around the screen at different offsets and rotations, on
+ * the theory that at this opacity nobody could tell. They could: the burst
+ * is a radial starburst thrown off a fist, and rotating it behind the app
+ * reads as a firework going off, not as weather. A falling bolt is a
+ * different drawing — see `instruments/SkyBolt.tsx` — and it is cheap
+ * enough to generate one per strike, which is also what makes each strike
+ * genuinely different rather than the same shape at a new angle.
  *
  * Off entirely in plain mode, at zero intensity, and under reduced motion. It
  * is the loudest ambient thing in the app and the first that should go quiet.
  */
-
-/** Where a flicker is thrown from, as a fraction of the screen. */
-const SPOTS = [
-  { x: -0.34, y: -0.34, rotate: '14deg', scale: 1.15 },
-  { x: 0.33, y: -0.28, rotate: '-20deg', scale: 1.05 },
-  { x: -0.18, y: 0.3, rotate: '32deg', scale: 1.1 },
-  { x: 0.3, y: 0.26, rotate: '-9deg', scale: 1.25 },
-  { x: 0.02, y: -0.46, rotate: '5deg', scale: 1.3 },
-  { x: -0.4, y: 0.05, rotate: '-28deg', scale: 1.12 },
-];
 
 /**
  * One flicker: hard on, a dip, on again, then out.
@@ -62,10 +50,12 @@ const FLICKER = [
 
 export function AmbientHaki() {
   const { palette, hardening, intensity, plainMode, crew } = useHaki();
-  const { width, height } = useWindowDimensions();
 
   const flash = useRef(new Animated.Value(0)).current;
-  const [spot, setSpot] = useState(SPOTS[0]);
+  // The shape of the current strike. A number rather than the geometry: the
+  // bolt is derived from it, so re-rendering for any other reason cannot
+  // reshape a strike that is already on screen.
+  const [seed, setSeed] = useState(1);
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -93,7 +83,7 @@ export function AmbientHaki() {
     }
     let timer: ReturnType<typeof setTimeout>;
     const strike = () => {
-      setSpot(SPOTS[Math.floor(Math.random() * SPOTS.length)]);
+      setSeed(Math.floor(Math.random() * 0xffffff) + 1);
       Animated.sequence(
         FLICKER.map((step) => Animated.timing(flash, { ...step, useNativeDriver: true })),
       ).start();
@@ -112,14 +102,8 @@ export function AmbientHaki() {
         inputRange: [0, 1],
         outputRange: [0, (weather?.opacity ?? 0) * intensity],
       }),
-      transform: [
-        { translateX: spot.x * width },
-        { translateY: spot.y * height },
-        { rotate: spot.rotate },
-        { scale: spot.scale },
-      ],
     }),
-    [flash, weather?.opacity, intensity, spot, width, height],
+    [flash, weather?.opacity, intensity],
   );
 
   if (!weather) return null;
@@ -135,7 +119,12 @@ export function AmbientHaki() {
       <Animated.View style={[StyleSheet.absoluteFill, style]}>
         {/* The weather is hardening made visible — 武装色's doing — so its
             halo follows the crew's coating. */}
-        <Lightning core={core} halo={underCrew(palette, crew).crimson} width={weather.width} />
+        <SkyBolt
+          seed={seed}
+          core={core}
+          halo={underCrew(palette, crew).crimson}
+          width={weather.width}
+        />
       </Animated.View>
     </View>
   );

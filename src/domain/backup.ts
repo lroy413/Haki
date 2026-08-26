@@ -99,6 +99,15 @@ export type FlagValueBackup = {
   updatedAt: number;
 };
 
+export type EternalPoseBackup = {
+  text: string;
+  setOn: string;
+  endedOn: string | null;
+  reason: string | null;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type SoundingBackup = {
   /** The island it was taken against, by that poneglyph's createdAt. */
   islandKey: number;
@@ -182,6 +191,7 @@ export type BackupTables = {
   rhythm: RhythmBackup[];
   sailing: SailingBackup[];
   flagValue: FlagValueBackup[];
+  eternalPose: EternalPoseBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
@@ -209,6 +219,7 @@ export const EMPTY_TABLES: BackupTables = {
   rhythm: [],
   sailing: [],
   flagValue: [],
+  eternalPose: [],
   sounding: [],
   carried: [],
   task: [],
@@ -312,6 +323,15 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     num(r.createdAt) &&
     num(r.updatedAt),
   flagValue: (r) => str(r.text) && str(r.setOn) && num(r.createdAt) && num(r.updatedAt),
+  eternalPose: (r) =>
+    str(r.text) &&
+    str(r.setOn) &&
+    // Both null on the bearing currently held, and both absent from every
+    // export made before schema v10.
+    absentableStr(r.endedOn) &&
+    absentableStr(r.reason) &&
+    num(r.createdAt) &&
+    num(r.updatedAt),
   sounding: (r) => num(r.islandKey) && num(r.value) && str(r.day) && num(r.createdAt),
   carried: (r) =>
     str(r.name) &&
@@ -436,6 +456,7 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   // One per day by definition, exactly like a course.
   sailing: (r) => r.day,
   flagValue: (r) => String(r.createdAt),
+  eternalPose: (r) => String(r.createdAt),
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

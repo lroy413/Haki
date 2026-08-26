@@ -326,6 +326,14 @@ describe('key hygiene', () => {
         createdAt: 1,
         updatedAt: 1,
       },
+      eternalPose: {
+        text: 'I do not go a day without speaking to someone.',
+        setOn: '2026-08-24',
+        endedOn: null,
+        reason: null,
+        createdAt: 1,
+        updatedAt: 1,
+      },
       sounding: { islandKey: 1, value: 82.4, day: '2026-08-24', createdAt: 1 },
       task: {
         title: 'Something',

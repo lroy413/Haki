@@ -98,6 +98,8 @@ function Chrome() {
             it loads, so the header carries its name rather than a category. */}
         <Stack.Screen name="pillar" options={{ title: '' }} />
         <Stack.Screen name="flag" options={{ title: t.flagTitle }} />
+        {/* 不変 — the one bearing. See app/eternal.tsx. */}
+        <Stack.Screen name="eternal" options={{ title: t.eternalTitle }} />
         <Stack.Screen name="carried" options={{ title: t.carriedTitle }} />
         {/* The settings archipelago — six islands off the settings chart,
             each a page. See app/(tabs)/settings.tsx. */}
