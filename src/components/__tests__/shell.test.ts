@@ -41,6 +41,13 @@ function rootRule(): string {
   return bare.slice(open + 1, bare.indexOf('}', open));
 }
 
+/** The visual-viewport safety net, as source. */
+function net(): string {
+  const at = src.indexOf('function fit(');
+  expect(at, 'no visual-viewport safety net').toBeGreaterThan(-1);
+  return src.slice(at, src.indexOf('function settle(', at));
+}
+
 describe('the pinned shell', () => {
   it('pins to all four sides', () => {
     const rule = rootRule();
@@ -78,18 +85,45 @@ describe('the pinned shell', () => {
     );
   });
 
+  it('keeps the safety net out of the installed app entirely', () => {
+    // The fourth fix caused the fifth round of this bug. The pin was right —
+    // 874 points on the phone it happens on — and the net beside it read
+    // `visualViewport.height`, got 812, and shrank the app to it. 874 − 812
+    // is 62, which is exactly that phone's *top* safe-area inset: in a
+    // black-translucent standalone app iOS reports a visual viewport with
+    // the status bar's strip taken off it.
+    //
+    // So a standalone app measures nothing. It owns the screen and the pin
+    // already puts it there.
+    const fit = net();
+    expect(src, 'the shell does not know whether it is installed').toMatch(
+      /navigator\.standalone|display-mode:\s*standalone/,
+    );
+    expect(fit, 'the net runs in the installed app').toMatch(
+      /if\s*\(\s*STANDALONE\s*\)\s*return/,
+    );
+  });
+
   it('keeps the safety net off the keyboard', () => {
-    // The visual-viewport net exists for the Safari-tab case, where toolbars
-    // overlay the layout viewport instead of shrinking it. While the keyboard
-    // is up the visual viewport is *supposed* to be short, and resizing the
-    // app to it would squash the layout under every keystroke.
-    const at = src.indexOf('function fit(');
-    expect(at, 'no visual-viewport safety net').toBeGreaterThan(-1);
-    const fit = src.slice(at, src.indexOf('function settle(', at));
+    // While the keyboard is up the visual viewport is *supposed* to be short,
+    // and resizing the app to it would squash the layout under every
+    // keystroke.
+    const fit = net();
     expect(fit).toContain('activeElement');
     expect(fit).toMatch(/TEXTAREA/);
-    // And it must release the pin before measuring it, or it can only ever
-    // agree with the height it set last time.
+    // And it releases the pin before measuring it, or it can only ever agree
+    // with the height it set last time.
     expect(fit, 'the net never re-tests the pin').toMatch(/style\.height\s*=\s*''/);
+  });
+
+  it('never lets the net invent height that is not on the screen', () => {
+    // Overlaid toolbars have a signature: the visible box is shorter than
+    // the layout viewport. Every other disagreement iOS has offered has been
+    // wrong at least once, so the net corrects in one direction only.
+    const fit = net();
+    expect(fit, 'the net acts on a viewport that is not shorter').toMatch(
+      /vv\.height\s*<\s*window\.innerHeight/,
+    );
+    expect(fit, 'the net can grow the app').toMatch(/pinned\s*-\s*vv\.height\s*>/);
   });
 });
