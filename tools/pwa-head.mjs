@@ -70,6 +70,25 @@ const HEAD = `${MARKER}
         bottom: 0;
         left: 0;
         overflow: hidden;
+        /* AND THIS LINE IS THE PIN.
+
+           Expo ships its own reset above this one, and it sets
+           '#root { height: 100% }'. CSS 2.1 §10.6.4 is unambiguous about
+           what happens next: when 'top', 'bottom' and 'height' are all
+           given on a fixed element, **'bottom' is ignored**. So for three
+           rounds of this bug the shell was never pinned at all — it was
+           still measuring, against the one unit the comment above swears
+           off, while the rule that was supposed to have replaced the
+           measurement sat directly underneath doing nothing.
+
+           It reproduces in one line in any browser: set 'bottom: 200px'
+           on #root and watch the height not move. Neutralise 'height'
+           and the offsets take over immediately.
+
+           'height: auto' is not a height calculation. It is the absence
+           of one, which is what lets 'top' and 'bottom' decide. */
+        height: auto;
+        width: auto;
       }
     </style>
     <script>
@@ -110,9 +129,43 @@ const HEAD = `${MARKER}
           var panned = (window.scrollY || 0) + (vv && vv.offsetTop ? vv.offsetTop : 0);
           if (panned > 0.5) window.scrollTo(0, 0);
         }
+        /* AND THE PIN GETS CHECKED AGAINST THE ONE VIEWPORT THAT CANNOT
+           BE WRONG.
+
+           Pinning to 'top/bottom' is right whenever the layout viewport
+           and the visible one are the same box. In a standalone install
+           they always are. In a Safari tab they are not: the toolbars
+           overlay the layout viewport rather than shrink it, so a
+           correctly pinned app runs its last sixty points underneath
+           them — the same missing bottom, arrived at from a direction no
+           amount of CSS can see.
+
+           'visualViewport.height' is what you can actually look at. So
+           the shell releases the pin, measures what the pin would give,
+           and only overrides when the two genuinely disagree. Healthy
+           states clear it every time and set nothing, which is what keeps
+           this a safety net rather than a second opinion. */
+        function fit() {
+          var vv = window.visualViewport;
+          var root = document.getElementById('root');
+          if (!vv || !root) return;
+          /* While the keyboard is up the visual viewport is *supposed* to
+             be short. Resizing the app to it would squash the layout
+             under every keystroke, so the check waits until whatever is
+             being typed into is done. */
+          var a = document.activeElement;
+          if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) {
+            return;
+          }
+          root.style.height = '';
+          var pinned = root.getBoundingClientRect().height;
+          if (Math.abs(pinned - vv.height) > 1) root.style.height = vv.height + 'px';
+        }
         function settle() {
           setTimeout(level, 60);
+          setTimeout(fit, 60);
           setTimeout(level, 420);
+          setTimeout(fit, 420);
         }
         window.addEventListener('focusout', settle);
         window.addEventListener('orientationchange', settle);
@@ -163,6 +216,20 @@ html = html.replace('</head>', `    ${HEAD}\n  </head>`);
 
 if (!html.includes(MARKER)) {
   console.error('pwa-head: could not find </head> to inject into.');
+  process.exit(1);
+}
+
+// The shell's `#root` rule only beats Expo's `height: 100%` because it comes
+// later in the document — same specificity, last one wins. If Expo ever moves
+// its reset below the injection point the app silently goes back to measuring
+// the viewport, which is the bug this whole file exists to close. Fail here
+// rather than ship it.
+const reset = html.indexOf('id="expo-reset"');
+if (reset !== -1 && reset > html.indexOf(MARKER)) {
+  console.error(
+    "pwa-head: Expo's reset now comes after the shell, so `#root { height: 100% }` wins " +
+      'and the app is measuring the viewport again. Move the injection below it.',
+  );
   process.exit(1);
 }
 

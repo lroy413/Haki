@@ -57,6 +57,41 @@ import type { Palette } from '../../theme/palettes';
 
 type Mode = 'idle' | 'naming' | 'passing' | 'striking';
 
+/**
+ * The head: what pillar this is, and why the dream needs it.
+ *
+ * `named` is false on the pillar's own screen, where the navigation header
+ * is already carrying the title — the same words twice, a hundred points
+ * apart and both at display weight, is the tab-labels-drawn-twice bug with
+ * a different label in it. The reason stays, because the header does not
+ * carry that.
+ */
+function Head({
+  needle,
+  styles,
+  plainMode,
+  named,
+}: {
+  needle: Needle;
+  styles: ReturnType<typeof makeStyles>;
+  plainMode: boolean;
+  named: boolean;
+}) {
+  return (
+    <>
+      <View style={styles.headText}>
+        {named ? <Text style={styles.title}>{needle.road.title}</Text> : null}
+        {needle.road.why ? (
+          <Text style={styles.why} numberOfLines={2}>
+            {needle.road.why}
+          </Text>
+        ) : null}
+      </View>
+      {plainMode ? null : <Text style={styles.glyph}>道</Text>}
+    </>
+  );
+}
+
 export function NeedleCard({
   needle,
   wake = null,
@@ -76,7 +111,12 @@ export function NeedleCard({
   onReached: () => void;
   onPass: (reason: string) => void;
   onStrike: (title: string) => void;
-  onDetail: () => void;
+  /**
+   * The way through to the pillar's own screen. Left off when the card is
+   * already mounted *on* that screen — a header that navigates to where you
+   * are standing is a dead control, and it takes a 44pt target with it.
+   */
+  onDetail?: () => void;
 }) {
   const { t, palette, plainMode, crew } = useHaki();
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
@@ -112,23 +152,22 @@ export function NeedleCard({
         />
       )}
       {/* The header is the way into the pillar's own screen: its history, its
-          reasons, and the only place it can be retired. */}
-      <Pressable
-        onPress={onDetail}
-        accessibilityRole="button"
-        accessibilityLabel={`${needle.road.title}, history and settings`}
-        style={({ pressed }) => [styles.head, pressed && styles.pressed]}
-      >
-        <View style={styles.headText}>
-          <Text style={styles.title}>{needle.road.title}</Text>
-          {needle.road.why ? (
-            <Text style={styles.why} numberOfLines={2}>
-              {needle.road.why}
-            </Text>
-          ) : null}
+          reasons, and the only place it can be retired. On that screen it is
+          a plain heading instead — see `onDetail`. */}
+      {onDetail ? (
+        <Pressable
+          onPress={onDetail}
+          accessibilityRole="button"
+          accessibilityLabel={`${needle.road.title}, history and settings`}
+          style={({ pressed }) => [styles.head, pressed && styles.pressed]}
+        >
+          <Head needle={needle} styles={styles} plainMode={plainMode} named />
+        </Pressable>
+      ) : (
+        <View style={styles.head}>
+          <Head needle={needle} styles={styles} plainMode={plainMode} named={false} />
         </View>
-        {plainMode ? null : <Text style={styles.glyph}>道</Text>}
-      </Pressable>
+      )}
 
       <View style={styles.rule} />
 

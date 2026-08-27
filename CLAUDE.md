@@ -88,13 +88,29 @@ unit that claims to be the height of the screen — percentages,
 `-webkit-fill-available`, `dvh` — has cost this app the same bug twice: a dead
 band under the tab bar on an iPhone. Nothing scrolls the document here, so
 pinning costs nothing. **Do not reintroduce a height calculation on the
-root.** The bug then came back a third way that pinning cannot close: iOS
+root.** `height: auto` on `#root` is not one — it is the absence of one, and
+it is load-bearing: Expo's own reset ships `#root { height: 100% }` above
+ours, and CSS 2.1 §10.6.4 says that when `top`, `bottom` and `height` are all
+given on a fixed element, **`bottom` is ignored**. So the pin sat inert
+underneath a measurement through three rounds of this bug, and every fix in
+the family was written assuming it was in charge. The build now fails if
+Expo's reset ever moves below the injection, and `shell.test.ts` reads the
+rule. The bug then came back a third way that pinning cannot close: iOS
 standalone pans the layout viewport up for the keyboard and does not always
 pan it back, leaving the whole app — pinned root included — stranded above
 the bottom of the phone. The shell now scrolls any leftover pan to zero on
-`focusout` and visual-viewport resize (same file). If the band ever returns,
-check whether the viewport is _displaced_ before assuming something is
-mis-measured again. The shell's background follows the live
+`focusout` and visual-viewport resize (same file). And a fourth form the pin
+cannot see at all: in a Safari _tab_ the toolbars overlay the layout viewport
+instead of shrinking it, so a correctly pinned app runs its last sixty points
+underneath them. The shell keeps a safety net for that — it releases the pin,
+measures what the pin would give, and only sets a pixel height when that
+disagrees with `visualViewport.height`, which is the one box you can actually
+look at. It stays out of the way while an input is focused, because a short
+visual viewport during typing is the keyboard doing its job.
+
+If the band ever returns, work down the list before touching a number: is the
+pin actually winning, is the viewport _displaced_, is the visible box the same
+one the pin measured? The shell's background follows the live
 palette (see `HakiProvider`), and the boot script paints the last known ground
 before the bundle parses.
 
@@ -493,6 +509,52 @@ the big things it actually requires (four triangulates, seven is the ceiling);
   caller — an island reached — and stays rare because an island is weeks of
   work. If it ever starts firing weekly, the thing to fix is what is calling
   it, not the effect.
+
+## The chart table
+
+The Journey tab is one picture and then a list of rows. It used to be six
+stacked cards, four of them paragraphs with two buttons each — the worst
+screen in the app for words per screen, and the shape of the journey nowhere
+in it. `components/logpose/ChartTable.tsx` draws the pillars as standing
+stones on a sea; `PillarRow` beside it carries the names.
+
+- **A stone's height is its work astern**, and nothing else varies. Same rule
+  the Log Pose already holds about denominators, arrived at as a picture: a
+  stone that has _grown_ is the only honest way to draw distance covered when
+  nobody knows how many islands are left. It saturates at `MAX_ISLANDS`,
+  which is also what fixes the waterline — the box is sized to the tallest
+  stone that can exist, so a short pillar is not standing under a band of
+  empty sky.
+- **A lamp at the waterline means an island is at sea.** That is the whole
+  status system. Lamplight is `warn` under both crews, like the settings
+  chart's — one warmth, never a lens colour.
+- **The drawing carries no words.** The first cut hung each title under its
+  stone, which at four columns is seven mono characters a line. A picture
+  that has to be captioned in fragments is two bad things instead of one good
+  one, so the rows carry the words and the stones carry the shape.
+- **The geometry is a system and lives apart from the drawing**
+  (`logpose/chartMarks.ts`, pure, tested): how tall a stone stands, and where
+  a carved mark may go. A mark that leaves its rock paints a red dash on the
+  water, which reads as a rendering fault — and is the size of thing a
+  screenshot review walks straight past. There is a test that walks every
+  width and height the chart can produce.
+- **Paper catches nothing here either.** At level 0 the chart is pencilled:
+  no sea fill, no reflections, no halo under the lamp. The stone stays,
+  because a poneglyph is an object rather than a mood.
+- **The compass rose is furniture, and it never moves.** It fills the open
+  water the stones do not, and it is the right instrument rather than a
+  borrowed one — 覇王色 is the lens with no meter, and what this screen gives
+  back is a bearing. A rose whose needle swung with the day would be the
+  meter this screen does not have.
+- **Plain mode gets the plain list**, unchanged — the same law the settings
+  archipelago holds, and `plainList.test.ts` reads both screens to keep it.
+
+Tapping a stone or a row opens `app/pillar.tsx`, and **that screen is where
+the acts live now**: it mounts the same `NeedleCard` the plain list does, so
+there is one island card in this app rather than two that drift. The card
+drops its own title there — the navigation header is already carrying it, and
+the same words twice at display weight is the tab-labels-drawn-twice bug with
+a different label in it.
 
 ## `palette.ink` is not the dark one
 

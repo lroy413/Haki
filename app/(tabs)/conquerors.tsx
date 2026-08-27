@@ -45,6 +45,7 @@ import { fireConquerors } from '../../src/impact';
 import { play } from '../../src/sound';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { NeedleCard } from '../../src/components/logpose/NeedleCard';
+import { ChartTable, PillarRow } from '../../src/components/logpose/ChartTable';
 import { useHaki } from '../../src/state/HakiProvider';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { lit, offer, plate, press, row } from '../../src/theme/surfaces';
@@ -111,6 +112,9 @@ export default function ConquerorsScreen() {
   const [flag, setFlag] = useState<Value[]>([]);
   const [eternal, setEternal] = useState<EternalPose>({ held: null, carried: [] });
   const [depths, setDepths] = useState<Map<number, Sounding>>(new Map());
+  // The chart's width, measured once. The water spans it and the stones
+  // anchor to its columns, neither of which a percentage can do in an SVG.
+  const [chartW, setChartW] = useState(0);
 
   const load = useCallback(async () => {
     const [d, r, g, people, sail, values, bearing] = await Promise.all([
@@ -377,27 +381,70 @@ export default function ConquerorsScreen() {
           <Text style={styles.room}>{room.note}</Text>
         </View>
 
-        {pose.needles.map((needle, i) => (
-          <Rise key={needle.road.id} delay={40 * i}>
-            <NeedleCard
-              needle={needle}
-              wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
-              depth={needle.next ? (depths.get(needle.next.key) ?? null) : null}
-              onDetail={() => router.push(`/pillar?id=${needle.road.id}`)}
-              onOpen={(title) => {
-                setSaid(null);
-                void openPoneglyph(db, needle.road.key, title).then(load);
-              }}
-              onReached={() => {
-                if (needle.next) void reached(needle.next.id);
-              }}
-              onPass={(reason) => {
-                if (needle.next) void passed(needle.next.id, reason);
-              }}
-              onStrike={(title) => void strike(title, needle.next?.key ?? null)}
-            />
-          </Rise>
-        ))}
+        {/* The chart, or the list.
+
+            Four stacked stone cards were the worst screen in the app for
+            words per screen — four paragraphs, four sets of buttons, and the
+            shape of the journey nowhere in sight. The chart says the same
+            thing in one picture: a stone per pillar, taller for what is
+            astern of it, lit at the waterline when an island is at sea. Tap
+            one and its full path opens, which is where the words and the
+            acts live now.
+
+            Plain mode gets the list it always had, unchanged. Same law as
+            the settings archipelago: the chart is a performance, and plain
+            mode is the switch that stops the app performing. */}
+        {plainMode ? (
+          pose.needles.map((needle, i) => (
+            <Rise key={needle.road.id} delay={40 * i}>
+              <NeedleCard
+                needle={needle}
+                wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
+                depth={needle.next ? (depths.get(needle.next.key) ?? null) : null}
+                onDetail={() => router.push(`/pillar?id=${needle.road.id}`)}
+                onOpen={(title) => {
+                  setSaid(null);
+                  void openPoneglyph(db, needle.road.key, title).then(load);
+                }}
+                onReached={() => {
+                  if (needle.next) void reached(needle.next.id);
+                }}
+                onPass={(reason) => {
+                  if (needle.next) void passed(needle.next.id, reason);
+                }}
+                onStrike={(title) => void strike(title, needle.next?.key ?? null)}
+              />
+            </Rise>
+          ))
+        ) : (
+          <>
+            <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)}>
+              {chartW > 0 ? (
+                <ChartTable
+                  needles={pose.needles}
+                  level={hardening}
+                  canAdd={room.canAdd && !addingRoad}
+                  w={chartW}
+                  onStone={(roadId) => router.push(`/pillar?id=${roadId}`)}
+                  onRaise={() => setAddingRoad(true)}
+                />
+              ) : null}
+            </View>
+            {/* The names the drawing does not carry. Rows, not cards — four
+                cards down a screen is four paragraphs whether or not they
+                have borders, which is the thing this rework was for. */}
+            <View style={styles.rows}>
+              {pose.needles.map((needle, i) => (
+                <Rise key={needle.road.id} delay={40 * i}>
+                  <PillarRow
+                    needle={needle}
+                    onPress={() => router.push(`/pillar?id=${needle.road.id}`)}
+                  />
+                </Rise>
+              ))}
+            </View>
+          </>
+        )}
 
         {addingRoad ? (
           <View style={styles.card}>
@@ -452,7 +499,7 @@ export default function ConquerorsScreen() {
               </Pressable>
             </View>
           </View>
-        ) : room.canAdd ? (
+        ) : room.canAdd && plainMode ? (
           <Pressable
             onPress={() => setAddingRoad(true)}
             accessibilityRole="button"
@@ -568,6 +615,8 @@ const makeStyles = (c: Palette) =>
     checkValues: { ...type.mono, color: c.violet },
 
     section: { gap: space.xs, marginTop: space.sm },
+    // The rows carry their own rule; the screen's gap would double it.
+    rows: { marginTop: -space.xs },
     sectionLabel: { ...type.label, color: c.inkFaint },
     room: { ...type.small, color: c.inkDim, lineHeight: 19 },
 
