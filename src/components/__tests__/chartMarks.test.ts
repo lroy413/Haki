@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   BASE,
+  GRID,
   MARGIN,
   MAX_ISLANDS,
   PER_ISLAND,
-  marks,
-  marksPath,
+  inscription,
+  stoneCells,
   stoneHeight,
 } from '../logpose/chartMarks';
+import { INK } from '../instruments/glyphs';
 
 /**
  * The chart's two systems, held to what they claim.
@@ -51,21 +53,29 @@ describe('a stone stands as tall as its work astern', () => {
 });
 
 describe('carving stays on its own rock', () => {
-  it.each(SEEDS)('%s keeps both margins at every size', (seed) => {
+  it.each(SEEDS)('%s keeps every margin at every size', (seed) => {
     for (const w of WIDTHS) {
       for (let reached = 0; reached <= MAX_ISLANDS; reached += 1) {
         const h = stoneHeight(reached);
-        for (const m of marks(seed, w, h)) {
-          expect(m.x, `${seed} @${w}: starts left of the margin`).toBeGreaterThanOrEqual(
+        for (const c of stoneCells(seed, w, h)) {
+          // A cell's ink sits a tenth of the cell in from each edge — the
+          // gutter the mason leaves — so the cell box is what has to fit.
+          const left = c.x + INK.from * c.w;
+          const right = c.x + INK.to * c.w;
+          const top = c.y + INK.from * c.h;
+          const foot = c.y + INK.to * c.h;
+          expect(left, `${seed} @${w}: cut left of the margin`).toBeGreaterThanOrEqual(
             MARGIN - 0.001,
           );
-          expect(m.x + m.len, `${seed} @${w}: runs off the right edge`).toBeLessThanOrEqual(
+          expect(right, `${seed} @${w}: cut off the right edge`).toBeLessThanOrEqual(
             w - MARGIN + 0.001,
           );
-          expect(m.y, `${seed} @${w}: carved above the slab`).toBeGreaterThan(0);
-          expect(m.y + (m.drop ?? 0), `${seed} @${w}: carved below the foot`).toBeLessThan(h);
-          // A stroke shorter than this is a speck, not a cut.
-          expect(m.len).toBeGreaterThanOrEqual(4);
+          expect(top, `${seed} @${w}: cut above the slab`).toBeGreaterThanOrEqual(
+            MARGIN - 0.001,
+          );
+          expect(foot, `${seed} @${w}: cut below the foot`).toBeLessThanOrEqual(
+            h - MARGIN + 0.001,
+          );
         }
       }
     }
@@ -74,20 +84,34 @@ describe('carving stays on its own rock', () => {
   it('cuts the same stone twice for the same title', () => {
     // The inscription is permanent: it is seeded from the pillar's own words,
     // so a re-render never recuts it and a rename always does.
-    expect(marksPath('Ship the rewrite', 48, 90)).toBe(marksPath('Ship the rewrite', 48, 90));
-    expect(marksPath('Ship the rewrite', 48, 90)).not.toBe(
-      marksPath('Ship the rewrite again', 48, 90),
+    expect(inscription('Ship the rewrite', 48, 90)).toBe(
+      inscription('Ship the rewrite', 48, 90),
+    );
+    expect(inscription('Ship the rewrite', 48, 90)).not.toBe(
+      inscription('Ship the rewrite again', 48, 90),
     );
   });
 
   it('leaves a slab too narrow to carve alone', () => {
-    expect(marks('anything', 2 * MARGIN, 90)).toEqual([]);
-    expect(marksPath('anything', 2 * MARGIN, 90)).toBe('');
+    expect(stoneCells('anything', 2 * MARGIN, 90)).toEqual([]);
+    expect(inscription('anything', 2 * MARGIN, 90)).toBe('');
   });
 
-  it('puts something on every stone that has room', () => {
-    for (const seed of SEEDS) {
-      expect(marks(seed, 54, stoneHeight(0)).length, `${seed}: uncarved`).toBeGreaterThan(0);
-    }
+  it('writes rather than scratches', () => {
+    // The first cut invented a sparse second vocabulary — four or five loose
+    // strokes — on the theory that the real alphabet would be mud at this
+    // size. It was not mud, it was empty: five scratches read as a damaged
+    // rectangle, not as writing. The narrowest stone still gets a grid.
+    const narrow = stoneCells('Strong enough for whoever is next', 26, stoneHeight(0));
+    expect(narrow.length, 'the narrowest stone is barely carved').toBeGreaterThanOrEqual(8);
+    const wide = stoneCells('Strong enough for whoever is next', 54, stoneHeight(MAX_ISLANDS));
+    expect(wide.length, 'a full stone is barely carved').toBeGreaterThanOrEqual(24);
+    // And it is a grid, not a scatter: every column shares an x.
+    expect(new Set(wide.map((c) => c.x.toFixed(2))).size).toBeLessThanOrEqual(6);
+  });
+
+  it('uses the same alphabet as the card-sized slab', () => {
+    // One stonecutter, so a pillar reads as the same rock in both places.
+    expect(GRID.cell.w / GRID.cell.h).toBeCloseTo(14 / 18, 1);
   });
 });

@@ -548,18 +548,30 @@ stones on a sea; `PillarRow` beside it carries the names.
   one, so the rows carry the words and the stones carry the shape.
 - **The geometry is a system and lives apart from the drawing**
   (`logpose/chartMarks.ts`, pure, tested): how tall a stone stands, and where
-  a carved mark may go. A mark that leaves its rock paints a red dash on the
+  a carved glyph may go. A mark that leaves its rock paints a red dash on the
   water, which reads as a rendering fault — and is the size of thing a
   screenshot review walks straight past. There is a test that walks every
   width and height the chart can produce.
+- **One stonecutter.** The alphabet and the mason live in
+  `instruments/glyphs.ts`, shared by the chart's stones and the card-sized
+  slab, so a pillar reads as the same rock in both places. The chart's first
+  cut invented a second, sparser vocabulary — four or five loose strokes — on
+  the theory that a real inscription would be mud at forty points wide. It
+  was not mud, it was empty: five scratches read as a damaged rectangle
+  rather than as writing. Same alphabet, quarter pitch.
 - **Paper catches nothing here either.** At level 0 the chart is pencilled:
   no sea fill, no reflections, no halo under the lamp. The stone stays,
   because a poneglyph is an object rather than a mood.
-- **The compass rose is furniture, and it never moves.** It fills the open
-  water the stones do not, and it is the right instrument rather than a
-  borrowed one — 覇王色 is the lens with no meter, and what this screen gives
-  back is a bearing. A rose whose needle swung with the day would be the
-  meter this screen does not have.
+- **The Log Pose is furniture, and its needle never moves.** It fills the
+  open water the stones do not. The first cut put a mariner's compass rose
+  there — the right idea and the wrong instrument, a stock nautical mark
+  standing in for the thing this screen is named after. 覇王色 is the lens
+  with no meter and what this screen gives back is a bearing, so a needle
+  that swung with the day would be exactly the meter the screen refuses to
+  have. Canon agrees: a Log Pose locks onto an island and holds. What is at
+  sea is said by the lamps. Its colours are fixed across all four palettes
+  like the stone's, because it is an object rather than a mood
+  (`instruments/LogPose.tsx`).
 - **Plain mode gets the plain list**, unchanged — the same law the settings
   archipelago holds, and `plainList.test.ts` reads both screens to keep it.
 

@@ -93,6 +93,13 @@ export type Palette = {
   stoneIsleLip: string;
   /** Text and rules drawn on stone. Near-white on every palette. */
   onStone: string;
+  /** The Log Pose's case, glass, dial and needle. Fixed on every palette. */
+  poseWood: string;
+  poseWoodDark: string;
+  poseGlass: string;
+  poseDial: string;
+  poseNeedle: string;
+  poseNeedleBack: string;
   /** What grows on a slab nobody has visited in a century. */
   moss: string;
 
@@ -181,6 +188,19 @@ const STONE = {
   stoneIsleLip: '#5A79B8',
   onStone: '#F4EFE6',
   moss: '#5F7A3F',
+
+  /**
+   * The Log Pose, which is an instrument sitting on the chart rather than a
+   * mood — same licence the poneglyph has, and for the same reason. It is a
+   * brass-and-glass object in a wooden case; a Log Pose that changed colour
+   * with the time of day would be a lens, and this screen already has one.
+   */
+  poseWood: '#9A6B3C',
+  poseWoodDark: '#5C3D20',
+  poseGlass: '#8FD8D2',
+  poseDial: '#1E7A72',
+  poseNeedle: '#C4373C',
+  poseNeedleBack: '#F1EBE0',
 
   waterFace: '#241A3D',
   waterDeep: '#0B0714',
