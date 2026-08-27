@@ -26,6 +26,7 @@ import {
 import { addDays, todayKey } from '../../src/domain/date';
 import { futureSight, openness, stateMessage, stateName } from '../../src/domain/observation';
 import { Eyes } from '../../src/components/instruments/Eyes';
+import { Water } from '../../src/components/instruments/Water';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { lit, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
@@ -59,6 +60,9 @@ export default function ObservationScreen() {
   const { t, palette, refresh, observation, acts, plainMode, hardening } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
+  // A lens's material is a performance: plain mode gets none, and paper
+  // catches nothing — a plate on parchment is parchment.
+  const material = !plainMode && hardening > 0;
 
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [reading, setReading] = useState<Foresight | null>(null);
@@ -138,7 +142,25 @@ export default function ObservationScreen() {
             {/* The reading: the same card the sit screen leads with, because
                 it is the same fact. Practice and condition, reported
                 separately, naming whichever is the limit. */}
-            <View style={[styles.reading, lit(palette.violet, plainMode ? 0 : hardening)]}>
+            <View
+              style={[
+                styles.reading,
+                material && styles.readingWater,
+                lit(palette.violet, plainMode ? 0 : hardening),
+              ]}
+            >
+              {/* 見聞色 is still water: a surface you read things off, with
+                  the rings spread as far as the day's reading has opened.
+                  Paper catches nothing, so on the unhardened palette this is
+                  the flat tinted plate it has always been. */}
+              {material ? (
+                <Water
+                  face={palette.waterFace}
+                  deep={palette.waterDeep}
+                  sheen={palette.waterSheen}
+                  openness={openness(observation)}
+                />
+              ) : null}
               <View style={styles.readingHead}>
                 <Text style={styles.readingLabel}>{plainMode ? 'Reading' : '見聞色'}</Text>
                 <Text style={styles.readingState}>{stateName(observation.state)}</Text>
@@ -301,6 +323,16 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.violetSoft,
       padding: space.lg,
       gap: space.xs,
+    },
+    // On water the plate supplies nothing of its own: the drawing is the
+    // ground, and it has to be clipped to the card's corners.
+    readingWater: {
+      backgroundColor: c.waterFace,
+      borderColor: c.waterSheen,
+      borderTopColor: c.waterSheen,
+      overflow: 'hidden',
+      minHeight: 128,
+      justifyContent: 'center',
     },
     readingHead: {
       flexDirection: 'row',

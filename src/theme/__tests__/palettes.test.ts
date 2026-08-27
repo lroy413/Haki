@@ -64,6 +64,12 @@ const SOLID: (keyof Palette)[] = [
   'stoneIsleLip',
   'onStone',
   'moss',
+  'waterFace',
+  'waterDeep',
+  'waterSheen',
+  'steelFace',
+  'steelDeep',
+  'steelSheen',
   'specular',
   'onAccent',
 ];
@@ -196,6 +202,40 @@ describe.each(LEVELS)('palette %i', (level) => {
     }
   });
 
+  it('carries text on the lens materials at AAA', () => {
+    // Water and steel are grounds the app writes its two loudest readouts
+    // onto — the reading and the hardness. They are shown only on the
+    // hardened palettes, so it is *that* palette's ink that has to clear on
+    // them, and secondary text has to stay legible too.
+    if (level === 0) return;
+    for (const face of ['waterFace', 'steelFace'] as const) {
+      expect(contrast(p.ink, p[face]), `${where} ink on ${face}`).toBeGreaterThanOrEqual(7);
+      expect(contrast(p.inkDim, p[face]), `${where} inkDim on ${face}`).toBeGreaterThanOrEqual(
+        4.5,
+      );
+    }
+  });
+
+  it('gives each material a surface with light on it', () => {
+    // A face with no sheen is a flat fill and the whole point is lost; a
+    // sheen that separates too far stops being light on a surface and
+    // becomes a second block of colour.
+    for (const [face, deep, sheen] of [
+      ['waterFace', 'waterDeep', 'waterSheen'],
+      ['steelFace', 'steelDeep', 'steelSheen'],
+    ] as const) {
+      expect(contrast(p[sheen], p[face]), `${where} ${sheen}`).toBeGreaterThan(1.6);
+      expect(contrast(p[sheen], p[face]), `${where} ${sheen}`).toBeLessThan(4.5);
+      // Deliberately a low bar, and low is the point: both faces are
+      // already near-black, so steel cannot reach even 1.2 against pure
+      // black. What the gradient has to be is *perceptible without reading
+      // as two colours* — a strong falloff here would look like a block
+      // sitting on another block rather than one surface receding.
+      expect(contrast(p[face], p[deep]), `${where} ${deep} is flat`).toBeGreaterThan(1.12);
+      expect(contrast(p[face], p[deep]), `${where} ${deep} is a second block`).toBeLessThan(2);
+    }
+  });
+
   it('keeps the stone the same object on every palette', () => {
     // Eight hundred years old and indifferent to what time it is. Every
     // level carries identical stone, so a card cannot drift into looking
@@ -210,6 +250,12 @@ describe.each(LEVELS)('palette %i', (level) => {
       'stoneIsleLip',
       'onStone',
       'moss',
+      'waterFace',
+      'waterDeep',
+      'waterSheen',
+      'steelFace',
+      'steelDeep',
+      'steelSheen',
     ] as const) {
       expect(p[key], `${where} ${key}`).toBe(first[key]);
     }

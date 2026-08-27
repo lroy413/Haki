@@ -351,6 +351,35 @@ message contains a question mark and no congratulation.
 Inherited Will surfaces here and nowhere else — the concept doc's rule kept
 exactly: at the weekly ritual, never on a schedule, never on a failure screen.
 
+## One material per lens
+
+A lens is not a colour applied to a card — it is made of something. The
+Journey tab made the case by accident: one card there was cut into stone and
+the four above it were made of `borderRadius`, on the same screen.
+
+| Lens               | Material        | Drawn in                |
+| ------------------ | --------------- | ----------------------- |
+| 見聞色 Observation | still water     | `instruments/Water.tsx` |
+| 武装色 Armament    | hardened steel  | `instruments/Steel.tsx` |
+| 覇王色 Conqueror's | poneglyph stone | `instruments/Stone.tsx` |
+
+These are not textures chosen to look expensive — they are what each Haki
+_is_. Observation reads surfaces, Armament coats in black, Conqueror's is
+written in rock that outlasts everyone. The material carries the meaning, so
+the paragraph explaining the meaning can go.
+
+- **Water and steel obey the performance licence; stone does not.** A plate
+  on paper is paper (`!plainMode && hardening > 0`), because paper catches
+  nothing and the material colours are hand-set against near-white ink.
+  Stone is the exception on purpose: a poneglyph is an object, not a mood.
+  `materials.test.ts` reads the screens and holds both halves of that gate.
+- **Each material has exactly one variable**, and it is light, never a
+  figure: water's rings spread with the reading's openness, steel's sheen
+  comes up with hardness. Same licence as `lit()` — you cannot read a score
+  off a surface.
+- Materials take their colours as props and never touch the palette, like
+  every other instrument.
+
 ## The poneglyph stone
 
 The Log Pose cards are cut into rock, and canon hands the hierarchy over
