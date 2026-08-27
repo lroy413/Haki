@@ -102,15 +102,29 @@ the bottom of the phone. The shell now scrolls any leftover pan to zero on
 `focusout` and visual-viewport resize (same file). And a fourth form the pin
 cannot see at all: in a Safari _tab_ the toolbars overlay the layout viewport
 instead of shrinking it, so a correctly pinned app runs its last sixty points
-underneath them. The shell keeps a safety net for that — it releases the pin,
-measures what the pin would give, and only sets a pixel height when that
-disagrees with `visualViewport.height`, which is the one box you can actually
-look at. It stays out of the way while an input is focused, because a short
-visual viewport during typing is the keyboard doing its job.
+underneath them. The shell keeps a safety net for that — but **the net never
+touches the installed app**, and that rule was bought at the cost of a fifth
+round: the net shipped in the same commit as the pin, read
+`visualViewport.height`, got 812 on an 874-point phone, and shrank the app to
+it. Eight hundred and seventy-four minus eight hundred and twelve is
+sixty-two, which is exactly that phone's _top_ inset — in a black-translucent
+standalone app iOS reports a visual viewport with the status bar's strip taken
+off it. **In standalone the shell measures nothing.** It owns the screen, the
+pin already puts it there, and every number iOS has offered as a second
+opinion has now been wrong at least once. The net runs only in a browser tab,
+only when the visible box is genuinely shorter than the layout viewport, only
+downward, and never while an input is focused.
+
+**Read the pixels, not the layout.** Every round of this was diagnosed from a
+screenshot in the end, and the tell is always the same: the tab bar's shadow
+faded smoothly and then stopped dead, with every row below it byte-identical
+ground. A blur does not end in a hard line — it was clipped, at a height
+something had set. Measure the gap and check it against the device's insets
+before touching anything; the number names the culprit.
 
 If the band ever returns, work down the list before touching a number: is the
 pin actually winning, is the viewport _displaced_, is the visible box the same
-one the pin measured? The shell's background follows the live
+one the pin measured, and is anything setting an explicit height at all? The shell's background follows the live
 palette (see `HakiProvider`), and the boot script paints the last known ground
 before the bundle parses.
 
@@ -534,18 +548,30 @@ stones on a sea; `PillarRow` beside it carries the names.
   one, so the rows carry the words and the stones carry the shape.
 - **The geometry is a system and lives apart from the drawing**
   (`logpose/chartMarks.ts`, pure, tested): how tall a stone stands, and where
-  a carved mark may go. A mark that leaves its rock paints a red dash on the
+  a carved glyph may go. A mark that leaves its rock paints a red dash on the
   water, which reads as a rendering fault — and is the size of thing a
   screenshot review walks straight past. There is a test that walks every
   width and height the chart can produce.
+- **One stonecutter.** The alphabet and the mason live in
+  `instruments/glyphs.ts`, shared by the chart's stones and the card-sized
+  slab, so a pillar reads as the same rock in both places. The chart's first
+  cut invented a second, sparser vocabulary — four or five loose strokes — on
+  the theory that a real inscription would be mud at forty points wide. It
+  was not mud, it was empty: five scratches read as a damaged rectangle
+  rather than as writing. Same alphabet, quarter pitch.
 - **Paper catches nothing here either.** At level 0 the chart is pencilled:
   no sea fill, no reflections, no halo under the lamp. The stone stays,
   because a poneglyph is an object rather than a mood.
-- **The compass rose is furniture, and it never moves.** It fills the open
-  water the stones do not, and it is the right instrument rather than a
-  borrowed one — 覇王色 is the lens with no meter, and what this screen gives
-  back is a bearing. A rose whose needle swung with the day would be the
-  meter this screen does not have.
+- **The Log Pose is furniture, and its needle never moves.** It fills the
+  open water the stones do not. The first cut put a mariner's compass rose
+  there — the right idea and the wrong instrument, a stock nautical mark
+  standing in for the thing this screen is named after. 覇王色 is the lens
+  with no meter and what this screen gives back is a bearing, so a needle
+  that swung with the day would be exactly the meter the screen refuses to
+  have. Canon agrees: a Log Pose locks onto an island and holds. What is at
+  sea is said by the lamps. Its colours are fixed across all four palettes
+  like the stone's, because it is an object rather than a mood
+  (`instruments/LogPose.tsx`).
 - **Plain mode gets the plain list**, unchanged — the same law the settings
   archipelago holds, and `plainList.test.ts` reads both screens to keep it.
 

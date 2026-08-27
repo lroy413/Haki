@@ -8,7 +8,8 @@ import { useHaki } from '../../state/HakiProvider';
 import { press } from '../../theme/surfaces';
 import { radius, space, type } from '../../theme/tokens';
 import type { Palette } from '../../theme/palettes';
-import { MAX_ISLANDS, marksPath, stoneHeight } from './chartMarks';
+import { MAX_ISLANDS, inscription, stoneHeight } from './chartMarks';
+import { LogPose } from '../instruments/LogPose';
 
 /**
  * The Log Pose as one chart: the pillars as standing stones on a sea.
@@ -60,40 +61,6 @@ const H = 162;
 const WL = stoneHeight(MAX_ISLANDS) + 10;
 /** Water below the line — enough for both runs of swell and no more. */
 const SEA = H - WL;
-
-/**
- * A compass rose: one ring, eight points, a hub.
- *
- * Drawn rather than imported because it is a few lines of trigonometry and a
- * mark this small has no business owning a component.
- *
- * The first cut had two rings and shoulders at a quarter of the radius, plus
- * rhumb lines ruled to the edges of the chart. Every one of those was
- * defensible on its own and together they webbed: the inner ring crossed all
- * eight shoulders, and the rhumbs ran down through the water and out under
- * the rows as long dashed scratches. Chart furniture has to sit *behind* the
- * thing the chart is about. One ring, narrow points, nothing ruled off it.
- */
-function rose(cx: number, cy: number, r: number): string {
-  const out: string[] = [
-    // The ring, as two arcs — a full circle needs both halves.
-    `M ${(cx - r).toFixed(1)} ${cy.toFixed(1)} a ${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(r * 2).toFixed(1)} 0 a ${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(-r * 2).toFixed(1)} 0`,
-  ];
-  const hub = r * 0.09;
-  for (let i = 0; i < 8; i += 1) {
-    const a = (i * Math.PI) / 4;
-    // Cardinals reach the ring; intercardinals stop well short, which is what
-    // makes eight spokes read as a rose rather than as a wheel.
-    const reach = i % 2 === 0 ? r : r * 0.54;
-    const tip = [cx + Math.sin(a) * reach, cy - Math.cos(a) * reach];
-    const l = [cx + Math.cos(a) * hub, cy + Math.sin(a) * hub];
-    const rt = [cx - Math.cos(a) * hub, cy - Math.sin(a) * hub];
-    out.push(
-      `M ${l[0].toFixed(1)} ${l[1].toFixed(1)} L ${tip[0].toFixed(1)} ${tip[1].toFixed(1)} L ${rt[0].toFixed(1)} ${rt[1].toFixed(1)}`,
-    );
-  }
-  return out.join(' ');
-}
 
 /**
  * The lamp's pool, hot at the shore and falling off in shells.
@@ -168,27 +135,33 @@ export function ChartTable({
             </LinearGradient>
           </Defs>
 
-          {/* The rose, under everything.
+          {/* The Log Pose, under everything.
 
               The sky over the stones was the one part of this drawing with
-              nothing in it, and a chart is exactly the kind of picture that
-              has an answer for that: a compass rose is what a chart puts in
-              open water. It is also the right answer *here* rather than a
-              borrowed one — 覇王色 is the lens with no meter, and what this
-              screen gives back is a bearing. So the sky holds the instrument
-              and the stones stand in front of it.
+              nothing in it, and a chart is exactly the kind of picture with
+              an answer for that: an instrument sits in the open water. The
+              first cut put a mariner's compass rose there, which was the
+              right idea and the wrong instrument — a stock nautical mark
+              standing in for the thing this screen is actually named after.
 
-              Pencilled at every level: it is chart furniture, not weather,
-              and it never moves. A rose whose needle swung with the day
-              would be a meter, which is the one thing this screen does not
-              have. */}
-          <Path
-            d={rose(w * 0.74, WL * 0.34, Math.min(WL * 0.26, 34))}
-            fill="none"
-            stroke={palette.inkFaint}
-            strokeWidth={0.9}
-            strokeLinecap="round"
-            opacity={0.3}
+              **The needle does not move.** 覇王色 is the lens with no meter
+              and what this screen gives back is a bearing, so a needle that
+              swung with the day would be exactly the meter the screen
+              refuses to have. Canon agrees: a Log Pose locks onto an island
+              and holds. What is at sea is said by the lamps. */}
+          <LogPose
+            id="chartPose"
+            cx={w * 0.86}
+            cy={WL * 0.27}
+            r={Math.min(WL * 0.19, 25)}
+            wood={palette.poseWood}
+            woodDark={palette.poseWoodDark}
+            glass={palette.poseGlass}
+            dial={palette.poseDial}
+            needle={palette.poseNeedle}
+            needleBack={palette.poseNeedleBack}
+            ink={palette.inkFaint}
+            pencil={!wet}
           />
 
           {/* The sea, below the waterline only. Above it is the ground the
@@ -248,18 +221,24 @@ export function ChartTable({
               {/* The cut and the light on its near edge — the pairing that
                   keeps a slab from reading as printed. Drop the lip and the
                   stone flattens into wallpaper. */}
-              <G transform={`translate(${s.x}, ${s.y})`} opacity={0.42}>
+              {/* The inscription: cut, then lit along the near edge of the
+                  cut. Two passes over one path, the same pairing the
+                  card-sized slab uses — drop the lip and the stone
+                  flattens into wallpaper. */}
+              <G transform={`translate(${s.x}, ${s.y})`} opacity={0.4}>
                 <Path
-                  d={marksPath(s.needle.road.title, stoneW, s.h)}
-                  transform="translate(0 1)"
+                  d={inscription(s.needle.road.title, stoneW, s.h)}
+                  transform="translate(0 0.7)"
                   stroke={palette.stoneRoadLip}
-                  strokeWidth={1.3}
+                  strokeWidth={1.1}
+                  strokeLinecap="square"
                   fill="none"
                 />
                 <Path
-                  d={marksPath(s.needle.road.title, stoneW, s.h)}
+                  d={inscription(s.needle.road.title, stoneW, s.h)}
                   stroke={palette.stoneRoadCarve}
-                  strokeWidth={1.3}
+                  strokeWidth={1.1}
+                  strokeLinecap="square"
                   fill="none"
                 />
               </G>

@@ -129,37 +129,63 @@ const HEAD = `${MARKER}
           var panned = (window.scrollY || 0) + (vv && vv.offsetTop ? vv.offsetTop : 0);
           if (panned > 0.5) window.scrollTo(0, 0);
         }
-        /* AND THE PIN GETS CHECKED AGAINST THE ONE VIEWPORT THAT CANNOT
-           BE WRONG.
+        /* THE NET NEVER TOUCHES THE INSTALLED APP.
 
-           Pinning to 'top/bottom' is right whenever the layout viewport
-           and the visible one are the same box. In a standalone install
-           they always are. In a Safari tab they are not: the toolbars
-           overlay the layout viewport rather than shrink it, so a
-           correctly pinned app runs its last sixty points underneath
-           them — the same missing bottom, arrived at from a direction no
-           amount of CSS can see.
+           This is the fifth round of the same bug, and the fourth fix
+           caused it. The pin was finally right — top and bottom against
+           the layout viewport, 874 points on the phone this happens on —
+           and the safety net shipped in the same commit measured
+           'visualViewport.height', got 812, called that a disagreement,
+           and shrank the app to it. Eight hundred and seventy-four minus
+           eight hundred and twelve is sixty-two, which is exactly that
+           phone's *top* safe-area inset: in a black-translucent
+           standalone app iOS reports a visual viewport that has the
+           status bar's strip taken off it, and the number is not a lie
+           about anything you can see.
 
-           'visualViewport.height' is what you can actually look at. So
-           the shell releases the pin, measures what the pin would give,
-           and only overrides when the two genuinely disagree. Healthy
-           states clear it every time and set nothing, which is what keeps
-           this a safety net rather than a second opinion. */
+           The screenshot said so before the reasoning did. The tab bar's
+           shadow faded smoothly and then stopped dead, with every row
+           below it byte-identical ground. A blur does not end in a hard
+           line. It was clipped, by the 'overflow: hidden' three lines
+           above, at a height something had set.
+
+           So: **in a standalone app the shell measures nothing.** It owns
+           the whole screen, the pin already puts it there, and every
+           number iOS offers as a second opinion has now been wrong at
+           least once. The net stays only for a browser *tab*, where the
+           toolbars overlay the layout viewport rather than shrink it and
+           the visible box genuinely is the shorter one — and even there
+           it only ever shrinks, never grows, so it cannot invent height
+           that is not on the screen. */
+        var STANDALONE =
+          window.navigator.standalone === true ||
+          (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+          (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches);
+
         function fit() {
+          if (STANDALONE) return;
           var vv = window.visualViewport;
           var root = document.getElementById('root');
           if (!vv || !root) return;
           /* While the keyboard is up the visual viewport is *supposed* to
              be short. Resizing the app to it would squash the layout
-             under every keystroke, so the check waits until whatever is
-             being typed into is done. */
+             under every keystroke. */
           var a = document.activeElement;
           if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) {
             return;
           }
+          /* Toolbars overlaying the page is the one thing this corrects,
+             and it has a signature: the visible box is shorter than the
+             layout viewport. Anything else — including a visual viewport
+             that is somehow *taller* — is not a case this understands,
+             and the pin is left alone. */
+          if (!(vv.height < window.innerHeight - 1)) {
+            root.style.height = '';
+            return;
+          }
           root.style.height = '';
           var pinned = root.getBoundingClientRect().height;
-          if (Math.abs(pinned - vv.height) > 1) root.style.height = vv.height + 'px';
+          if (pinned - vv.height > 1) root.style.height = vv.height + 'px';
         }
         function settle() {
           setTimeout(level, 60);
