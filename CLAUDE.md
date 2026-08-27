@@ -115,9 +115,21 @@ opinion has now been wrong at least once. The net runs only in a browser tab,
 only when the visible box is genuinely shorter than the layout viewport, only
 downward, and never while an input is focused.
 
+**And `innerHeight` is not the screen.** Sixth round, and this is the number
+every earlier round was groping for — the phone finally said it: `Screen 402 ×
+874`, `Window 402 × 812`, app box 812 ending at 812, safe area 62/0/34/0,
+height pinned. iOS hands a standalone app a layout viewport **62 points
+shorter than the screen — exactly the top inset** — while still reporting that
+inset through `env()` and still painting from y = 0 (the status bar's clock
+draws over the app's own text). So the pin was doing exactly what it should
+and the thing it was pinned to was wrong, and every fix that trusted
+`innerHeight` was fixing the wrong number. In standalone the target is
+`max(innerHeight, screen.height)`, orientation read off the window rather than
+assumed.
+
 **The two cases are opposites now, and neither can cause the other's
 failure.** Installed, the shell may only ever _grow_ the root, and only to
-`innerHeight` — a floor under whatever the sixth cause turns out to be. In a
+the screen — a floor under whatever the seventh cause turns out to be. In a
 browser tab it may only ever _shrink_ it, and only on the signature of
 overlaid toolbars. There is a test reading each branch for the direction it
 is allowed to move.
@@ -127,7 +139,11 @@ inference from a screenshot and three of those inferences were wrong, so the
 app says it now: the shell exposes `window.__HAKI_SHELL__()` and a build stamp
 taken from the bundle's content hash, and `ShellReport` prints both on the
 settings data page — a sentence first ("filling the screen" / "stopping N
-points short"), then the numbers. **A PWA updates silently**, so "did the fix
+points short"), then the numbers. **It has to measure against the box the app
+is supposed to fill**, which installed is the screen: the first cut compared
+against `innerHeight` and therefore reported "filling the screen" while
+sixty-two points short of it, and a readout that agrees with the bug is worse
+than none. **A PWA updates silently**, so "did the fix
 reach the phone" is otherwise unanswerable exactly when it matters most; the
 build stamp is the answer. The worker is network-first for navigations, which
 is enough on the web, but a standalone app on iOS is resumed for days without

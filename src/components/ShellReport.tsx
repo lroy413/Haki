@@ -44,6 +44,8 @@ type Shell = {
   safe: [number, number, number, number];
   scrollY: number;
   short: number;
+  /** The box the app is supposed to fill: the screen when installed. */
+  target: number;
 };
 
 declare global {
@@ -91,6 +93,7 @@ export function ShellReport() {
     ['Window', `${shell.inner[0]} × ${shell.inner[1]}`],
     ['Visible box', shell.visual ? `${shell.visual[0]} × ${shell.visual[1]}` : 'not reported'],
     ['App box', shell.root ? `${shell.root[2]} tall, ends at ${shell.root[1]}` : 'not found'],
+    ['Should fill', String(shell.target)],
     ['Height', shell.forced],
     ['Safe area', shell.safe.join(' / ')],
   ];

@@ -178,6 +178,41 @@ const head = (build) => `${MARKER}
           (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
           (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches);
 
+        /* THE SCREEN, WHICH IS NOT THE VIEWPORT.
+
+           Sixth round, and this is the number every earlier round was
+           groping for. The phone finally said it:
+
+               Screen       402 x 874
+               Window       402 x 812
+               App box      812 tall, ends at 812
+               Safe area    62 / 0 / 34 / 0
+               Height       pinned
+
+           The pin is doing exactly what it should. It is pinned to the
+           layout viewport, and iOS hands a standalone app a layout
+           viewport 62 points shorter than the screen — exactly the top
+           inset — while still reporting that inset through env() and
+           still painting content from y = 0. The status bar's clock is
+           drawn over the app's own text at the top of the screen, so the
+           viewport is not displaced downward; it is simply short.
+
+           So 'innerHeight' is not the screen here, and every fix that
+           trusted it was fixing the wrong number. 'screen.height' is the
+           screen.
+
+           Orientation is read off the window rather than assumed, because
+           iOS has reported screen dimensions in the device's own
+           orientation on some versions and the current one on others, and
+           this file has been bitten once already by trusting which is
+           which. */
+        function screenHeight() {
+          var s = window.screen;
+          if (!s || !s.width || !s.height) return 0;
+          var portrait = window.innerHeight >= window.innerWidth;
+          return portrait ? Math.max(s.width, s.height) : Math.min(s.width, s.height);
+        }
+
         function typing() {
           var a = document.activeElement;
           return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
@@ -197,7 +232,11 @@ const head = (build) => `${MARKER}
           var pinned = root.getBoundingClientRect().height;
 
           if (STANDALONE) {
-            if (window.innerHeight - pinned > 1) root.style.height = window.innerHeight + 'px';
+            /* The app owns the screen, so the screen is the target — never
+               the viewport, which is the whole bug. Growing only, so this
+               can never become the shrink that caused round five. */
+            var target = Math.max(window.innerHeight, screenHeight());
+            if (target - pinned > 1) root.style.height = target + 'px';
             return;
           }
 
@@ -245,11 +284,12 @@ const head = (build) => `${MARKER}
              owns the screen; in a browser tab, stopping above the toolbars
              is the correct behaviour and not a shortfall. */
           var target = STANDALONE
-            ? window.innerHeight
+            ? Math.max(window.innerHeight, screenHeight())
             : vv
               ? Math.min(vv.height, window.innerHeight)
               : window.innerHeight;
           out.short = r ? Math.max(0, Math.round(target - r.bottom)) : 0;
+          out.target = target;
           return out;
         };
         function settle() {
