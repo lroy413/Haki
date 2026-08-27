@@ -88,13 +88,29 @@ unit that claims to be the height of the screen — percentages,
 `-webkit-fill-available`, `dvh` — has cost this app the same bug twice: a dead
 band under the tab bar on an iPhone. Nothing scrolls the document here, so
 pinning costs nothing. **Do not reintroduce a height calculation on the
-root.** The bug then came back a third way that pinning cannot close: iOS
+root.** `height: auto` on `#root` is not one — it is the absence of one, and
+it is load-bearing: Expo's own reset ships `#root { height: 100% }` above
+ours, and CSS 2.1 §10.6.4 says that when `top`, `bottom` and `height` are all
+given on a fixed element, **`bottom` is ignored**. So the pin sat inert
+underneath a measurement through three rounds of this bug, and every fix in
+the family was written assuming it was in charge. The build now fails if
+Expo's reset ever moves below the injection, and `shell.test.ts` reads the
+rule. The bug then came back a third way that pinning cannot close: iOS
 standalone pans the layout viewport up for the keyboard and does not always
 pan it back, leaving the whole app — pinned root included — stranded above
 the bottom of the phone. The shell now scrolls any leftover pan to zero on
-`focusout` and visual-viewport resize (same file). If the band ever returns,
-check whether the viewport is _displaced_ before assuming something is
-mis-measured again. The shell's background follows the live
+`focusout` and visual-viewport resize (same file). And a fourth form the pin
+cannot see at all: in a Safari _tab_ the toolbars overlay the layout viewport
+instead of shrinking it, so a correctly pinned app runs its last sixty points
+underneath them. The shell keeps a safety net for that — it releases the pin,
+measures what the pin would give, and only sets a pixel height when that
+disagrees with `visualViewport.height`, which is the one box you can actually
+look at. It stays out of the way while an input is focused, because a short
+visual viewport during typing is the keyboard doing its job.
+
+If the band ever returns, work down the list before touching a number: is the
+pin actually winning, is the viewport _displaced_, is the visible box the same
+one the pin measured? The shell's background follows the live
 palette (see `HakiProvider`), and the boot script paints the last known ground
 before the bundle parses.
 
