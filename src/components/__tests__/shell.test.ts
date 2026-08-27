@@ -41,6 +41,14 @@ function rootRule(): string {
   return bare.slice(open + 1, bare.indexOf('}', open));
 }
 
+/** The installed branch of the safety net, as source. */
+function installed(): string {
+  const fit = net();
+  const at = fit.indexOf('if (STANDALONE)');
+  expect(at, 'the net has no installed branch').toBeGreaterThan(-1);
+  return fit.slice(at, fit.indexOf('return;', at) + 7);
+}
+
 /** The visual-viewport safety net, as source. */
 function net(): string {
   const at = src.indexOf('function fit(');
@@ -106,13 +114,48 @@ describe('the pinned shell', () => {
     expect(src, 'the shell does not know whether it is installed').toMatch(
       /navigator\.standalone|display-mode:\s*standalone/,
     );
-    const standalone = fit.slice(fit.indexOf('if (STANDALONE)'));
-    const branch = standalone.slice(0, standalone.indexOf('return;') + 7);
-    expect(branch, 'the installed branch does not grow to the layout viewport').toMatch(
-      /window\.innerHeight\s*-\s*pinned\s*>/,
-    );
+    const branch = installed();
     expect(branch, 'the installed branch can shrink the app').not.toMatch(
       /visualViewport|vv\./,
+    );
+    expect(branch, 'the installed branch does not grow').toMatch(/target\s*-\s*pinned\s*>/);
+  });
+
+  it('fills the screen, not the viewport iOS hands it', () => {
+    // Sixth round, and this is the number every earlier round was groping
+    // for. The phone said it:
+    //
+    //     Screen   402 x 874          Window  402 x 812
+    //     App box  812, ends at 812   Height  pinned
+    //
+    // The pin was doing exactly what it should. iOS hands a standalone app a
+    // layout viewport 62 points shorter than the screen — exactly the top
+    // inset — while still reporting that inset through env() and still
+    // painting from y = 0. So `innerHeight` is not the screen here, and every
+    // fix that trusted it was fixing the wrong number.
+    expect(installed(), 'the installed branch still trusts innerHeight alone').toMatch(
+      /Math\.max\(\s*window\.innerHeight\s*,\s*screenHeight\(\)\s*\)/,
+    );
+    // Orientation is read off the window rather than assumed: iOS has
+    // reported screen dimensions in the device's own orientation on some
+    // versions and the current one on others.
+    const measure = src.slice(
+      src.indexOf('function screenHeight('),
+      src.indexOf('function typing('),
+    );
+    expect(measure).toMatch(/innerHeight\s*>=\s*window\.innerWidth/);
+    expect(measure).toMatch(/Math\.max\(s\.width, s\.height\)/);
+  });
+
+  it('measures the shortfall against the box it is supposed to fill', () => {
+    // The readout's first cut compared the app against `innerHeight`, which
+    // on the phone is the short viewport itself — so it reported "filling the
+    // screen" while sixty-two points short of it. A readout that agrees with
+    // the bug is worse than none.
+    const report = src.slice(src.indexOf('window.__HAKI_SHELL__'));
+    const target = report.slice(report.indexOf('var target'), report.indexOf('out.short'));
+    expect(target, 'the readout measures against the short viewport').toMatch(
+      /STANDALONE[\s\S]{0,140}screenHeight\(\)/,
     );
   });
 
