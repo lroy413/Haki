@@ -115,6 +115,25 @@ opinion has now been wrong at least once. The net runs only in a browser tab,
 only when the visible box is genuinely shorter than the layout viewport, only
 downward, and never while an input is focused.
 
+**The two cases are opposites now, and neither can cause the other's
+failure.** Installed, the shell may only ever _grow_ the root, and only to
+`innerHeight` — a floor under whatever the sixth cause turns out to be. In a
+browser tab it may only ever _shrink_ it, and only on the signature of
+overlaid toolbars. There is a test reading each branch for the direction it
+is allowed to move.
+
+**And the phone is the only thing that knows.** Five rounds were diagnosed by
+inference from a screenshot and three of those inferences were wrong, so the
+app says it now: the shell exposes `window.__HAKI_SHELL__()` and a build stamp
+taken from the bundle's content hash, and `ShellReport` prints both on the
+settings data page — a sentence first ("filling the screen" / "stopping N
+points short"), then the numbers. **A PWA updates silently**, so "did the fix
+reach the phone" is otherwise unanswerable exactly when it matters most; the
+build stamp is the answer. The worker is network-first for navigations, which
+is enough on the web, but a standalone app on iOS is resumed for days without
+ever navigating again — so the shell asks for an update on every return to the
+foreground and reloads once when a new worker takes over.
+
 **Read the pixels, not the layout.** Every round of this was diagnosed from a
 screenshot in the end, and the tell is always the same: the tab bar's shadow
 faded smoothly and then stopped dead, with every row below it byte-identical

@@ -27,7 +27,20 @@ if (!existsSync(indexPath)) {
 
 const MARKER = '<!-- haki-pwa -->';
 
-const HEAD = `${MARKER}
+/**
+ * A name for this build, taken from the bundle's own content hash.
+ *
+ * A PWA updates silently, which makes "did the fix reach the phone" an
+ * unanswerable question exactly when it matters most — three of the five
+ * rounds of the viewport bug were spent unable to tell a stale install from
+ * a live one. Settings prints this next to the shell's measurements, so the
+ * answer is a screenshot away.
+ *
+ * Filled in below, once the exported index.html has been read.
+ */
+let BUILD = 'dev';
+
+const head = (build) => `${MARKER}
     <link rel="manifest" href="/manifest.json" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -92,6 +105,8 @@ const HEAD = `${MARKER}
       }
     </style>
     <script>
+      window.__HAKI_BUILD__ = '${build}';
+
       /* The ground the app last rendered, painted before the bundle parses.
          Hardening means the correct opening colour is a fact about this
          install's day, not a constant — so the app records it and the shell
@@ -129,64 +144,114 @@ const HEAD = `${MARKER}
           var panned = (window.scrollY || 0) + (vv && vv.offsetTop ? vv.offsetTop : 0);
           if (panned > 0.5) window.scrollTo(0, 0);
         }
-        /* THE NET NEVER TOUCHES THE INSTALLED APP.
+        /* THE NET NEVER TOUCHES THE INSTALLED APP, AND THERE IS A FLOOR.
 
-           This is the fifth round of the same bug, and the fourth fix
-           caused it. The pin was finally right — top and bottom against
-           the layout viewport, 874 points on the phone this happens on —
-           and the safety net shipped in the same commit measured
-           'visualViewport.height', got 812, called that a disagreement,
-           and shrank the app to it. Eight hundred and seventy-four minus
-           eight hundred and twelve is sixty-two, which is exactly that
-           phone's *top* safe-area inset: in a black-translucent
-           standalone app iOS reports a visual viewport that has the
-           status bar's strip taken off it, and the number is not a lie
-           about anything you can see.
+           Fifth round of this bug, and the fourth fix caused it: the pin
+           was finally right, and the net shipped beside it read
+           'visualViewport.height', got 812 on an 874-point phone, and
+           shrank the app to it. Sixty-two points is exactly that phone's
+           *top* inset — in a black-translucent standalone app iOS reports
+           a visual viewport with the status bar's strip taken off it.
 
            The screenshot said so before the reasoning did. The tab bar's
            shadow faded smoothly and then stopped dead, with every row
            below it byte-identical ground. A blur does not end in a hard
-           line. It was clipped, by the 'overflow: hidden' three lines
-           above, at a height something had set.
+           line. It was clipped, by the 'overflow: hidden' above, at a
+           height something had set.
 
-           So: **in a standalone app the shell measures nothing.** It owns
-           the whole screen, the pin already puts it there, and every
-           number iOS offers as a second opinion has now been wrong at
-           least once. The net stays only for a browser *tab*, where the
-           toolbars overlay the layout viewport rather than shrink it and
-           the visible box genuinely is the shorter one — and even there
-           it only ever shrinks, never grows, so it cannot invent height
-           that is not on the screen. */
+           So the two cases are now opposites, and neither can produce the
+           other's failure:
+
+             installed  — the app owns the screen. The shell may only ever
+                          *grow* the root, and only to 'innerHeight', which
+                          in a standalone app with viewport-fit=cover is
+                          the screen. Nothing may shrink it. That is a
+                          floor under every future cause of this bug,
+                          whatever it turns out to be.
+
+             browser tab — the toolbars overlay the layout viewport rather
+                          than shrink it, so the visible box genuinely is
+                          the shorter one. The shell may only ever *shrink*
+                          the root, and only on that signature. */
         var STANDALONE =
           window.navigator.standalone === true ||
           (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
           (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches);
 
-        function fit() {
-          if (STANDALONE) return;
-          var vv = window.visualViewport;
-          var root = document.getElementById('root');
-          if (!vv || !root) return;
-          /* While the keyboard is up the visual viewport is *supposed* to
-             be short. Resizing the app to it would squash the layout
-             under every keystroke. */
+        function typing() {
           var a = document.activeElement;
-          if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) {
-            return;
-          }
-          /* Toolbars overlaying the page is the one thing this corrects,
-             and it has a signature: the visible box is shorter than the
-             layout viewport. Anything else — including a visual viewport
-             that is somehow *taller* — is not a case this understands,
-             and the pin is left alone. */
-          if (!(vv.height < window.innerHeight - 1)) {
-            root.style.height = '';
-            return;
-          }
+          return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+        }
+
+        function fit() {
+          var root = document.getElementById('root');
+          /* While the keyboard is up the viewport is *supposed* to move.
+             Correcting for it would squash the layout under every
+             keystroke. */
+          if (!root || typing()) return;
+
+          /* Always start from the pin, so the shell is re-testing the
+             layout rather than agreeing with the height it set last
+             time. */
           root.style.height = '';
           var pinned = root.getBoundingClientRect().height;
-          if (pinned - vv.height > 1) root.style.height = vv.height + 'px';
+
+          if (STANDALONE) {
+            if (window.innerHeight - pinned > 1) root.style.height = window.innerHeight + 'px';
+            return;
+          }
+
+          var vv = window.visualViewport;
+          if (!vv) return;
+          if (vv.height < window.innerHeight - 1 && pinned - vv.height > 1) {
+            root.style.height = vv.height + 'px';
+          }
         }
+
+        /* WHAT THIS INSTALL ACTUALLY MEASURED.
+
+           Five rounds of this bug were diagnosed by inference from a
+           screenshot, and three of the five inferences were wrong. The app
+           can simply say. Settings reads this and prints it, so the next
+           round is one screenshot rather than five guesses — and so there
+           is an answer to "is the phone even running the new build". */
+        window.__HAKI_SHELL__ = function () {
+          var root = document.getElementById('root');
+          var r = root && root.getBoundingClientRect();
+          var vv = window.visualViewport;
+          var probe = document.createElement('div');
+          probe.style.cssText =
+            'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;' +
+            'padding:env(safe-area-inset-top) env(safe-area-inset-right) ' +
+            'env(safe-area-inset-bottom) env(safe-area-inset-left)';
+          document.body.appendChild(probe);
+          var ps = window.getComputedStyle(probe);
+          var px = function (v) { return Math.round(parseFloat(v) || 0); };
+          var out = {
+            build: window.__HAKI_BUILD__ || '?',
+            standalone: !!STANDALONE,
+            screen: [window.screen ? window.screen.width : 0, window.screen ? window.screen.height : 0],
+            inner: [window.innerWidth, window.innerHeight],
+            visual: vv ? [Math.round(vv.width), Math.round(vv.height), Math.round(vv.offsetTop)] : null,
+            root: r ? [Math.round(r.top), Math.round(r.bottom), Math.round(r.height)] : null,
+            forced: root && root.style.height ? root.style.height : 'pinned',
+            safe: [px(ps.paddingTop), px(ps.paddingRight), px(ps.paddingBottom), px(ps.paddingLeft)],
+            scrollY: Math.round(window.scrollY || 0),
+          };
+          probe.remove();
+          /* The one number that matters, worked out here so the readout
+             cannot disagree with the shell about it — and measured against
+             whichever box the app is *supposed* to fill. An installed app
+             owns the screen; in a browser tab, stopping above the toolbars
+             is the correct behaviour and not a shortfall. */
+          var target = STANDALONE
+            ? window.innerHeight
+            : vv
+              ? Math.min(vv.height, window.innerHeight)
+              : window.innerHeight;
+          out.short = r ? Math.max(0, Math.round(target - r.bottom)) : 0;
+          return out;
+        };
         function settle() {
           setTimeout(level, 60);
           setTimeout(fit, 60);
@@ -210,16 +275,53 @@ const HEAD = `${MARKER}
         settle();
       })();
 
+      /* AN INSTALLED APP HAS TO BE TOLD TO LOOK.
+
+         The worker is network-first for navigations, which is enough on the
+         web: every load is a navigation and every navigation gets the newest
+         shell. A standalone app on iOS is not like that. It is resumed from
+         the app switcher for days at a time without ever navigating again,
+         so a fix that lives in the shell — which is where every round of the
+         viewport bug has lived — can sit undelivered indefinitely while both
+         ends believe it shipped.
+
+         So: ask on every return to the foreground, and reload once when a
+         new worker actually takes over. The guard matters — 'controllerchange'
+         also fires the first time a worker claims an uncontrolled page, and
+         reloading on that is an infinite loop on a first visit. */
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {
-            /* Offline support is a bonus, never a requirement. */
-          });
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then(function (reg) {
+              var look = function () {
+                if (!document.hidden) reg.update().catch(function () {});
+              };
+              document.addEventListener('visibilitychange', look);
+              window.addEventListener('pageshow', look);
+            })
+            .catch(function () {
+              /* Offline support is a bonus, never a requirement. */
+            });
+
+          if (navigator.serviceWorker.controller) {
+            var reloading = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+              if (reloading) return;
+              reloading = true;
+              window.location.reload();
+            });
+          }
         });
       }
     </script>`;
 
 let html = readFileSync(indexPath, 'utf8');
+
+// The exported bundle's content hash names the build. It changes exactly when
+// the shipped code changes, which is the property that makes it useful.
+const bundle = html.match(/entry-([a-f0-9]{8})[a-f0-9]*\.js/);
+BUILD = bundle ? bundle[1] : 'dev';
 
 if (html.includes(MARKER)) {
   console.log('pwa-head: already injected, nothing to do.');
@@ -238,7 +340,7 @@ if (!html.includes('viewport-fit=cover')) {
   process.exit(1);
 }
 
-html = html.replace('</head>', `    ${HEAD}\n  </head>`);
+html = html.replace('</head>', `    ${head(BUILD)}\n  </head>`);
 
 if (!html.includes(MARKER)) {
   console.error('pwa-head: could not find </head> to inject into.');

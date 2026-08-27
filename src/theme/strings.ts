@@ -174,6 +174,13 @@ export type Strings = {
   quietTitle: string;
   dayTurnTitle: string;
   dataTitle: string;
+  /** The shell readout on the data page — see `ShellReport`. */
+  shellTitle: string;
+  shellFilling: string;
+  shellShort: (points: number) => string;
+  shellNote: string;
+  shellAgain: string;
+  shellNative: string;
 
   dials: { energy: string; mood: string; clarity: string; tension: string };
   weatherPrompt: string;
@@ -379,6 +386,15 @@ const haki: Strings = {
   quietTitle: 'Quiet',
   dayTurnTitle: 'Daybreak',
   dataTitle: 'Your data',
+  shellTitle: 'This install',
+  shellFilling: 'The app is filling the screen.',
+  shellShort: (points) =>
+    `The app is stopping ${points} points short of the bottom of the screen.`,
+  shellNote:
+    'Screenshot this if the app is not reaching the bottom. The build is what tells us whether a fix has actually arrived on this phone yet.',
+  shellAgain: 'Measure again',
+  shellNative:
+    'These numbers are the web shell\u2019s. This is the native app, which has no shell.',
 
   dials: { energy: 'Energy', mood: 'Mood', clarity: 'Clarity', tension: 'Tension' },
   weatherPrompt: 'The weather',
