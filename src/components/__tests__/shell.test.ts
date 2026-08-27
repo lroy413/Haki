@@ -45,7 +45,12 @@ function rootRule(): string {
 function net(): string {
   const at = src.indexOf('function fit(');
   expect(at, 'no visual-viewport safety net').toBeGreaterThan(-1);
-  return src.slice(at, src.indexOf('function settle(', at));
+  // Ends where `fit` does, not at the next function: the shell's own
+  // self-report sits between them and also reads `visualViewport`, and a
+  // slice that swallowed it would let the tab branch's assertions pass on
+  // the wrong code.
+  const end = src.indexOf('window.__HAKI_SHELL__', at);
+  return src.slice(at, end > -1 ? end : src.indexOf('function settle(', at));
 }
 
 describe('the pinned shell', () => {
@@ -85,45 +90,82 @@ describe('the pinned shell', () => {
     );
   });
 
-  it('keeps the safety net out of the installed app entirely', () => {
-    // The fourth fix caused the fifth round of this bug. The pin was right —
-    // 874 points on the phone it happens on — and the net beside it read
+  it('never shrinks the installed app, and puts a floor under it', () => {
+    // The fourth fix caused the fifth round. The pin was right — 874 points
+    // on the phone it happens on — and the net beside it read
     // `visualViewport.height`, got 812, and shrank the app to it. 874 − 812
     // is 62, which is exactly that phone's *top* safe-area inset: in a
     // black-translucent standalone app iOS reports a visual viewport with
     // the status bar's strip taken off it.
     //
-    // So a standalone app measures nothing. It owns the screen and the pin
-    // already puts it there.
+    // So the installed branch may only ever grow, and only to the layout
+    // viewport — which in a standalone app with viewport-fit=cover is the
+    // screen. That is a floor under every future cause of this bug,
+    // whatever it turns out to be.
     const fit = net();
     expect(src, 'the shell does not know whether it is installed').toMatch(
       /navigator\.standalone|display-mode:\s*standalone/,
     );
-    expect(fit, 'the net runs in the installed app').toMatch(
-      /if\s*\(\s*STANDALONE\s*\)\s*return/,
+    const standalone = fit.slice(fit.indexOf('if (STANDALONE)'));
+    const branch = standalone.slice(0, standalone.indexOf('return;') + 7);
+    expect(branch, 'the installed branch does not grow to the layout viewport').toMatch(
+      /window\.innerHeight\s*-\s*pinned\s*>/,
+    );
+    expect(branch, 'the installed branch can shrink the app').not.toMatch(
+      /visualViewport|vv\./,
     );
   });
 
-  it('keeps the safety net off the keyboard', () => {
-    // While the keyboard is up the visual viewport is *supposed* to be short,
-    // and resizing the app to it would squash the layout under every
-    // keystroke.
+  it('only ever shrinks in a browser tab, and only on the signature', () => {
+    // Overlaid toolbars have a tell: the visible box is shorter than the
+    // layout viewport. Every other disagreement iOS has offered has been
+    // wrong at least once, so the tab branch acts on that and nothing else.
     const fit = net();
-    expect(fit).toContain('activeElement');
-    expect(fit).toMatch(/TEXTAREA/);
-    // And it releases the pin before measuring it, or it can only ever agree
-    // with the height it set last time.
-    expect(fit, 'the net never re-tests the pin').toMatch(/style\.height\s*=\s*''/);
-  });
-
-  it('never lets the net invent height that is not on the screen', () => {
-    // Overlaid toolbars have a signature: the visible box is shorter than
-    // the layout viewport. Every other disagreement iOS has offered has been
-    // wrong at least once, so the net corrects in one direction only.
-    const fit = net();
-    expect(fit, 'the net acts on a viewport that is not shorter').toMatch(
+    const tab = fit.slice(fit.lastIndexOf('var vv'));
+    expect(tab, 'the tab branch acts on a viewport that is not shorter').toMatch(
       /vv\.height\s*<\s*window\.innerHeight/,
     );
-    expect(fit, 'the net can grow the app').toMatch(/pinned\s*-\s*vv\.height\s*>/);
+    expect(tab, 'the tab branch can grow the app').toMatch(/pinned\s*-\s*vv\.height\s*>/);
+  });
+
+  it('keeps both branches off the keyboard', () => {
+    // While the keyboard is up the viewport is *supposed* to move, and
+    // correcting for it would squash the layout under every keystroke.
+    const fit = net();
+    expect(fit, 'the shell corrects while an input is focused').toMatch(
+      /if\s*\(!root \|\| typing\(\)\)/,
+    );
+    const guard = src.slice(src.indexOf('function typing('));
+    expect(guard.slice(0, 400)).toContain('activeElement');
+    expect(guard.slice(0, 400)).toMatch(/TEXTAREA/);
+    // And it releases the pin before measuring it, or it can only ever agree
+    // with the height it set last time.
+    expect(fit, 'the shell never re-tests the pin').toMatch(/style\.height\s*=\s*''/);
+  });
+
+  it('can say what it measured, and which build said it', () => {
+    // Five rounds of this bug were diagnosed by inference from a screenshot
+    // and three of those inferences were wrong. The phone is the only thing
+    // that knows, so it is given a way to say — and a build stamp, because
+    // a PWA updates silently and "did the fix arrive" is otherwise
+    // unanswerable exactly when it matters most.
+    expect(src, 'the shell cannot report itself').toContain('__HAKI_SHELL__');
+    expect(src, 'the build is not stamped').toContain('__HAKI_BUILD__');
+    expect(src, 'the build stamp is not taken from the bundle hash').toMatch(
+      /entry-\(\[a-f0-9\]\{8\}\)/,
+    );
+  });
+
+  it('asks for a new shell every time the app comes back', () => {
+    // The worker is network-first for navigations, which is enough on the
+    // web. A standalone app on iOS is resumed for days without navigating
+    // again, so a fix that lives in the shell can sit undelivered while both
+    // ends believe it shipped.
+    expect(src, 'the app never asks for an update once installed').toMatch(
+      /reg\.update\(\)[\s\S]{0,400}visibilitychange|visibilitychange[\s\S]{0,400}reg\.update\(\)/,
+    );
+    // And the reload guard: `controllerchange` also fires the first time a
+    // worker claims an uncontrolled page, and reloading on that is a loop.
+    expect(src).toMatch(/if\s*\(navigator\.serviceWorker\.controller\)/);
   });
 });

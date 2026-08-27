@@ -16,7 +16,7 @@
  * by this file — clearing the cache does not touch a single journal entry.
  */
 
-const VERSION = 'haki-v1';
+const VERSION = 'haki-v2';
 const SHELL = '/';
 
 self.addEventListener('install', (event) => {
