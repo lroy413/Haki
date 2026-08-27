@@ -10,11 +10,15 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useNavigation } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../src/db/client';
 import {
+  addTask,
+  closePoneglyph,
   listPoneglyphs,
   listRoads,
+  openPoneglyph,
   reopenPoneglyph,
   retireRoad,
   updateRoad,
@@ -23,7 +27,19 @@ import {
   soundingsFor,
   takeSounding,
 } from '../src/db/repo';
-import { reachedLine, stateName, type Poneglyph, type Road } from '../src/domain/logpose';
+import {
+  arrivalMessage,
+  logPose,
+  passedMessage,
+  reachedLine,
+  stateName,
+  type Poneglyph,
+  type Road,
+} from '../src/domain/logpose';
+import { todayKey } from '../src/domain/date';
+import { fireConquerors } from '../src/impact';
+import { play } from '../src/sound';
+import { NeedleCard } from '../src/components/logpose/NeedleCard';
 import { wakeLine } from '../src/domain/tasks';
 import {
   formatSounding,
@@ -82,11 +98,16 @@ export default function PillarScreen() {
   const [settingUnit, setSettingUnit] = useState(false);
   const [title, setTitle] = useState('');
   const [why, setWhy] = useState('');
+  /** Every poneglyph, kept so this screen can build its own needle. */
+  const [glyphs, setGlyphs] = useState<Poneglyph[]>([]);
+  /** The one line that speaks after something closes. Cleared on the next act. */
+  const [said, setSaid] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const [roads, glyphs] = await Promise.all([listRoads(db), listPoneglyphs(db)]);
     const mine = roads.find((r) => r.id === roadId) ?? null;
     setRoad(mine);
+    setGlyphs(glyphs);
     if (mine) {
       setTitle(mine.title);
       setWhy(mine.why ?? '');
@@ -143,10 +164,56 @@ export default function PillarScreen() {
   const dirty = title.trim() !== road.title || why.trim() !== (road.why ?? '');
   const reached = astern.filter((g) => g.state === 'reached').length;
 
+  /**
+   * This pillar's own needle.
+   *
+   * Built through `logPose` rather than by hand so the days-at-sea count and
+   * the ordering come from the same tested place the tab's do — a second
+   * implementation of "what is under this pillar" is a second thing to get
+   * wrong. `logPose` drops retired roads, which is why the card below is
+   * gated on it: a pillar you have stepped away from does not take new
+   * islands, and the history under it stays exactly as it was.
+   */
+  const needle = logPose(null, [road], glyphs, todayKey()).needles[0] ?? null;
+
   async function save() {
     if (!title.trim() || !dirty) return;
     await updateRoad(db, roadId, { title: title.trim(), why: why.trim() || null });
     await load();
+  }
+
+  /**
+   * Arrival, and it fires from here now.
+   *
+   * The tab used to own this because the tab held the cards. The chart holds
+   * no acts — it is a drawing — so the burst, the drums and the one line that
+   * speaks moved to the screen the act actually happens on. Still the only
+   * caller in the app, still rare by construction.
+   */
+  async function reachedIsland(glyphId: number) {
+    await closePoneglyph(db, glyphId, 'reached');
+    fireConquerors();
+    play('returnDrums');
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setSaid(arrivalMessage(reached + 1, plainMode));
+    await load();
+  }
+
+  async function passIsland(glyphId: number, reason: string) {
+    await closePoneglyph(db, glyphId, 'passed', reason);
+    void Haptics.selectionAsync();
+    setSaid(passedMessage(plainMode));
+    await load();
+  }
+
+  async function strike(text: string, islandKey: number | null) {
+    // Straight onto today, not the backlog — the point of striking an island
+    // is that the enormous thing produced one move you can make before
+    // tonight. The task remembers the island, so an arrival can say what it
+    // took.
+    await addTask(db, text, 15, todayKey(), { islandKey });
+    void Haptics.selectionAsync();
+    setSaid(t.strikeAdded);
   }
 
   return (
@@ -162,6 +229,38 @@ export default function PillarScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {road.retired ? <Text style={styles.retiredFlag}>{t.roadRetired}</Text> : null}
+
+        {/* ------------------------------------------------------ the present tense */}
+        {/* The full path, opened. The Journey tab draws the pillar as a
+            stone on a chart and says nothing else about it; everything you
+            can *do* to it is here, on the screen that stone opens. Same
+            control the plain-mode list mounts, so there is one island card
+            in this app rather than two that drift. */}
+        {needle ? (
+          <>
+            <NeedleCard
+              needle={needle}
+              wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
+              depth={needle.next ? latest(soundings) : null}
+              onOpen={(text) => {
+                setSaid(null);
+                void openPoneglyph(db, road!.key, text).then(load);
+              }}
+              onReached={() => {
+                if (needle.next) void reachedIsland(needle.next.id);
+              }}
+              onPass={(reason) => {
+                if (needle.next) void passIsland(needle.next.id, reason);
+              }}
+              onStrike={(text) => void strike(text, needle.next?.key ?? null)}
+            />
+            {said ? <Text style={styles.said}>{said}</Text> : null}
+          </>
+        ) : null}
+
+        {/* --------------------------------------------------------- the pillar */}
+
+        <SectionLabel label={t.roadEditLabel} />
 
         <View style={styles.card}>
           <Text style={styles.fieldLabel}>{t.roadTitleField}</Text>
@@ -406,6 +505,9 @@ const makeStyles = (c: Palette) =>
     content: { padding: space.lg, gap: space.md },
     gone: { ...type.body, color: c.inkFaint, padding: space.xl, textAlign: 'center' },
     retiredFlag: { ...type.label, color: c.inkFaint },
+    // What the act said, in the lens's own colour and at label weight. It
+    // is a receipt, not a verdict — see `arrivalMessage`.
+    said: { ...type.mono, color: c.violet, fontSize: 12 },
 
     card: {
       backgroundColor: c.surface,

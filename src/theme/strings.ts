@@ -57,6 +57,8 @@ export type Strings = {
   roadTitleField: string;
   roadWhyField: string;
   roadWhyLabel: string;
+  /** Section label over the pillar's own fields, on its screen. */
+  roadEditLabel: string;
   roadRetire: string;
   roadUnretire: string;
   roadRetired: string;
@@ -236,6 +238,7 @@ const haki: Strings = {
   roadTitleField: 'What has to happen',
   roadWhyField: 'Why the dream needs it',
   roadWhyLabel: 'Why',
+  roadEditLabel: 'The pillar itself',
   roadRetire: 'Retire this pillar',
   roadUnretire: 'Bring it back',
   roadRetired: 'Retired',
@@ -430,6 +433,7 @@ const plain: Strings = {
   roadLabel: 'Main goals',
   roadAdd: 'Add a main goal',
   roadWhyField: 'Why the big one needs it',
+  roadEditLabel: 'The goal itself',
   roadRetire: 'Retire this goal',
   roadUnretire: 'Bring it back',
   islandLabel: 'Milestone',

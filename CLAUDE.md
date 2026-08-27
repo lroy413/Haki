@@ -510,6 +510,52 @@ the big things it actually requires (four triangulates, seven is the ceiling);
   work. If it ever starts firing weekly, the thing to fix is what is calling
   it, not the effect.
 
+## The chart table
+
+The Journey tab is one picture and then a list of rows. It used to be six
+stacked cards, four of them paragraphs with two buttons each — the worst
+screen in the app for words per screen, and the shape of the journey nowhere
+in it. `components/logpose/ChartTable.tsx` draws the pillars as standing
+stones on a sea; `PillarRow` beside it carries the names.
+
+- **A stone's height is its work astern**, and nothing else varies. Same rule
+  the Log Pose already holds about denominators, arrived at as a picture: a
+  stone that has _grown_ is the only honest way to draw distance covered when
+  nobody knows how many islands are left. It saturates at `MAX_ISLANDS`,
+  which is also what fixes the waterline — the box is sized to the tallest
+  stone that can exist, so a short pillar is not standing under a band of
+  empty sky.
+- **A lamp at the waterline means an island is at sea.** That is the whole
+  status system. Lamplight is `warn` under both crews, like the settings
+  chart's — one warmth, never a lens colour.
+- **The drawing carries no words.** The first cut hung each title under its
+  stone, which at four columns is seven mono characters a line. A picture
+  that has to be captioned in fragments is two bad things instead of one good
+  one, so the rows carry the words and the stones carry the shape.
+- **The geometry is a system and lives apart from the drawing**
+  (`logpose/chartMarks.ts`, pure, tested): how tall a stone stands, and where
+  a carved mark may go. A mark that leaves its rock paints a red dash on the
+  water, which reads as a rendering fault — and is the size of thing a
+  screenshot review walks straight past. There is a test that walks every
+  width and height the chart can produce.
+- **Paper catches nothing here either.** At level 0 the chart is pencilled:
+  no sea fill, no reflections, no halo under the lamp. The stone stays,
+  because a poneglyph is an object rather than a mood.
+- **The compass rose is furniture, and it never moves.** It fills the open
+  water the stones do not, and it is the right instrument rather than a
+  borrowed one — 覇王色 is the lens with no meter, and what this screen gives
+  back is a bearing. A rose whose needle swung with the day would be the
+  meter this screen does not have.
+- **Plain mode gets the plain list**, unchanged — the same law the settings
+  archipelago holds, and `plainList.test.ts` reads both screens to keep it.
+
+Tapping a stone or a row opens `app/pillar.tsx`, and **that screen is where
+the acts live now**: it mounts the same `NeedleCard` the plain list does, so
+there is one island card in this app rather than two that drift. The card
+drops its own title there — the navigation header is already carrying it, and
+the same words twice at display weight is the tab-labels-drawn-twice bug with
+a different label in it.
+
 ## `palette.ink` is not the dark one
 
 It is the **text** colour: near-black on paper and near-white on all three
