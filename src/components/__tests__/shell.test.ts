@@ -244,9 +244,41 @@ describe('the pinned shell', () => {
     expect(provider, 'the provider never stores the boundary').toContain('haki.groundUntil');
     // Plain mode pins the palette to the settled dark, so its ground stays
     // valid across days and a paper fallback would be wrong.
+    // Plain mode pins the palette to the settled dark, so its ground stays
+    // valid across days: until stays 0 and the boundary key is removed.
     expect(provider, 'plain mode writes a boundary it must not').toMatch(
-      /plainMode[\s\S]{0,120}removeItem\('haki\.groundUntil'\)/,
+      /if \(!settings\.plainMode\)[\s\S]{0,300}boundary\.getTime\(\)/,
     );
+    expect(provider).toContain("removeItem('haki.groundUntil')");
+  });
+
+  it('paints the strip where iOS actually reads it', () => {
+    // Measured on the phone twice: with both the boot script and the
+    // provider rewriting the theme-color meta to the live ground, the strip
+    // still wore the constant baked into the exported HTML. iOS reads the
+    // statically parsed bytes and never the DOM — so the one place the
+    // colour can be set is the served document, and the service worker is
+    // what serves it.
+    const sw = String(
+      readFileSync(join(__dirname, '..', '..', '..', 'public', 'sw.js'), 'utf8'),
+    );
+    expect(sw, 'the worker never learns the ground').toContain("type === 'haki-ground'");
+    expect(sw, 'the worker does not paint navigations').toMatch(
+      /theme-color[^\n]*content="\)#\[0-9A-Fa-f\]\{6\}/,
+    );
+    // Both branches: a fresh navigation and the offline fallback both go
+    // through paint(), or an offline morning opens on last night's colour.
+    expect(sw.match(/paint\(/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+    // And the body is re-encoded honestly: the old encoding headers would
+    // corrupt a decoded body.
+    expect(sw).toContain("headers.delete('content-encoding')");
+    const provider = String(
+      readFileSync(
+        join(__dirname, '..', '..', '..', 'src', 'state', 'HakiProvider.tsx'),
+        'utf8',
+      ),
+    );
+    expect(provider, 'the page never tells the worker').toContain("type: 'haki-ground'");
   });
 
   it('has exactly one runtime writer of the strip colour', () => {
