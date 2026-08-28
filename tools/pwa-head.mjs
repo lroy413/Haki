@@ -42,10 +42,21 @@ let BUILD = 'dev';
 
 const head = (build) => `${MARKER}
     <link rel="manifest" href="/manifest.json" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Haki" />
+    <!-- The manifest is the ONLY install grammar declared, on the strength
+         of the probe rig (eighth round, and the closing one). On current iOS
+         every translucent full-bleed install — including an exact clone of
+         the owner's older apps that still fill their screens — comes up 62
+         points short at the BOTTOM, because the web view paints from y = 0
+         but is sized as if inset. The below-the-bar installs (manifest-only,
+         and the legacy default-bar one) end at the true physical bottom:
+         the probes' gold bar measured at 858..874 on an 874-point screen.
+         The old recipe worked on the owner's older installs because this is
+         decided at install time by the iOS version doing the installing.
+
+         So: no legacy capable meta, no translucent status-bar meta. The app
+         starts below the clock, reaches the real bottom, and the strip
+         behind the clock is painted in the page's theme-color, which the
+         boot script and HakiProvider keep synced to the live ground. -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <style>
       /* Painted before the JS bundle parses, so a cold start shows the app's
@@ -116,6 +127,10 @@ const head = (build) => `${MARKER}
         var ground = localStorage.getItem('haki.ground');
         if (ground && /^#[0-9A-Fa-f]{6}$/.test(ground)) {
           document.documentElement.style.backgroundColor = ground;
+          /* The strip behind the clock takes the page's theme-color in the
+             below-the-bar install, so it follows the ground too. */
+          var tc = document.querySelector('meta[name="theme-color"]');
+          if (tc) tc.setAttribute('content', ground);
         }
       } catch (e) {}
 
@@ -150,7 +165,7 @@ const head = (build) => `${MARKER}
            was finally right, and the net shipped beside it read
            'visualViewport.height', got 812 on an 874-point phone, and
            shrank the app to it. Sixty-two points is exactly that phone's
-           *top* inset — in a black-translucent standalone app iOS reports
+           *top* inset — in a translucent standalone app iOS reports
            a visual viewport with the status bar's strip taken off it.
 
            The screenshot said so before the reasoning did. The tab bar's
@@ -236,6 +251,20 @@ const head = (build) => `${MARKER}
            This number is how the app knows. Zero on a healthy device, so
            nothing changes there. */
         window.__HAKI_UNREACHABLE__ = function () {
+          /* Only a top-anchored viewport strands the bottom: painting from
+             y = 0 while sized short leaves a band below that nothing can
+             reach, and env(safe-area-inset-top) is nonzero exactly then.
+             In the below-the-bar install env top is 0, the box ends at the
+             physical bottom, and the home indicator is INSIDE it — so the
+             bottom inset is real again and nothing is out of reach. */
+          var p = document.createElement('div');
+          p.style.cssText =
+            'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;' +
+            'padding-top:env(safe-area-inset-top)';
+          document.body.appendChild(p);
+          var top = Math.round(parseFloat(window.getComputedStyle(p).paddingTop) || 0);
+          p.remove();
+          if (top <= 0) return 0;
           return Math.max(0, Math.round(screenHeight() - window.innerHeight));
         };
 
@@ -420,17 +449,11 @@ if (html.includes(MARKER)) {
 // viewport-fit=cover lets the app paint under the notch and home indicator;
 // react-native-safe-area-context reads the insets back out.
 //
-// height=device-height is the seventh round of the bottom-of-screen bug, and
-// the first one aimed at the cause rather than the symptom. The phone's own
-// readout showed a hybrid no single mode produces: POSITIONED as a full-bleed
-// translucent app (painting from y = 0, env() reporting 62/34) but SIZED as
-// one that starts below the status bar (812 tall on an 874 screen). Those are
-// iOS's two install grammars — the W3C manifest, whose `display: standalone`
-// reserves the status bar, and the legacy apple-mobile-web-app metas, whose
-// black-translucent goes under it. This app declares both, and they
-// disagreed: one decided where the web view sits, the other how tall it is.
-// So the two are made to agree on full-bleed — the manifest says fullscreen,
-// and the viewport meta asks for the device's own height in both grammars.
+// height=device-height rode through the probe rig unchanged: probe C carried
+// it and ended at the true physical bottom, so it stays. The grammar story
+// lives in the comment beside the manifest link — the short version is that
+// on current iOS a translucent full-bleed install strands the bottom of the
+// screen, so this app declares the manifest alone and starts below the bar.
 html = html.replace(
   /<meta name="viewport"[^>]*>/,
   '<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />',
