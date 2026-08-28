@@ -300,9 +300,21 @@ const head = (build) => `${MARKER}
           document.body.appendChild(probe);
           var ps = window.getComputedStyle(probe);
           var px = function (v) { return Math.round(parseFloat(v) || 0); };
+          var mode = 'browser tab';
+          if (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) {
+            mode = 'fullscreen';
+          } else if (
+            window.matchMedia &&
+            window.matchMedia('(display-mode: standalone)').matches
+          ) {
+            mode = 'standalone';
+          } else if (window.navigator.standalone === true) {
+            mode = 'standalone (legacy)';
+          }
           var out = {
             build: window.__HAKI_BUILD__ || '?',
             standalone: !!STANDALONE,
+            mode: mode,
             screen: [window.screen ? window.screen.width : 0, window.screen ? window.screen.height : 0],
             inner: [window.innerWidth, window.innerHeight],
             visual: vv ? [Math.round(vv.width), Math.round(vv.height), Math.round(vv.offsetTop)] : null,
@@ -407,12 +419,24 @@ if (html.includes(MARKER)) {
 
 // viewport-fit=cover lets the app paint under the notch and home indicator;
 // react-native-safe-area-context reads the insets back out.
+//
+// height=device-height is the seventh round of the bottom-of-screen bug, and
+// the first one aimed at the cause rather than the symptom. The phone's own
+// readout showed a hybrid no single mode produces: POSITIONED as a full-bleed
+// translucent app (painting from y = 0, env() reporting 62/34) but SIZED as
+// one that starts below the status bar (812 tall on an 874 screen). Those are
+// iOS's two install grammars — the W3C manifest, whose `display: standalone`
+// reserves the status bar, and the legacy apple-mobile-web-app metas, whose
+// black-translucent goes under it. This app declares both, and they
+// disagreed: one decided where the web view sits, the other how tall it is.
+// So the two are made to agree on full-bleed — the manifest says fullscreen,
+// and the viewport meta asks for the device's own height in both grammars.
 html = html.replace(
   /<meta name="viewport"[^>]*>/,
-  '<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />',
+  '<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />',
 );
 
-if (!html.includes('viewport-fit=cover')) {
+if (!html.includes('viewport-fit=cover') || !html.includes('height=device-height')) {
   console.error('pwa-head: could not rewrite the viewport meta — Expo changed the template.');
   process.exit(1);
 }
