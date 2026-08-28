@@ -40,20 +40,10 @@ void SplashScreen.preventAutoHideAsync();
 function Chrome() {
   const { palette, t, crew } = useHaki();
 
-  /**
-   * Keep the browser's own chrome on the same ground as the app.
-   *
-   * `theme-color` is baked into the exported HTML as the settled black, which
-   * is right for eleven hours of the day and wrong for the paper the app opens
-   * on — an installed PWA would sit a black status bar on top of parchment.
-   * Following the palette closes the last seam at the top of the display.
-   *
-   * Web only, and entirely cosmetic: a missing tag is simply left alone.
-   */
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', palette.bg);
-  }, [palette.bg]);
+  // The theme-color meta — the strip behind the clock, now that the app
+  // starts below the status bar — is owned by HakiProvider alone. This file
+  // used to carry a second writer of the same value; two writers of one tag
+  // is drift waiting for a palette to change shape.
 
   return (
     <>

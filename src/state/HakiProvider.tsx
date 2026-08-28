@@ -311,17 +311,34 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.style.backgroundColor = palette.bg;
     document.body.style.backgroundColor = palette.bg;
     // The installed app starts below the status bar now, and iOS paints the
-    // strip behind the clock with the page's theme-color — so the strip has
-    // to follow the live ground or paper mornings open under a black band.
-    // The probes proved the strip takes this colour; see tools/pwa-head.mjs.
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', palette.bg);
+    // strip behind the clock with the page's theme-color. Measured on the
+    // phone: the strip is sampled at launch and does not follow later
+    // changes, so the live sync here is for browsers that do follow it, and
+    // the launch half of the job belongs to the boot script — which is why
+    // the store below carries a day boundary as well as a colour. The strip
+    // the app launches under must be the ground the day will OPEN on: a new
+    // voyage day opens on paper, and yesterday's settled black over this
+    // morning's parchment was the exact seam this exists to close. Plain
+    // mode pins the palette instead, so there the stored ground is simply
+    // valid until it changes and no boundary is written.
+    document
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((m) => m.setAttribute('content', palette.bg));
     try {
       localStorage.setItem('haki.ground', palette.bg);
+      if (settings.plainMode) {
+        localStorage.removeItem('haki.groundUntil');
+      } else {
+        const now = new Date();
+        const boundary = new Date(now);
+        boundary.setHours(settings.dayStartHour, 0, 0, 0);
+        if (boundary <= now) boundary.setDate(boundary.getDate() + 1);
+        localStorage.setItem('haki.groundUntil', String(boundary.getTime()));
+      }
     } catch {
       // A private window can refuse storage. The colour is already applied.
     }
-  }, [palette.bg]);
+  }, [palette.bg, settings.plainMode, settings.dayStartHour]);
 
   const value = useMemo<HakiState>(
     () => ({
