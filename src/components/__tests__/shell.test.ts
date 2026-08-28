@@ -223,6 +223,43 @@ describe('the pinned shell', () => {
     expect(manifest.display, 'the manifest is not the probe-proven grammar').toBe('standalone');
   });
 
+  it('opens the strip on the ground the day will open on', () => {
+    // Measured on the phone: iOS samples theme-color at launch and ignores
+    // later changes, and the stored ground is the ground of the session that
+    // STORED it. Without the day boundary, the settled black stored at last
+    // night's quit becomes a black strip over this morning's parchment.
+    expect(src, 'the boot script is not day-aware').toContain('haki.groundUntil');
+    // Asserted structurally rather than by hex — the colour-literal guard
+    // rightly covers test files too, and the boot script (tools/, where the
+    // shell's pre-palette constants live) is the one place the value may be.
+    expect(src, 'a new day does not open on paper').toMatch(
+      /Date\.now\(\) >= until\) ground = '#/,
+    );
+    const provider = String(
+      readFileSync(
+        join(__dirname, '..', '..', '..', 'src', 'state', 'HakiProvider.tsx'),
+        'utf8',
+      ),
+    );
+    expect(provider, 'the provider never stores the boundary').toContain('haki.groundUntil');
+    // Plain mode pins the palette to the settled dark, so its ground stays
+    // valid across days and a paper fallback would be wrong.
+    expect(provider, 'plain mode writes a boundary it must not').toMatch(
+      /plainMode[\s\S]{0,120}removeItem\('haki\.groundUntil'\)/,
+    );
+  });
+
+  it('has exactly one runtime writer of the strip colour', () => {
+    // Two components wrote the same meta for a while — harmless while they
+    // agreed, drift the moment a palette changes shape. The provider owns it.
+    const layout = String(
+      readFileSync(join(__dirname, '..', '..', '..', 'app', '_layout.tsx'), 'utf8'),
+    );
+    expect(layout, 'the layout writes the theme-color meta again').not.toMatch(
+      /querySelector[^\n]*theme-color/,
+    );
+  });
+
   it('keeps the strip behind the clock on the live ground', () => {
     // Below the bar, iOS paints the status-bar strip with the page's
     // theme-color. The app's ground is a function of the day, so both the

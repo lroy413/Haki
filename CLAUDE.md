@@ -152,9 +152,16 @@ COOP/COEP isolation headers (which the database needs — never sacrifice them
 chasing the viewport) and the portrait lock change nothing. So Haki declares
 the manifest alone — no legacy capable meta, no translucent status-bar meta,
 and a test asserts they never come back. iOS
-paints the strip behind the clock with the page's `theme-color`, so the boot
-script and `HakiProvider` keep that meta synced to the live ground — a
-constant there is a black band over paper every morning. And
+paints the strip behind the clock with the page's `theme-color` — and
+**samples it once at launch**, ignoring later changes (measured: the strip
+held the settled black stored at the previous night's quit while the live
+ground was a different palette). So the launch half of the job is the boot
+script's: the ground store carries the next voyage-day boundary beside the
+colour, and past it the strip opens on paper, because that is what a fresh
+day opens on. Plain mode pins the palette and stores no boundary. The
+provider stays the only runtime writer of the meta — there were briefly two,
+which is drift waiting for a palette to change shape — and its live sync
+remains for browsers that do track changes. And
 `__HAKI_UNREACHABLE__` reports a stranded bottom **only when the viewport is
 top-anchored** (`env(safe-area-inset-top) > 0`): below the bar the home
 indicator is back inside the box and the bottom inset is real again.

@@ -125,12 +125,22 @@ const head = (build) => `${MARKER}
          and a colour is never worth a boot failure. */
       try {
         var ground = localStorage.getItem('haki.ground');
+        /* The stored ground is the ground of the SESSION that stored it, and
+           iOS samples the theme-color — the strip behind the clock — once at
+           launch. So a launch on a new voyage day must not wear yesterday's
+           colour: the app opens a fresh day on paper, and the settled black
+           stored at last night's quit would put a black strip over this
+           morning's parchment. The provider stores the day boundary beside
+           the colour; past it, the strip opens on paper too. Plain mode pins
+           the palette and stores no boundary, so its ground is simply used. */
+        var until = Number(localStorage.getItem('haki.groundUntil') || 0);
+        if (until > 0 && Date.now() >= until) ground = '#EDE7DA';
         if (ground && /^#[0-9A-Fa-f]{6}$/.test(ground)) {
           document.documentElement.style.backgroundColor = ground;
-          /* The strip behind the clock takes the page's theme-color in the
-             below-the-bar install, so it follows the ground too. */
-          var tc = document.querySelector('meta[name="theme-color"]');
-          if (tc) tc.setAttribute('content', ground);
+          var tcs = document.querySelectorAll('meta[name="theme-color"]');
+          for (var ti = 0; ti < tcs.length; ti += 1) {
+            tcs[ti].setAttribute('content', ground);
+          }
         }
       } catch (e) {}
 
