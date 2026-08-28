@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Viewport Probes</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: #14181d;
+        color: #eef1f4;
+        min-height: 100vh;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        padding: max(24px, env(safe-area-inset-top)) 22px 48px;
+      }
+      h1 {
+        font-size: 24px;
+        margin: 12px 0 6px;
+      }
+      p {
+        line-height: 1.65;
+        font-size: 14.5px;
+        color: #b9c2ca;
+        max-width: 34em;
+      }
+      ol {
+        padding-left: 20px;
+        line-height: 1.8;
+        font-size: 14.5px;
+        color: #b9c2ca;
+      }
+      a.probe {
+        display: block;
+        margin: 12px 0;
+        padding: 16px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #f2f5f7;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+      a.probe small {
+        display: block;
+        opacity: 0.75;
+        font-size: 12.5px;
+      }
+      .a {
+        background: #232b33;
+      }
+      .b {
+        background: #2b2338;
+      }
+      .c {
+        background: #1c3230;
+      }
+      .d {
+        background: #33251c;
+      }
+      b.gold {
+        color: #ffd84d;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Viewport probes</h1>
+    <p>
+      Four tiny pages, identical except for how they declare themselves an app &mdash; the four
+      grammars iOS understands. Each shows its numbers and a
+      <b class="gold">gold bar</b> at the bottom of the box iOS gave it.
+    </p>
+    <ol>
+      <li>Open each probe below, then Share &rarr; <b>Add to Home Screen</b>.</li>
+      <li>Open the four icons from the home screen (they are named A&ndash;D).</li>
+      <li>For each: does the gold bar touch the phone&rsquo;s bottom edge?</li>
+      <li>Reply with the letters that show FULL HEIGHT &mdash; or screenshots.</li>
+    </ol>
+    <a class="probe a" href="/probe/a/"
+      ><b>Probe A</b><small>legacy metas &middot; translucent status bar</small></a
+    >
+    <a class="probe b" href="/probe/b/"
+      ><b>Probe B</b><small>legacy metas &middot; default status bar</small></a
+    >
+    <a class="probe c" href="/probe/c/"
+      ><b>Probe C</b><small>manifest only &middot; display: standalone</small></a
+    >
+    <a class="probe d" href="/probe/d/"
+      ><b>Probe D</b><small>manifest only &middot; display: fullscreen</small></a
+    >
+    <p>Whichever wins becomes the app&rsquo;s exact configuration.</p>
+  </body>
+</html>
