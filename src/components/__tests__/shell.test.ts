@@ -118,24 +118,33 @@ describe('the pinned shell', () => {
     expect(branch, 'the installed branch can shrink the app').not.toMatch(
       /visualViewport|vv\./,
     );
-    expect(branch, 'the installed branch does not grow').toMatch(/target\s*-\s*pinned\s*>/);
+    expect(branch, 'the installed branch does not grow').toMatch(
+      /window\.innerHeight\s*-\s*pinned\s*>/,
+    );
   });
 
-  it('fills the screen, not the viewport iOS hands it', () => {
-    // Sixth round, and this is the number every earlier round was groping
-    // for. The phone said it:
+  it('never grows past the viewport, because there is nothing past it', () => {
+    // Round six aimed at `screen.height` and put the tab bar's labels off the
+    // bottom of the phone. Two measurements off the screenshot settle it: the
+    // wordmark's cap sits at exactly `insets.top + space.lg`, so the viewport
+    // is anchored at screen y = 0; and the tab bar's rounded rect reaches its
+    // full left edge at 811.3 and then stops dead at 812.0, which is a clip
+    // rather than a corner completing.
     //
-    //     Screen   402 x 874          Window  402 x 812
-    //     App box  812, ends at 812   Height  pinned
-    //
-    // The pin was doing exactly what it should. iOS hands a standalone app a
-    // layout viewport 62 points shorter than the screen — exactly the top
-    // inset — while still reporting that inset through env() and still
-    // painting from y = 0. So `innerHeight` is not the screen here, and every
-    // fix that trusted it was fixing the wrong number.
-    expect(installed(), 'the installed branch still trusts innerHeight alone').toMatch(
-      /Math\.max\(\s*window\.innerHeight\s*,\s*screenHeight\(\)\s*\)/,
+    // iOS gives this app a web view positioned full-screen and sized as
+    // though it were inset at the top. The last sixty-two points cannot be
+    // painted into by anything.
+    expect(installed(), 'the installed branch aims past the viewport').not.toMatch(
+      /screenHeight\(\)/,
     );
+  });
+
+  it('publishes how much screen the app is not given', () => {
+    // Not as a shortfall — it is not one the app can close — but so the tab
+    // bar can stop reserving a bottom inset whose hazard is outside the box.
+    expect(src, 'the shell cannot say what is out of reach').toContain('__HAKI_UNREACHABLE__');
+    const band = src.slice(src.indexOf('window.__HAKI_UNREACHABLE__'));
+    expect(band.slice(0, 260)).toMatch(/screenHeight\(\)\s*-\s*window\.innerHeight/);
     // Orientation is read off the window rather than assumed: iOS has
     // reported screen dimensions in the device's own orientation on some
     // versions and the current one on others.
@@ -147,28 +156,18 @@ describe('the pinned shell', () => {
     expect(measure).toMatch(/Math\.max\(s\.width, s\.height\)/);
   });
 
-  it('measures the shortfall against the box it is supposed to fill', () => {
-    // The readout's first cut compared the app against `innerHeight`, which
-    // on the phone is the short viewport itself — so it reported "filling the
-    // screen" while sixty-two points short of it. A readout that agrees with
-    // the bug is worse than none.
+  it('measures the shortfall against the box it can actually paint into', () => {
+    // The readout's first cut compared against `innerHeight` while the app was
+    // aiming at the screen, so it reported "filling the screen" sixty-two
+    // points short of it. Its second cut compared against the screen, which
+    // called an unreachable band a shortfall. The target is the viewport, and
+    // the band is reported beside it as its own fact.
     const report = src.slice(src.indexOf('window.__HAKI_SHELL__'));
-    const target = report.slice(report.indexOf('var target'), report.indexOf('out.short'));
-    expect(target, 'the readout measures against the short viewport').toMatch(
-      /STANDALONE[\s\S]{0,140}screenHeight\(\)/,
+    const target = report.slice(report.indexOf('var target'), report.indexOf('return out'));
+    expect(target, 'the readout still aims at the screen').not.toMatch(/screenHeight\(\)/);
+    expect(target, 'the readout does not report the unreachable band').toMatch(
+      /out\.unreachable\s*=/,
     );
-  });
-
-  it('only ever shrinks in a browser tab, and only on the signature', () => {
-    // Overlaid toolbars have a tell: the visible box is shorter than the
-    // layout viewport. Every other disagreement iOS has offered has been
-    // wrong at least once, so the tab branch acts on that and nothing else.
-    const fit = net();
-    const tab = fit.slice(fit.lastIndexOf('var vv'));
-    expect(tab, 'the tab branch acts on a viewport that is not shorter').toMatch(
-      /vv\.height\s*<\s*window\.innerHeight/,
-    );
-    expect(tab, 'the tab branch can grow the app').toMatch(/pinned\s*-\s*vv\.height\s*>/);
   });
 
   it('keeps both branches off the keyboard', () => {

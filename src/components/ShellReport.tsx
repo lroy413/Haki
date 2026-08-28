@@ -44,8 +44,10 @@ type Shell = {
   safe: [number, number, number, number];
   scrollY: number;
   short: number;
-  /** The box the app is supposed to fill: the screen when installed. */
+  /** The box the app can actually paint into. */
   target: number;
+  /** Screen below the viewport that nothing can reach. 0 when healthy. */
+  unreachable: number;
 };
 
 declare global {
@@ -86,6 +88,10 @@ export function ShellReport() {
   }
 
   const filling = shell.short <= 1;
+  // Two different things, and conflating them is what made round six push the
+  // tab bar off the bottom of the phone: the app can fill the box it is given
+  // and still be short of the screen, because iOS did not give it the screen.
+  const band = shell.unreachable;
   const rows: [string, string][] = [
     ['Build', shell.build],
     ['Installed', shell.standalone ? 'yes' : 'no — running in a browser tab'],
@@ -94,6 +100,7 @@ export function ShellReport() {
     ['Visible box', shell.visual ? `${shell.visual[0]} × ${shell.visual[1]}` : 'not reported'],
     ['App box', shell.root ? `${shell.root[2]} tall, ends at ${shell.root[1]}` : 'not found'],
     ['Should fill', String(shell.target)],
+    ['Out of reach', band > 0 ? `${band} below the viewport` : 'none'],
     ['Height', shell.forced],
     ['Safe area', shell.safe.join(' / ')],
   ];
@@ -103,6 +110,10 @@ export function ShellReport() {
       <Text style={[styles.verdict, !filling && styles.wrong]}>
         {filling ? t.shellFilling : t.shellShort(shell.short)}
       </Text>
+      {/* Said separately, and never as a shortfall: it is not one the app can
+          close. iOS extends the page's own background colour into the band,
+          which is why the ground still looks continuous down there. */}
+      {filling && band > 0 ? <Text style={styles.band}>{t.shellBand(band)}</Text> : null}
       <Text style={styles.note}>{t.shellNote}</Text>
       <View style={styles.table}>
         {rows.map(([k, v]) => (
@@ -145,6 +156,7 @@ const makeStyles = (c: Palette) =>
     // Not red. A screen that is 62 points short is a fact about a layout,
     // not a failure of the person reading it — the tone rule holds here too.
     wrong: { color: c.warn },
+    band: { ...type.small, color: c.inkDim, lineHeight: 19 },
     note: { ...type.small, color: c.inkDim, lineHeight: 19 },
     table: { gap: space.xs },
     line: { flexDirection: 'row', justifyContent: 'space-between', gap: space.md },

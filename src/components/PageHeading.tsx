@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHaki } from '../state/HakiProvider';
 import { useTabBarHeight } from './GlassTabBar';
 import { space, type } from '../theme/tokens';
+import { usableBottom } from '../theme/viewport';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -89,6 +90,9 @@ export function useTabInsets(): { paddingTop: number; paddingBottom: number } {
   const bar = useTabBarHeight();
   return {
     paddingTop: insets.top + space.lg,
-    paddingBottom: Math.max(insets.bottom, space.md) + bar + space.lg,
+    // `usableBottom` drops the inset on a phone whose home indicator sits
+    // outside the viewport iOS gave the app — see `theme/viewport.ts`. It is
+    // the bar's own arithmetic, term for term, so the two cannot drift.
+    paddingBottom: Math.max(usableBottom(insets.bottom), space.md) + bar + space.lg,
   };
 }

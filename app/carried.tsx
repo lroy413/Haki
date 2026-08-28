@@ -16,6 +16,7 @@ import { listCarried, upsertCarried } from '../src/db/repo';
 import type { CarriedRow } from '../src/db/schema';
 import { useHaki } from '../src/state/HakiProvider';
 import { radius, space, type } from '../src/theme/tokens';
+import { usableBottom } from '../src/theme/viewport';
 import { press } from '../src/theme/surfaces';
 import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
@@ -87,7 +88,7 @@ export default function CarriedScreen() {
           styles.content,
           // Pushed, so the header owns the top. Only the home indicator is
           // this screen's problem.
-          { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
+          { paddingBottom: Math.max(usableBottom(insets.bottom), space.md) + space.lg },
         ]}
         keyboardShouldPersistTaps="handled"
       >

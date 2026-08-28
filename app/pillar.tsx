@@ -53,6 +53,7 @@ import { SoundingLine } from '../src/components/logpose/SoundingLine';
 import { SectionLabel } from '../src/components/SectionLabel';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { usableBottom } from '../src/theme/viewport';
 import { press } from '../src/theme/surfaces';
 import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
@@ -224,7 +225,7 @@ export default function PillarScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
+          { paddingBottom: Math.max(usableBottom(insets.bottom), space.md) + space.lg },
         ]}
         keyboardShouldPersistTaps="handled"
       >

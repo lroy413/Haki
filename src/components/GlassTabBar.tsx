@@ -8,6 +8,7 @@ import { useHaki } from '../state/HakiProvider';
 import type { Tab } from '../theme/strings';
 import { font, radius, space } from '../theme/tokens';
 import { press } from '../theme/surfaces';
+import { usableBottom } from '../theme/viewport';
 import type { Palette } from '../theme/palettes';
 
 /**
@@ -81,7 +82,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
 
   return (
     <View
-      style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, space.md) }]}
+      style={[styles.wrap, { paddingBottom: Math.max(usableBottom(insets.bottom), space.md) }]}
       pointerEvents="box-none"
     >
       <View style={styles.shadow} onLayout={(e) => publish(e.nativeEvent.layout.height)}>

@@ -16,6 +16,7 @@ import {
 import { addDays, todayKey } from '../src/domain/date';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { usableBottom } from '../src/theme/viewport';
 import { lit, plate } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
@@ -63,7 +64,7 @@ export default function ForesightScreen() {
       style={styles.screen}
       contentContainerStyle={[
         styles.content,
-        { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
+        { paddingBottom: Math.max(usableBottom(insets.bottom), space.md) + space.lg },
       ]}
     >
       <Text style={styles.lead}>{stateMessage(reading, plainMode)}</Text>

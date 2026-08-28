@@ -20,6 +20,7 @@ import {
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { usableBottom } from '../src/theme/viewport';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
 
@@ -74,7 +75,7 @@ export default function GearsScreen() {
       style={styles.screen}
       contentContainerStyle={[
         styles.content,
-        { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
+        { paddingBottom: Math.max(usableBottom(insets.bottom), space.md) + space.lg },
       ]}
     >
       <Text style={styles.blurb}>{focusBlurb(crew.name)}</Text>
