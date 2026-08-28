@@ -237,6 +237,27 @@ describe('the pinned shell', () => {
       readFileSync(join(__dirname, '..', '..', '..', 'vercel.json'), 'utf8'),
     );
     expect(vercel, 'the rewrite swallows /probe').toMatch(/\(\?![^)]*probe[^)]*\)/);
+
+    // The probes also step out of the app's cross-origin-isolation headers —
+    // the owner's working apps do not send them, and the probes exist to be
+    // those apps. Probe X alone gets the headers back, so W vs X isolates
+    // exactly that variable. The app itself must keep them: no isolation, no
+    // SharedArrayBuffer, no database.
+    const rules = JSON.parse(vercel) as {
+      headers: { source: string; headers: { key: string }[] }[];
+    };
+    const global = rules.headers.find((r) =>
+      r.headers.some((h) => h.key === 'Cross-Origin-Embedder-Policy'),
+    );
+    expect(global?.source, 'the app lost its isolation headers').toContain('(?!probe)');
+    expect(
+      rules.headers.some(
+        (r) =>
+          r.source.startsWith('/probe/x') &&
+          r.headers.some((h) => h.key === 'Cross-Origin-Embedder-Policy'),
+      ),
+      'probe X lost the header variable it exists to test',
+    ).toBe(true);
   });
 
   it('asks for a new shell every time the app comes back', () => {

@@ -48,7 +48,7 @@
       main span {
         opacity: 0.6;
         display: inline-block;
-        width: 7ch;
+        width: 9ch;
       }
       #verdict {
         font-size: 30px;
@@ -128,6 +128,9 @@
           '</div>' +
           '<div><span>legacy</span>' +
           (window.navigator.standalone === true) +
+          '</div>' +
+          '<div><span>isolated</span>' +
+          (window.crossOriginIsolated === true) +
           '</div>' +
           '<div><span>env</span>' +
           e.join(' / ') +
