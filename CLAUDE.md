@@ -147,8 +147,11 @@ at install time by the iOS version doing the installing, and why "my first
 apps never did this" was true and misleading at once. The below-the-bar
 installs (manifest-only `display: standalone`, probe C) **end at the true
 physical bottom**: the probes' gold bar measured at 858–874 on an 874-point
-screen. So Haki declares the manifest alone — no legacy capable meta, no
-translucent status-bar meta, and a test asserts they never come back. iOS
+screen. Probes X and Y acquitted the two other suspects outright: the
+COOP/COEP isolation headers (which the database needs — never sacrifice them
+chasing the viewport) and the portrait lock change nothing. So Haki declares
+the manifest alone — no legacy capable meta, no translucent status-bar meta,
+and a test asserts they never come back. iOS
 paints the strip behind the clock with the page's `theme-color`, so the boot
 script and `HakiProvider` keep that meta synced to the live ground — a
 constant there is a black band over paper every morning. And
