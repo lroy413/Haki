@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 /**
  * How much of the screen this app is not given.
  *
@@ -21,13 +19,21 @@ import { Platform } from 'react-native';
  * module is for.
  */
 
-/** Points of screen below the viewport that nothing can reach. 0 when healthy. */
+/**
+ * Points of screen below the viewport that nothing can reach. 0 when healthy.
+ *
+ * Asks the shell through a global rather than importing anything. The shell
+ * only exists on the web, so a missing global *is* the native answer — and it
+ * keeps this module pure TypeScript, which is what lets the rule below be
+ * tested on plain Node. The first cut reached for `Platform` and the test
+ * could not even parse: vitest runs on Node with no React Native preset, and
+ * RN's own entry point is Flow. Same rule `src/domain/` holds, arrived at
+ * from the other end.
+ */
 export function unreachable(): number {
-  if (Platform.OS !== 'web') return 0;
   try {
-    return (
-      (globalThis as { __HAKI_UNREACHABLE__?: () => number }).__HAKI_UNREACHABLE__?.() ?? 0
-    );
+    const ask = (globalThis as { __HAKI_UNREACHABLE__?: () => number }).__HAKI_UNREACHABLE__;
+    return typeof ask === 'function' ? ask() : 0;
   } catch {
     return 0;
   }
