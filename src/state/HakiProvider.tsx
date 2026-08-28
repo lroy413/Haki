@@ -324,19 +324,34 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     document
       .querySelectorAll('meta[name="theme-color"]')
       .forEach((m) => m.setAttribute('content', palette.bg));
+    let until = 0;
+    if (!settings.plainMode) {
+      const now = new Date();
+      const boundary = new Date(now);
+      boundary.setHours(settings.dayStartHour, 0, 0, 0);
+      if (boundary <= now) boundary.setDate(boundary.getDate() + 1);
+      until = boundary.getTime();
+    }
     try {
       localStorage.setItem('haki.ground', palette.bg);
-      if (settings.plainMode) {
-        localStorage.removeItem('haki.groundUntil');
-      } else {
-        const now = new Date();
-        const boundary = new Date(now);
-        boundary.setHours(settings.dayStartHour, 0, 0, 0);
-        if (boundary <= now) boundary.setDate(boundary.getDate() + 1);
-        localStorage.setItem('haki.groundUntil', String(boundary.getTime()));
-      }
+      if (until > 0) localStorage.setItem('haki.groundUntil', String(until));
+      else localStorage.removeItem('haki.groundUntil');
     } catch {
       // A private window can refuse storage. The colour is already applied.
+    }
+    // Measured on the phone: iOS reads the strip's colour from the
+    // statically parsed HTML and never from the DOM, so the meta writes
+    // above are for browsers that do track it. The copy iOS believes is the
+    // one the service worker serves — tell it the ground, and it paints the
+    // meta into the document bytes before the next launch is parsed.
+    try {
+      navigator.serviceWorker?.controller?.postMessage({
+        type: 'haki-ground',
+        ground: palette.bg,
+        until,
+      });
+    } catch {
+      // No worker, no paint — the static fallback colour still stands.
     }
   }, [palette.bg, settings.plainMode, settings.dayStartHour]);
 

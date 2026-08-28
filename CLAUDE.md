@@ -152,16 +152,22 @@ COOP/COEP isolation headers (which the database needs — never sacrifice them
 chasing the viewport) and the portrait lock change nothing. So Haki declares
 the manifest alone — no legacy capable meta, no translucent status-bar meta,
 and a test asserts they never come back. iOS
-paints the strip behind the clock with the page's `theme-color` — and
-**samples it once at launch**, ignoring later changes (measured: the strip
-held the settled black stored at the previous night's quit while the live
-ground was a different palette). So the launch half of the job is the boot
-script's: the ground store carries the next voyage-day boundary beside the
-colour, and past it the strip opens on paper, because that is what a fresh
-day opens on. Plain mode pins the palette and stores no boundary. The
-provider stays the only runtime writer of the meta — there were briefly two,
-which is drift waiting for a palette to change shape — and its live sync
-remains for browsers that do track changes. And
+paints the strip behind the clock with the page's `theme-color` — and reads
+it **from the statically parsed HTML only**. Measured twice on the phone: with
+the boot script rewriting the meta synchronously in the head _and_ the
+provider keeping it live, the strip still wore the constant baked into the
+exported file. Script writes are invisible to it, whatever their timing. The
+one thing upstream of that parse is the served bytes, so **the service worker
+paints them**: the provider reports the ground and the next voyage-day
+boundary after every palette change (`haki-ground` message), and the worker
+rewrites the meta in every navigation response — stored ground within the
+day, paper past the boundary, both branches of the navigation handler
+(network and offline fallback). When touching `paint()` mind the headers: the
+body has been decoded, so `content-encoding`/`content-length` must be
+dropped, and the isolation headers must survive the copy — verified, because
+losing them kills the database. The provider stays the only runtime writer
+of the DOM meta (kept for browsers that do track it), and plain mode pins
+the palette and reports no boundary. And
 `__HAKI_UNREACHABLE__` reports a stranded bottom **only when the viewport is
 top-anchored** (`env(safe-area-inset-top) > 0`): below the bar the home
 indicator is back inside the box and the bottom inset is real again.
