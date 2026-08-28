@@ -1,12 +1,12 @@
 {
-  "id": "/probe/c/",
-  "name": "Probe C",
-  "short_name": "Probe C",
-  "start_url": "/probe/c/",
-  "scope": "/probe/c/",
+  "id": "/probe/y/",
+  "name": "Probe Y",
+  "short_name": "Probe Y",
+  "start_url": "/probe/y/",
+  "scope": "/probe/y/",
   "display": "standalone",
-  "background_color": "#1c3230",
-  "theme_color": "#1c3230",
+  "background_color": "#2e2a14",
+  "theme_color": "#2e2a14",
   "icons": [
     {
       "src": "/pwa-192.png",
@@ -18,5 +18,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "orientation": "portrait"
 }
