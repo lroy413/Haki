@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -160,22 +160,48 @@ export default function ConquerorsScreen() {
   const allSpinning =
     pose.needles.length > 0 && pose.needles.every((needle) => needle.next === null);
 
+  /**
+   * The screen answers the finger, and that includes Save.
+   *
+   * The first cut closed these forms only after the write and the reload
+   * came back — which on the web all runs down expo-sqlite's single
+   * synchronous channel. The button read as dead, a perfectly reasonable
+   * second tap queued a second insert, and one pillar arrived five times.
+   * So: capture the draft, close the form in the same frame as the tap, and
+   * hold a ref against re-entry until the write lands. The ref rather than
+   * state, because state is exactly what is too slow here.
+   */
+  const savingDream = useRef(false);
   async function saveDream() {
-    if (!dreamDraft.trim()) return;
-    await setDream(db, dreamDraft);
+    const text = dreamDraft.trim();
+    if (!text || savingDream.current) return;
+    savingDream.current = true;
     setEditingDream(false);
     setSaid(null);
-    await load();
+    try {
+      await setDream(db, text);
+      await load();
+    } finally {
+      savingDream.current = false;
+    }
   }
 
+  const savingRoad = useRef(false);
   async function saveRoad() {
-    if (!roadTitle.trim()) return;
-    await addRoad(db, roadTitle, roadWhy || null);
+    const title = roadTitle.trim();
+    if (!title || savingRoad.current) return;
+    savingRoad.current = true;
+    const why = roadWhy;
     setRoadTitle('');
     setRoadWhy('');
     setAddingRoad(false);
     setSaid(null);
-    await load();
+    try {
+      await addRoad(db, title, why || null);
+      await load();
+    } finally {
+      savingRoad.current = false;
+    }
   }
 
   /**

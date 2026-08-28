@@ -118,6 +118,14 @@ const head = (build) => `${MARKER}
     <script>
       window.__HAKI_BUILD__ = '${build}';
 
+      /* The theme-color exactly as the parser saw it — captured before any
+         script touches the meta. If this shows the live ground while the
+         visible strip does not, iOS is reading the manifest snapshot and no
+         served byte can reach it; if this shows the baked constant, the
+         worker's paint has not reached this launch yet. */
+      var stripMeta = document.querySelector('meta[name="theme-color"]');
+      window.__HAKI_STRIP__ = stripMeta ? stripMeta.getAttribute('content') : '';
+
       /* The ground the app last rendered, painted before the bundle parses.
          Hardening means the correct opening colour is a fact about this
          install's day, not a constant — so the app records it and the shell
@@ -165,6 +173,12 @@ const head = (build) => `${MARKER}
          finishes after the events that announce it. */
       (function () {
         function level() {
+          /* Putting the pan back is for AFTER the keyboard has gone. While
+             an input is focused the pan is iOS bringing the field into
+             view, and scrolling to zero here fights it — tap a field low
+             on the page and the whole app snapped back to the top. Same
+             guard the resize net already had; this branch never got it. */
+          if (typing()) return;
           var vv = window.visualViewport;
           var panned = (window.scrollY || 0) + (vv && vv.offsetTop ? vv.offsetTop : 0);
           if (panned > 0.5) window.scrollTo(0, 0);
@@ -354,6 +368,7 @@ const head = (build) => `${MARKER}
             build: window.__HAKI_BUILD__ || '?',
             standalone: !!STANDALONE,
             mode: mode,
+            strip: window.__HAKI_STRIP__ || '',
             screen: [window.screen ? window.screen.width : 0, window.screen ? window.screen.height : 0],
             inner: [window.innerWidth, window.innerHeight],
             visual: vv ? [Math.round(vv.width), Math.round(vv.height), Math.round(vv.offsetTop)] : null,
