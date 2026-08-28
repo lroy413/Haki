@@ -178,6 +178,7 @@ export type Strings = {
   shellTitle: string;
   shellFilling: string;
   shellShort: (points: number) => string;
+  shellBand: (points: number) => string;
   shellNote: string;
   shellAgain: string;
   shellNative: string;
@@ -390,6 +391,8 @@ const haki: Strings = {
   shellFilling: 'The app is filling the screen.',
   shellShort: (points) =>
     `The app is stopping ${points} points short of the bottom of the screen.`,
+  shellBand: (points) =>
+    `iOS gives this app ${points} points less than the screen, so the strip along the bottom is outside it. The ground you can see there is the browser extending this page's own colour.`,
   shellNote:
     'Screenshot this if the app is not reaching the bottom. The build is what tells us whether a fix has actually arrived on this phone yet.',
   shellAgain: 'Measure again',

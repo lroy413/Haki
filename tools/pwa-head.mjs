@@ -206,6 +206,39 @@ const head = (build) => `${MARKER}
            orientation on some versions and the current one on others, and
            this file has been bitten once already by trusting which is
            which. */
+        /* HOW MUCH SCREEN THE APP IS NOT GIVEN.
+
+           Round six grew the root to 'screen.height' and the tab bar's
+           labels went off the bottom of the phone. The measurements settle
+           it, and they are worth writing down because the next person will
+           want to try growing it again:
+
+             the wordmark's cap sits at 84 points, which is exactly
+             insets.top + space.lg + the cap offset, so the viewport is
+             anchored at screen y = 0;
+
+             the tab bar's rounded rect reaches its full left edge at
+             811.3 and then stops dead at 812.0 — a hard clip, not a
+             corner completing.
+
+           So iOS gives this app a web view positioned full-screen and
+           sized as though it were inset at the top: 812 tall on an 874
+           screen. **The last sixty-two points are not reachable.** No
+           amount of CSS puts anything there; the page's own background
+           colour is extended into the band by the browser, which is why
+           it looks continuous and why this took six rounds to see.
+
+           What the app can do is stop wasting the space it *does* have.
+           'env(safe-area-inset-bottom)' is 34 because the home indicator
+           is at screen 858 — but that is out in the unreachable band, not
+           inside the viewport, so reserving 34 points at the bottom of an
+           812-point box protects against a hazard that is not in the box.
+           This number is how the app knows. Zero on a healthy device, so
+           nothing changes there. */
+        window.__HAKI_UNREACHABLE__ = function () {
+          return Math.max(0, Math.round(screenHeight() - window.innerHeight));
+        };
+
         function screenHeight() {
           var s = window.screen;
           if (!s || !s.width || !s.height) return 0;
@@ -232,11 +265,12 @@ const head = (build) => `${MARKER}
           var pinned = root.getBoundingClientRect().height;
 
           if (STANDALONE) {
-            /* The app owns the screen, so the screen is the target — never
-               the viewport, which is the whole bug. Growing only, so this
-               can never become the shrink that caused round five. */
-            var target = Math.max(window.innerHeight, screenHeight());
-            if (target - pinned > 1) root.style.height = target + 'px';
+            /* Growing only, so this can never become the shrink that
+               caused round five — and only ever to the viewport, because
+               round six proved there is nothing past it. */
+            if (window.innerHeight - pinned > 1) {
+              root.style.height = window.innerHeight + 'px';
+            }
             return;
           }
 
@@ -283,13 +317,16 @@ const head = (build) => `${MARKER}
              whichever box the app is *supposed* to fill. An installed app
              owns the screen; in a browser tab, stopping above the toolbars
              is the correct behaviour and not a shortfall. */
-          var target = STANDALONE
-            ? Math.max(window.innerHeight, screenHeight())
-            : vv
-              ? Math.min(vv.height, window.innerHeight)
-              : window.innerHeight;
+          /* The box the app can actually paint into. Round six aimed at
+             the screen instead and clipped the tab bar off the bottom, so
+             the honest target is the viewport — and the difference between
+             that and the screen is reported separately rather than called
+             a shortfall, because it is not one the app can close. */
+          var target =
+            !STANDALONE && vv ? Math.min(vv.height, window.innerHeight) : window.innerHeight;
           out.short = r ? Math.max(0, Math.round(target - r.bottom)) : 0;
           out.target = target;
+          out.unreachable = STANDALONE ? window.__HAKI_UNREACHABLE__() : 0;
           return out;
         };
         function settle() {

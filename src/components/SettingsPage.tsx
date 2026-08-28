@@ -5,6 +5,7 @@ import { useHaki } from '../state/HakiProvider';
 import { IslandBadge } from './IslandRow';
 import type { IsleKind } from './instruments/Isles';
 import { space } from '../theme/tokens';
+import { usableBottom } from '../theme/viewport';
 
 /**
  * The scaffold every settings island's page stands on.
@@ -27,7 +28,7 @@ export function SettingsPage({ kind, children }: { kind: IsleKind; children: Rea
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
+          { paddingBottom: Math.max(usableBottom(insets.bottom), space.md) + space.lg },
         ]}
         keyboardShouldPersistTaps="handled"
       >

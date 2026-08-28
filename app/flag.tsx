@@ -17,6 +17,7 @@ import { FLAG_MAX, VALUE_MAX_CHARS, flagRoom, type Value } from '../src/domain/f
 import { useHaki } from '../src/state/HakiProvider';
 import { SectionLabel } from '../src/components/SectionLabel';
 import { font, radius, space, type } from '../src/theme/tokens';
+import { usableBottom } from '../src/theme/viewport';
 import { lit, offer, plate, press, row } from '../src/theme/surfaces';
 import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
@@ -84,7 +85,7 @@ export default function FlagScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: Math.max(insets.bottom, space.md) + space.lg },
+          { paddingBottom: Math.max(usableBottom(insets.bottom), space.md) + space.lg },
         ]}
         keyboardShouldPersistTaps="handled"
       >

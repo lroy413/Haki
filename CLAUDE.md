@@ -115,6 +115,28 @@ opinion has now been wrong at least once. The net runs only in a browser tab,
 only when the visible box is genuinely shorter than the layout viewport, only
 downward, and never while an input is focused.
 
+**And the last sixty-two points are not the app's to paint.** Round six grew
+the root to `screen.height` and the tab bar's labels went off the bottom of
+the phone. Two measurements settle it and are worth keeping, because the next
+person will want to try growing it again: the wordmark's cap sits at exactly
+`insets.top + space.lg` (so the viewport is anchored at screen y = 0), and the
+tab bar's rounded rect reaches its full left edge at 811.3 and then **stops
+dead at 812.0** — a clip, not a corner completing. iOS gives this app a web
+view positioned full-screen and sized as though it were inset at the top:
+812 tall on an 874 screen. Nothing can be put in the band; the browser
+extends the page's own background colour into it, which is why the ground
+looks continuous down there and why this took six rounds to see.
+
+What the app can do is stop wasting the space it _does_ have.
+`env(safe-area-inset-bottom)` is 34 because the home indicator sits at screen
+858 — out in the band, not inside the viewport — so reserving 34 points at the
+foot of an 812-point box guards against a hazard that is not in the box.
+`theme/viewport.ts` publishes the band's depth and `usableBottom()` drops the
+inset when the hazard is outside; **every screen takes its bottom padding
+through it**, and on a device given its whole screen the band is zero and
+nothing changes. `ShellReport` reports the band beside the verdict rather than
+as a shortfall, because it is not one the app can close.
+
 **And `innerHeight` is not the screen.** Sixth round, and this is the number
 every earlier round was groping for — the phone finally said it: `Screen 402 ×
 874`, `Window 402 × 812`, app box 812 ending at 812, safe area 62/0/34/0,
@@ -123,9 +145,9 @@ shorter than the screen — exactly the top inset** — while still reporting th
 inset through `env()` and still painting from y = 0 (the status bar's clock
 draws over the app's own text). So the pin was doing exactly what it should
 and the thing it was pinned to was wrong, and every fix that trusted
-`innerHeight` was fixing the wrong number. In standalone the target is
-`max(innerHeight, screen.height)`, orientation read off the window rather than
-assumed.
+`innerHeight` was fixing the wrong number. In standalone the shell still
+only ever grows the root, and only to `innerHeight` — the screen is what it
+measures the band against, never what it aims at.
 
 **The two cases are opposites now, and neither can cause the other's
 failure.** Installed, the shell may only ever _grow_ the root, and only to
