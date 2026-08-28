@@ -198,6 +198,36 @@ describe('the pinned shell', () => {
     );
   });
 
+  it('asks iOS for the whole screen in both grammars', () => {
+    // Seventh round, and the first aimed at the cause. The phone's readout
+    // showed a hybrid no single mode produces: positioned as a full-bleed
+    // translucent app (painting from y = 0, env() reporting 62/34) but sized
+    // as one that starts below the status bar (812 on an 874 screen). iOS
+    // has two install grammars — the W3C manifest and the legacy
+    // apple-mobile-web-app metas — and this app declared both. They must
+    // agree on full-bleed, or one decides position and the other size.
+    expect(src, 'the viewport meta lost viewport-fit=cover').toContain('viewport-fit=cover');
+    expect(src, 'the viewport meta lost height=device-height').toContain(
+      'height=device-height',
+    );
+    const manifest = JSON.parse(
+      String(
+        readFileSync(join(__dirname, '..', '..', '..', 'public', 'manifest.json'), 'utf8'),
+      ),
+    ) as { display?: string };
+    expect(manifest.display, 'the manifest reserves the status bar again').toBe('fullscreen');
+    expect(src, 'the translucent meta is gone').toContain('black-translucent');
+  });
+
+  it('reports which grammar won', () => {
+    // After a reinstall, the Display-mode row is the first thing to read: it
+    // distinguishes "the manifest change did not take" from "it took and did
+    // not help", which is otherwise another full round of guessing.
+    const report = src.slice(src.indexOf('window.__HAKI_SHELL__'));
+    expect(report).toMatch(/display-mode:\s*fullscreen/);
+    expect(report).toMatch(/mode:\s*mode/);
+  });
+
   it('asks for a new shell every time the app comes back', () => {
     // The worker is network-first for navigations, which is enough on the
     // web. A standalone app on iOS is resumed for days without navigating

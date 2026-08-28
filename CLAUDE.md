@@ -137,6 +137,23 @@ through it**, and on a device given its whole screen the band is zero and
 nothing changes. `ShellReport` reports the band beside the verdict rather than
 as a shortfall, because it is not one the app can close.
 
+**iOS has two install grammars, and they must agree.** Seventh round, and the
+first aimed at a cause rather than a symptom — unlocked by one fact from the
+owner: his earlier apps on the same phone fill the screen, so this is not
+"what iOS does". The readout's phenotype is a hybrid no single mode produces:
+the web view is _positioned_ as a full-bleed translucent app (paints from
+y = 0, the clock over the app's own text, `env()` reporting 62/34) but
+_sized_ as one that starts below the status bar (812 on an 874 screen). iOS
+supports the W3C manifest (`display: standalone` **reserves** the status bar)
+and the legacy `apple-mobile-web-app-*` metas (`black-translucent` goes
+**under** it); this app declared both, and one decided position while the
+other decided size. So they are made to agree on full-bleed: the manifest
+says `fullscreen`, and the viewport meta asks for `height=device-height`
+alongside `viewport-fit=cover`. A manifest change is read **at install
+time** — it needs a delete-and-re-add, not a refresh — which is what the
+readout's Display-mode row is for: it separates "the change never took" from
+"it took and did not help" without another round of guessing.
+
 **And `innerHeight` is not the screen.** Sixth round, and this is the number
 every earlier round was groping for — the phone finally said it: `Screen 402 ×
 874`, `Window 402 × 812`, app box 812 ending at 812, safe area 62/0/34/0,

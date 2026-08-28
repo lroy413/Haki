@@ -36,6 +36,8 @@ import type { Palette } from '../theme/palettes';
 type Shell = {
   build: string;
   standalone: boolean;
+  /** Which install grammar won: fullscreen, standalone, or a browser tab. */
+  mode: string;
   screen: [number, number];
   inner: [number, number];
   visual: [number, number, number] | null;
@@ -95,6 +97,10 @@ export function ShellReport() {
   const rows: [string, string][] = [
     ['Build', shell.build],
     ['Installed', shell.standalone ? 'yes' : 'no — running in a browser tab'],
+    // Which of iOS's two install grammars is in charge. The bottom-of-screen
+    // bug was the two disagreeing, so after a reinstall this row is the first
+    // thing to read: it says whether the manifest change actually took.
+    ['Display mode', shell.mode],
     ['Screen', `${shell.screen[0]} × ${shell.screen[1]}`],
     ['Window', `${shell.inner[0]} × ${shell.inner[1]}`],
     ['Visible box', shell.visual ? `${shell.visual[0]} × ${shell.visual[1]}` : 'not reported'],
