@@ -1,0 +1,21 @@
+{
+  "name": "Probe D",
+  "short_name": "Probe D",
+  "start_url": "/probe/d/",
+  "scope": "/probe/d/",
+  "display": "fullscreen",
+  "background_color": "#33251c",
+  "theme_color": "#33251c",
+  "icons": [
+    {
+      "src": "/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

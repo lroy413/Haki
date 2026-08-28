@@ -44,6 +44,14 @@ async function resolve(urlPath) {
   try {
     const info = await stat(direct);
     if (info.isFile()) return direct;
+    // A directory serves its own index — the viewport probes live at
+    // /probe/<x>/ as real static pages, and falling through to the SPA
+    // shell here would hand every probe the app instead of the probe.
+    if (info.isDirectory()) {
+      const index = join(direct, 'index.html');
+      const inner = await stat(index);
+      if (inner.isFile()) return index;
+    }
   } catch {
     /* fall through to the SPA shell */
   }

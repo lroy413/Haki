@@ -1,0 +1,21 @@
+{
+  "name": "Probe C",
+  "short_name": "Probe C",
+  "start_url": "/probe/c/",
+  "scope": "/probe/c/",
+  "display": "standalone",
+  "background_color": "#1c3230",
+  "theme_color": "#1c3230",
+  "icons": [
+    {
+      "src": "/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

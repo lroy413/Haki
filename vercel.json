@@ -29,7 +29,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!_expo|assets|favicon.ico|manifest.json|sw.js|apple-touch-icon.png|pwa-.*\\.png).*)",
+      "source": "/((?!_expo|assets|favicon.ico|manifest.json|sw.js|apple-touch-icon.png|pwa-.*\\.png|probe).*)",
       "destination": "/"
     }
   ]

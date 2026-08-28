@@ -228,6 +228,17 @@ describe('the pinned shell', () => {
     expect(report).toMatch(/mode:\s*mode/);
   });
 
+  it('keeps the probes out of the SPA rewrite', () => {
+    // The probe pages under /probe isolate the four install grammars on a
+    // real phone. Vercel rewrites every unlisted path to the app shell, so a
+    // probe that is not carved out serves the app with the probe's URL — an
+    // experiment that silently measures the wrong thing.
+    const vercel = String(
+      readFileSync(join(__dirname, '..', '..', '..', 'vercel.json'), 'utf8'),
+    );
+    expect(vercel, 'the rewrite swallows /probe').toMatch(/\(\?![^)]*probe[^)]*\)/);
+  });
+
   it('asks for a new shell every time the app comes back', () => {
     // The worker is network-first for navigations, which is enough on the
     // web. A standalone app on iOS is resumed for days without navigating

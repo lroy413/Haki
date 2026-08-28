@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover"
+    />
+    <!-- Grammar A: legacy metas only, translucent — the decade-old full-bleed recipe. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Probe A" />
+    <title>Probe A</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        background: #232b33;
+        color: #f2f5f7;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        padding-top: env(safe-area-inset-top);
+      }
+      header {
+        padding: 18px 20px 0;
+        font-size: 15px;
+        letter-spacing: 0.06em;
+        opacity: 0.85;
+      }
+      header b {
+        font-size: 28px;
+        letter-spacing: 0;
+        display: block;
+        margin-bottom: 4px;
+      }
+      main {
+        padding: 14px 20px;
+        font-size: 15px;
+        line-height: 1.9;
+      }
+      main span {
+        opacity: 0.6;
+        display: inline-block;
+        width: 7ch;
+      }
+      #verdict {
+        font-size: 30px;
+        font-weight: 700;
+        margin-top: 8px;
+      }
+      footer {
+        margin-top: auto;
+      }
+      #ask {
+        padding: 0 20px 10px;
+        font-size: 14px;
+        line-height: 1.5;
+        opacity: 0.9;
+      }
+      #bar {
+        height: 16px;
+        background: #ffd84d;
+        color: #1a1a1a;
+        font-size: 10px;
+        font-weight: 700;
+        text-align: center;
+        line-height: 16px;
+        letter-spacing: 0.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <header><b>PROBE A</b>legacy metas &middot; translucent</header>
+    <main id="out">measuring&hellip;</main>
+    <footer>
+      <div id="ask">
+        The gold bar below sits at the bottom of the box iOS gave this page.
+        <b>Does it touch the physical bottom edge of the phone?</b>
+      </div>
+      <div id="bar">VIEWPORT ENDS HERE</div>
+    </footer>
+    <script>
+      function env() {
+        var p = document.createElement('div');
+        p.style.cssText =
+          'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;' +
+          'padding:env(safe-area-inset-top) env(safe-area-inset-right) ' +
+          'env(safe-area-inset-bottom) env(safe-area-inset-left)';
+        document.body.appendChild(p);
+        var s = getComputedStyle(p);
+        var v = [s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft].map(
+          function (x) {
+            return Math.round(parseFloat(x) || 0);
+          },
+        );
+        p.remove();
+        return v;
+      }
+      function mode() {
+        var m = ['fullscreen', 'standalone', 'minimal-ui', 'browser'].filter(function (x) {
+          return window.matchMedia('(display-mode: ' + x + ')').matches;
+        });
+        return m.length ? m.join('+') : 'none';
+      }
+      function draw() {
+        var e = env();
+        var band = Math.max(0, (screen.height || 0) - window.innerHeight);
+        document.getElementById('out').innerHTML =
+          '<div><span>screen</span>' +
+          screen.width +
+          ' \u00d7 ' +
+          screen.height +
+          '</div>' +
+          '<div><span>window</span>' +
+          window.innerWidth +
+          ' \u00d7 ' +
+          window.innerHeight +
+          '</div>' +
+          '<div><span>mode</span>' +
+          mode() +
+          '</div>' +
+          '<div><span>legacy</span>' +
+          (window.navigator.standalone === true) +
+          '</div>' +
+          '<div><span>env</span>' +
+          e.join(' / ') +
+          '</div>' +
+          '<div><span>band</span>' +
+          band +
+          '</div>' +
+          '<div id="verdict">' +
+          (band === 0 ? 'FULL HEIGHT' : 'SHORT by ' + band) +
+          '</div>';
+      }
+      window.addEventListener('resize', draw);
+      draw();
+      setTimeout(draw, 400);
+      setTimeout(draw, 1500);
+    </script>
+  </body>
+</html>
