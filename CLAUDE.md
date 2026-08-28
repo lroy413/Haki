@@ -55,12 +55,18 @@ landed as one. Three taps to check a box, none of them missed.
 - **Never read-modify-write from a row the screen is holding.** Pass the value
   you want (`onToggle(next)`), not "flip whatever is there" — two quick taps
   both read the stale row and both write the same thing.
-- **A Save closes its form in the same frame as the tap**, with a ref held
-  against re-entry until the write lands — a ref, because state is exactly
-  what is too slow here. The road form closed only after the insert and the
-  reload came back down the single sqlite channel; the button read as dead,
-  a reasonable second tap queued a second insert, and one pillar arrived
-  five times. See `saveRoad` in `app/(tabs)/conquerors.tsx`.
+- **A Save closes its form in the same frame as the tap**, with
+  `useSingleFlight` (`src/state/useSingleFlight.ts`) held against re-entry
+  until the write lands — a ref, because state is exactly what is too slow
+  here. The road form closed only after the insert and the reload came back
+  down the single sqlite channel; the button read as dead, a reasonable
+  second tap queued a second insert, and one pillar arrived five times. The
+  synchronous acknowledgement goes first, inside the flight, before the
+  first await. Every form and stepper in the app runs through this now;
+  a new one that does not is a regression.
+- **`Toggle` is optimistic by construction** — it shows the tapped position
+  immediately and reconciles when the stored value comes back, so no screen
+  can reintroduce the stuck-switch feel by forgetting to.
 - **44pt is the floor for anything you tap.** A 26pt box with `hitSlop={8}`
   comes to 42, which is under it. Prefer making the whole row the target over
   growing the hit slop.

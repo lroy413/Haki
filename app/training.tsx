@@ -5,6 +5,7 @@ import { setTraining } from '../src/db/settings';
 import { Field } from '../src/components/Field';
 import { SettingsPage } from '../src/components/SettingsPage';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
@@ -31,23 +32,26 @@ export default function TrainingScreen() {
     };
   }
 
+  const committing = useSingleFlight();
   async function saveTraining() {
     const parsedTarget = Number.parseInt(weeklyTarget, 10);
     const parsedGap = Number.parseInt(gapDays, 10);
 
-    await setTraining(db, {
-      weeklyTarget:
-        Number.isFinite(parsedTarget) && parsedTarget > 0
-          ? parsedTarget
-          : settings.training.weeklyTarget,
-      gapDaysForReturn:
-        Number.isFinite(parsedGap) && parsedGap > 0
-          ? parsedGap
-          : settings.training.gapDaysForReturn,
+    await committing(async () => {
+      await setTraining(db, {
+        weeklyTarget:
+          Number.isFinite(parsedTarget) && parsedTarget > 0
+            ? parsedTarget
+            : settings.training.weeklyTarget,
+        gapDaysForReturn:
+          Number.isFinite(parsedGap) && parsedGap > 0
+            ? parsedGap
+            : settings.training.gapDaysForReturn,
+      });
+      await refreshSettings();
+      await refresh();
+      setSaved(true);
     });
-    await refreshSettings();
-    await refresh();
-    setSaved(true);
   }
 
   return (

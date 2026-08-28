@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useStore } from '../src/db/client';
@@ -6,6 +6,7 @@ import { setCrew } from '../src/db/settings';
 import { CREW_ORDER, crewFor, type CrewName } from '../src/domain/crew';
 import { SettingsPage } from '../src/components/SettingsPage';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
@@ -23,11 +24,23 @@ export default function CrewScreen() {
   const { t, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
+  // The chosen flag hoists in the same frame as the tap; the stored value
+  // catches up through the provider and reconciles. Without this the row
+  // sat unselected through the settings write and read as a missed tap.
+  const [chosen, setChosen] = useState<CrewName>(settings.crew);
+  useEffect(() => {
+    setChosen(settings.crew);
+  }, [settings.crew]);
+
+  const committing = useSingleFlight();
   async function chooseCrew(next: CrewName) {
-    if (next === settings.crew) return;
+    if (next === chosen) return;
+    setChosen(next);
     void Haptics.selectionAsync();
-    await setCrew(db, next);
-    await refreshSettings();
+    await committing(async () => {
+      await setCrew(db, next);
+      await refreshSettings();
+    });
   }
 
   return (
@@ -36,7 +49,7 @@ export default function CrewScreen() {
       <View style={styles.crewRow}>
         {CREW_ORDER.map((name) => {
           const option = crewFor(name);
-          const on = settings.crew === name;
+          const on = chosen === name;
           return (
             <Pressable
               key={name}

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../src/db/client';
 import { setDayStartHour } from '../src/db/settings';
@@ -22,8 +22,18 @@ export default function DaybreakScreen() {
   const { palette, refresh } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
+  // The displayed hour is local and moves with every tap. It used to be
+  // computed from `settings`, which lags a write by a full reload — so two
+  // quick taps both read the old hour and the second one was lost. The
+  // stored value reconciles it when it lands.
+  const [hour, setHour] = useState(settings.dayStartHour);
+  useEffect(() => {
+    setHour(settings.dayStartHour);
+  }, [settings.dayStartHour]);
+
   async function shiftDayStart(delta: number) {
-    const next = (settings.dayStartHour + delta + 24) % 24;
+    const next = (hour + delta + 24) % 24;
+    setHour(next);
     await setDayStartHour(db, next);
     await refreshSettings();
     // What day it is has just changed, so everything derived from it is stale.
@@ -45,7 +55,7 @@ export default function DaybreakScreen() {
         >
           <Text style={styles.stepText}>−</Text>
         </Pressable>
-        <Text style={styles.dayStart}>{describeDayStart(settings.dayStartHour)}</Text>
+        <Text style={styles.dayStart}>{describeDayStart(hour)}</Text>
         <Pressable
           onPress={() => void shiftDayStart(1)}
           accessibilityRole="button"

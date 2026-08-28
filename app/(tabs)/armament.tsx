@@ -14,6 +14,7 @@ import * as Haptics from 'expo-haptics';
 import { play } from '../../src/sound';
 import { Emission } from '../../src/components/Emission';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
+import { useSingleFlight } from '../../src/state/useSingleFlight';
 import { fireImpact } from '../../src/impact';
 import { useStore } from '../../src/db/client';
 import {
@@ -121,17 +122,24 @@ export default function ArmamentScreen() {
     }, [reload]),
   );
 
+  const committing = useSingleFlight();
   async function add(committedFor: string | null) {
     const name = title.trim();
     if (!name) return;
-    void Haptics.selectionAsync();
-    // The watch travels with the task even into the backlog: it says when in
-    // a day the thing belongs, and that stays true whichever day it lands.
-    await addTask(db, name, minutes, committedFor, { watch });
-    setTitle('');
-    setMinutes(DEFAULT_TASK_MINUTES);
-    setWatch(null);
-    await reload();
+    await committing(async () => {
+      // The field empties in the same frame as the tap — the emptying is
+      // the acknowledgement — and the flight guard holds off a second tap
+      // while the write runs down the single sqlite channel.
+      setTitle('');
+      setMinutes(DEFAULT_TASK_MINUTES);
+      setWatch(null);
+      void Haptics.selectionAsync();
+      // The watch travels with the task even into the backlog: it says when
+      // in a day the thing belongs, and that stays true whichever day it
+      // lands.
+      await addTask(db, name, minutes, committedFor, { watch });
+      await reload();
+    });
   }
 
   /**
@@ -148,6 +156,12 @@ export default function ArmamentScreen() {
   }
 
   async function moveTo(taskItem: Task, day: string | null) {
+    // The row moves lists in the same frame as the tap; the reload then
+    // agrees with what the screen already showed. Same shape as TaskRow's
+    // checkbox, applied to the list the row sits in.
+    setTasks((prev) =>
+      prev.map((item) => (item.id === taskItem.id ? { ...item, committedFor: day } : item)),
+    );
     await commitTask(db, taskItem.id, day);
     await reload();
   }
@@ -159,6 +173,7 @@ export default function ArmamentScreen() {
   }
 
   async function remove(taskItem: Task) {
+    setTasks((prev) => prev.filter((item) => item.id !== taskItem.id));
     await deleteTask(db, taskItem.id);
     await reload();
   }

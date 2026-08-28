@@ -25,6 +25,7 @@ import {
 } from '../src/domain/rhythm';
 import { DEFAULT_TASK_MINUTES, formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { underCrew } from '../src/theme/palettes';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { usableBottom } from '../src/theme/viewport';
@@ -88,14 +89,19 @@ export default function RhythmsScreen() {
   const live = rhythms.filter((r) => !r.retired);
   const stopped = rhythms.filter((r) => r.retired);
 
+  const committing = useSingleFlight();
   async function save() {
     if (!draft || !isPlayable(draft)) return;
-    if (editing === null) await addRhythm(db, draft);
-    else await updateRhythm(db, editing, draft);
-    setDraft(null);
-    setEditing(null);
-    await load();
-    await refresh();
+    const value = draft;
+    const target = editing;
+    await committing(async () => {
+      setDraft(null);
+      setEditing(null);
+      if (target === null) await addRhythm(db, value);
+      else await updateRhythm(db, target, value);
+      await load();
+      await refresh();
+    });
   }
 
   function edit(r: Rhythm) {

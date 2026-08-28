@@ -27,6 +27,7 @@ import {
 import { stateMessage, stateName } from '../src/domain/observation';
 import { SectionLabel } from '../src/components/SectionLabel';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
@@ -139,13 +140,19 @@ export default function SitScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.begin, session, outcome]);
 
+  const starting = useSingleFlight();
   async function begin(depth: PracticeDepth) {
-    void Haptics.selectionAsync();
-    const started = await startSit(db, depth);
-    setRowId(started.id);
-    setSession(started.session);
-    setNow(Date.now());
-    await refresh();
+    // Two quick taps on a depth used to start two sits — the second row
+    // orphaned, never finished, and counted nowhere. The haptic answers the
+    // finger; the guard holds the door.
+    await starting(async () => {
+      void Haptics.selectionAsync();
+      const started = await startSit(db, depth);
+      setRowId(started.id);
+      setSession(started.session);
+      setNow(Date.now());
+      await refresh();
+    });
   }
 
   /* ------------------------------------------------------------- finished */

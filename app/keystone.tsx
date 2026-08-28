@@ -5,6 +5,7 @@ import { setKeystone } from '../src/db/settings';
 import { Field } from '../src/components/Field';
 import { SettingsPage } from '../src/components/SettingsPage';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
@@ -34,28 +35,33 @@ export default function KeystoneScreen() {
     };
   }
 
+  const committing = useSingleFlight();
   async function saveKeystone() {
     const parsedTarget = Number.parseFloat(target.replace(',', '.'));
     const parsedThreshold = Number.parseFloat(threshold.replace(',', '.'));
     const parsedEscalate = Number.parseInt(escalate, 10);
 
-    await setKeystone(db, {
-      targetHours: Number.isFinite(parsedTarget) ? parsedTarget : settings.keystone.targetHours,
-      thresholdHours: Number.isFinite(parsedThreshold)
-        ? parsedThreshold
-        : settings.keystone.thresholdHours,
-      escalateAfterNights:
-        Number.isFinite(parsedEscalate) && parsedEscalate > 0
-          ? parsedEscalate
-          : settings.keystone.escalateAfterNights,
-      downstreamNames: downstream
-        .split(',')
-        .map((n) => n.trim())
-        .filter(Boolean),
+    await committing(async () => {
+      await setKeystone(db, {
+        targetHours: Number.isFinite(parsedTarget)
+          ? parsedTarget
+          : settings.keystone.targetHours,
+        thresholdHours: Number.isFinite(parsedThreshold)
+          ? parsedThreshold
+          : settings.keystone.thresholdHours,
+        escalateAfterNights:
+          Number.isFinite(parsedEscalate) && parsedEscalate > 0
+            ? parsedEscalate
+            : settings.keystone.escalateAfterNights,
+        downstreamNames: downstream
+          .split(',')
+          .map((n) => n.trim())
+          .filter(Boolean),
+      });
+      await refreshSettings();
+      await refresh();
+      setSaved(true);
     });
-    await refreshSettings();
-    await refresh();
-    setSaved(true);
   }
 
   return (
