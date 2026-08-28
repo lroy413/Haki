@@ -1,4 +1,5 @@
 import { useHaki } from '../../src/state/HakiProvider';
+import { useSingleFlight } from '../../src/state/useSingleFlight';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
@@ -135,19 +136,22 @@ export default function EntryScreen() {
     ]);
   }
 
+  const closing = useSingleFlight();
   async function done() {
-    if (timer.current) clearTimeout(timer.current);
+    await closing(async () => {
+      if (timer.current) clearTimeout(timer.current);
 
-    // An entry you opened and left blank is not worth a row.
-    if (rowId.current == null && !body.trim()) {
+      // An entry you opened and left blank is not worth a row.
+      if (rowId.current == null && !body.trim()) {
+        router.back();
+        return;
+      }
+
+      const rid = await ensureRow();
+      if (rid == null) return; // error is on screen; do not lose the text
+      await updateEntry(db, rid, body);
       router.back();
-      return;
-    }
-
-    const rid = await ensureRow();
-    if (rid == null) return; // error is on screen; do not lose the text
-    await updateEntry(db, rid, body);
-    router.back();
+    });
   }
 
   return (

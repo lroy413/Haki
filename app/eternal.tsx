@@ -17,6 +17,7 @@ import { todayKey } from '../src/domain/date';
 import { SectionLabel } from '../src/components/SectionLabel';
 import { Rise } from '../src/components/Rise';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { lit, press, row } from '../src/theme/surfaces';
 import { underCrew } from '../src/theme/palettes';
@@ -62,21 +63,29 @@ export default function EternalScreen() {
   // free, because a blank Eternal Pose helps nobody.
   const ready = draft.trim().length > 0 && (!held || why.trim().length > 0);
 
+  const committing = useSingleFlight();
   async function commitTake() {
     if (!ready) return;
-    await takeBearing(db, draft, why);
-    setDraft('');
-    setWhy('');
-    setMode('idle');
-    await load();
+    const text = draft;
+    const reason = why;
+    await committing(async () => {
+      setDraft('');
+      setWhy('');
+      setMode('idle');
+      await takeBearing(db, text, reason);
+      await load();
+    });
   }
 
   async function commitReword() {
-    if (!draft.trim()) return;
-    await rewordBearing(db, draft);
-    setDraft('');
-    setMode('idle');
-    await load();
+    const text = draft.trim();
+    if (!text) return;
+    await committing(async () => {
+      setDraft('');
+      setMode('idle');
+      await rewordBearing(db, text);
+      await load();
+    });
   }
 
   function begin(next: 'taking' | 'rewording') {

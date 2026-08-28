@@ -12,6 +12,7 @@ import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
 import { setTaskDone } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
+import { useSingleFlight } from '../../src/state/useSingleFlight';
 import { underCrew } from '../../src/theme/palettes';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { press, row } from '../../src/theme/surfaces';
@@ -21,6 +22,7 @@ export default function Home() {
   const { palette, crew } = useHaki();
 
   const styles = useMemo(() => makeStyles(palette), [palette]);
+  const striking = useSingleFlight();
   const pad = useTabInsets();
   const router = useRouter();
   const { db } = useStore();
@@ -99,10 +101,13 @@ export default function Home() {
         emptyLabel={t.nextStrikeEmpty}
         onOpenList={() => router.push('/armament')}
         onDone={(task) => {
-          void (async () => {
+          // The card's own sound, impact and haptic land with the tap; this
+          // guard only keeps a second tap from queueing a second write while
+          // the first is still in the channel.
+          void striking(async () => {
             await setTaskDone(db, task.id, true);
             await refresh();
-          })();
+          });
         }}
       />
 

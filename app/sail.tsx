@@ -40,6 +40,7 @@ import { poseLine, type EternalPose } from '../src/domain/eternal';
 import { addDays, todayKey } from '../src/domain/date';
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { usableBottom } from '../src/theme/viewport';
 import { press } from '../src/theme/surfaces';
@@ -142,11 +143,16 @@ export default function SailScreen() {
     }, [load]),
   );
 
+  const committing = useSingleFlight();
   async function save() {
-    await setSail(db, heading, note || null);
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setDone(true);
-    await load();
+    await committing(async () => {
+      // The ritual answers the hand that finished it: the acknowledgement
+      // lands with the tap, and the write follows down the slow channel.
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setDone(true);
+      await setSail(db, heading, note || null);
+      await load();
+    });
   }
 
   if (!week || !pose) return <View style={styles.screen} />;

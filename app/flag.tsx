@@ -15,6 +15,7 @@ import { useStore } from '../src/db/client';
 import { addValue, listFlag, removeValue, updateValue } from '../src/db/repo';
 import { FLAG_MAX, VALUE_MAX_CHARS, flagRoom, type Value } from '../src/domain/flag';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { SectionLabel } from '../src/components/SectionLabel';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { usableBottom } from '../src/theme/viewport';
@@ -62,19 +63,26 @@ export default function FlagScreen() {
 
   const room = flagRoom(values.length, plainMode);
 
+  const committing = useSingleFlight();
   async function raise() {
-    if (!draft.trim()) return;
-    await addValue(db, draft);
-    setDraft('');
-    setAdding(false);
-    await load();
+    const text = draft.trim();
+    if (!text) return;
+    await committing(async () => {
+      setDraft('');
+      setAdding(false);
+      await addValue(db, text);
+      await load();
+    });
   }
 
   async function save(id: number) {
-    if (!editDraft.trim()) return;
-    await updateValue(db, id, editDraft);
-    setEditing(null);
-    await load();
+    const text = editDraft.trim();
+    if (!text) return;
+    await committing(async () => {
+      setEditing(null);
+      await updateValue(db, id, text);
+      await load();
+    });
   }
 
   return (

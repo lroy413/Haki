@@ -15,6 +15,7 @@ import { useStore } from '../src/db/client';
 import { listCarried, upsertCarried } from '../src/db/repo';
 import type { CarriedRow } from '../src/db/schema';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { radius, space, type } from '../src/theme/tokens';
 import { usableBottom } from '../src/theme/viewport';
 import { press } from '../src/theme/surfaces';
@@ -62,20 +63,24 @@ export default function CarriedScreen() {
     }, [load]),
   );
 
+  const committing = useSingleFlight();
   async function save() {
-    if (!name.trim()) return;
-    await upsertCarried(db, {
+    const person = {
       name: name.trim(),
       relationship: relationship.trim() || null,
       theirDream: theirDream.trim() || null,
       whatICarry: whatICarry.trim() || null,
+    };
+    if (!person.name) return;
+    await committing(async () => {
+      setName('');
+      setRelationship('');
+      setTheirDream('');
+      setWhatICarry('');
+      setAdding(false);
+      await upsertCarried(db, person);
+      await load();
     });
-    setName('');
-    setRelationship('');
-    setTheirDream('');
-    setWhatICarry('');
-    setAdding(false);
-    await load();
   }
 
   return (
