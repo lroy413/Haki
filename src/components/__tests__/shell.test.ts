@@ -144,7 +144,7 @@ describe('the pinned shell', () => {
     // bar can stop reserving a bottom inset whose hazard is outside the box.
     expect(src, 'the shell cannot say what is out of reach').toContain('__HAKI_UNREACHABLE__');
     const band = src.slice(src.indexOf('window.__HAKI_UNREACHABLE__'));
-    expect(band.slice(0, 260)).toMatch(/screenHeight\(\)\s*-\s*window\.innerHeight/);
+    expect(band).toMatch(/screenHeight\(\)\s*-\s*window\.innerHeight/);
     // Orientation is read off the window rather than assumed: iOS has
     // reported screen dimensions in the device's own orientation on some
     // versions and the current one on others.
@@ -198,25 +198,60 @@ describe('the pinned shell', () => {
     );
   });
 
-  it('asks iOS for the whole screen in both grammars', () => {
-    // Seventh round, and the first aimed at the cause. The phone's readout
-    // showed a hybrid no single mode produces: positioned as a full-bleed
-    // translucent app (painting from y = 0, env() reporting 62/34) but sized
-    // as one that starts below the status bar (812 on an 874 screen). iOS
-    // has two install grammars — the W3C manifest and the legacy
-    // apple-mobile-web-app metas — and this app declared both. They must
-    // agree on full-bleed, or one decides position and the other size.
-    expect(src, 'the viewport meta lost viewport-fit=cover').toContain('viewport-fit=cover');
-    expect(src, 'the viewport meta lost height=device-height').toContain(
-      'height=device-height',
+  it('declares exactly one install grammar, and it is the manifest', () => {
+    // Eighth round, and the closing one — decided by the probe rig rather
+    // than by theory. On current iOS every translucent full-bleed install,
+    // including an exact clone of the owner's older apps that still fill
+    // their screens, comes up sixty-two points short at the bottom; the
+    // below-the-bar installs end at the true physical bottom (the probes'
+    // gold bar measured at 858..874 on an 874-point screen). The old recipe
+    // worked on old installs because the geometry is decided at install
+    // time by the iOS version doing the installing.
+    //
+    // So the legacy metas are gone. If either one comes back, the app goes
+    // back to painting a ground it cannot use.
+    expect(src, 'the legacy capable meta is back').not.toContain(
+      'apple-mobile-web-app-capable',
     );
+    expect(src, 'the translucent status-bar meta is back').not.toContain('black-translucent');
+    expect(src, 'the viewport meta lost viewport-fit=cover').toContain('viewport-fit=cover');
     const manifest = JSON.parse(
       String(
         readFileSync(join(__dirname, '..', '..', '..', 'public', 'manifest.json'), 'utf8'),
       ),
     ) as { display?: string };
-    expect(manifest.display, 'the manifest reserves the status bar again').toBe('fullscreen');
-    expect(src, 'the translucent meta is gone').toContain('black-translucent');
+    expect(manifest.display, 'the manifest is not the probe-proven grammar').toBe('standalone');
+  });
+
+  it('keeps the strip behind the clock on the live ground', () => {
+    // Below the bar, iOS paints the status-bar strip with the page's
+    // theme-color. The app's ground is a function of the day, so both the
+    // boot script and the provider keep the meta synced — a constant here
+    // means a black band over paper every morning.
+    expect(src, 'the boot script does not sync theme-color').toMatch(
+      /theme-color[\s\S]{0,200}setAttribute\('content', ground\)/,
+    );
+    const provider = String(
+      readFileSync(
+        join(__dirname, '..', '..', '..', 'src', 'state', 'HakiProvider.tsx'),
+        'utf8',
+      ),
+    );
+    expect(provider, 'the provider does not sync theme-color').toMatch(
+      /theme-color[\s\S]{0,200}setAttribute\('content', palette\.bg\)/,
+    );
+  });
+
+  it('only calls the bottom band unreachable when the viewport is top-anchored', () => {
+    // Painting from y = 0 while sized short strands the bottom — and
+    // env(safe-area-inset-top) is nonzero exactly then. Below the bar the
+    // box ends at the physical bottom and the home indicator is inside it,
+    // so the bottom inset is real again. Dropping it there floats the tab
+    // bar over the indicator.
+    const band = src.slice(src.indexOf('window.__HAKI_UNREACHABLE__'));
+    expect(band.slice(0, 900), 'the band ignores the anchor').toMatch(
+      /if\s*\(top\s*<=\s*0\)\s*return 0;/,
+    );
   });
 
   it('reports which grammar won', () => {

@@ -310,6 +310,12 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return;
     document.documentElement.style.backgroundColor = palette.bg;
     document.body.style.backgroundColor = palette.bg;
+    // The installed app starts below the status bar now, and iOS paints the
+    // strip behind the clock with the page's theme-color — so the strip has
+    // to follow the live ground or paper mornings open under a black band.
+    // The probes proved the strip takes this colour; see tools/pwa-head.mjs.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', palette.bg);
     try {
       localStorage.setItem('haki.ground', palette.bg);
     } catch {

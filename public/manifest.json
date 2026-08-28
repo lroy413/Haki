@@ -4,7 +4,7 @@
   "description": "Track the state of your will.",
   "start_url": "/",
   "scope": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0A0B12",
   "theme_color": "#0A0B12",

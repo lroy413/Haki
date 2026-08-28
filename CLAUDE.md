@@ -137,22 +137,24 @@ through it**, and on a device given its whole screen the band is zero and
 nothing changes. `ShellReport` reports the band beside the verdict rather than
 as a shortfall, because it is not one the app can close.
 
-**iOS has two install grammars, and they must agree.** Seventh round, and the
-first aimed at a cause rather than a symptom — unlocked by one fact from the
-owner: his earlier apps on the same phone fill the screen, so this is not
-"what iOS does". The readout's phenotype is a hybrid no single mode produces:
-the web view is _positioned_ as a full-bleed translucent app (paints from
-y = 0, the clock over the app's own text, `env()` reporting 62/34) but
-_sized_ as one that starts below the status bar (812 on an 874 screen). iOS
-supports the W3C manifest (`display: standalone` **reserves** the status bar)
-and the legacy `apple-mobile-web-app-*` metas (`black-translucent` goes
-**under** it); this app declared both, and one decided position while the
-other decided size. So they are made to agree on full-bleed: the manifest
-says `fullscreen`, and the viewport meta asks for `height=device-height`
-alongside `viewport-fit=cover`. A manifest change is read **at install
-time** — it needs a delete-and-re-add, not a refresh — which is what the
-readout's Display-mode row is for: it separates "the change never took" from
-"it took and did not help" without another round of guessing.
+**The app starts below the status bar, and that is the fix.** Eighth round,
+closed by measurement instead of theory: `/probe` holds seven pages,
+identical except for how each declares itself an app, and the owner installed
+them all. On current iOS **every translucent full-bleed install is short 62
+points at the bottom** — including an exact clone of the owner's older apps
+that still fill their screens, which is how we know the geometry is decided
+at install time by the iOS version doing the installing, and why "my first
+apps never did this" was true and misleading at once. The below-the-bar
+installs (manifest-only `display: standalone`, probe C) **end at the true
+physical bottom**: the probes' gold bar measured at 858–874 on an 874-point
+screen. So Haki declares the manifest alone — no legacy capable meta, no
+translucent status-bar meta, and a test asserts they never come back. iOS
+paints the strip behind the clock with the page's `theme-color`, so the boot
+script and `HakiProvider` keep that meta synced to the live ground — a
+constant there is a black band over paper every morning. And
+`__HAKI_UNREACHABLE__` reports a stranded bottom **only when the viewport is
+top-anchored** (`env(safe-area-inset-top) > 0`): below the bar the home
+indicator is back inside the box and the bottom inset is real again.
 
 **And `innerHeight` is not the screen.** Sixth round, and this is the number
 every earlier round was groping for — the phone finally said it: `Screen 402 ×
