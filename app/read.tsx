@@ -14,6 +14,7 @@ import { Dial } from '../src/components/Dial';
 import { useStore } from '../src/db/client';
 import { recentSleep, saveRead, saveSleep } from '../src/db/repo';
 import { play } from '../src/sound';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { useHaki } from '../src/state/HakiProvider';
 import { todayKey } from '../src/domain/date';
 import { WEATHER_WORDS } from '../src/domain/weather';
@@ -39,7 +40,7 @@ export default function DailyReadScreen() {
   const [tension, setTension] = useState<number | null>(read?.tension ?? null);
   const [sleep, setSleep] = useState('');
   const [weather, setWeather] = useState<string | null>(read?.weather ?? null);
-  const [saving, setSaving] = useState(false);
+  const committing = useSingleFlight();
 
   useEffect(() => {
     void (async () => {
@@ -52,23 +53,20 @@ export default function DailyReadScreen() {
   const complete = remaining === 0;
 
   async function save() {
-    if (saving) return;
     if (energy === null || mood === null || clarity === null || tension === null) return;
-    setSaving(true);
-    try {
-      await saveRead(db, { energy, mood, clarity, tension }, todayKey(), weather);
+    await committing(async () => {
+      // The screen answers the finger: sound and dismissal happen in this
+      // frame, and the rows land behind the closed door.
+      play('observationRead');
+      router.back();
 
+      await saveRead(db, { energy, mood, clarity, tension }, todayKey(), weather);
       const hours = Number.parseFloat(sleep.replace(',', '.'));
       if (Number.isFinite(hours) && hours >= 0 && hours <= 24) {
         await saveSleep(db, hours);
       }
-
-      play('observationRead');
       await refresh();
-      router.back();
-    } finally {
-      setSaving(false);
-    }
+    });
   }
 
   return (
@@ -143,12 +141,12 @@ export default function DailyReadScreen() {
 
         <Pressable
           onPress={save}
-          disabled={!complete || saving}
+          disabled={!complete}
           accessibilityRole="button"
           accessibilityLabel={complete ? 'Save the read' : `${remaining} still to set`}
           style={({ pressed }) => [
             styles.save,
-            (!complete || saving) && styles.saveDisabled,
+            !complete && styles.saveDisabled,
             pressed && styles.pressed,
           ]}
         >

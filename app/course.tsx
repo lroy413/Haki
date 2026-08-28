@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useStore } from '../src/db/client';
 import { setCourse, upcomingCourses } from '../src/db/repo';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { useHaki } from '../src/state/HakiProvider';
 import { COURSE_PROMPT, MAX_HEADING, courseFor, normaliseHeading } from '../src/domain/course';
 import { addDays, todayKey } from '../src/domain/date';
@@ -42,8 +43,8 @@ export default function CourseScreen() {
 
   const [heading, setHeading] = useState('');
   const [tomorrowHeading, setTomorrowHeading] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const committing = useSingleFlight();
 
   const load = useCallback(async () => {
     const courses = await upcomingCourses(db, today);
@@ -57,16 +58,15 @@ export default function CourseScreen() {
   }, [load]);
 
   async function save(day: string) {
-    if (saving) return;
-    setSaving(true);
-    try {
+    const value = heading;
+    await committing(async () => {
+      // The screen answers the finger: the haptic lands and the sheet
+      // closes in this frame; the row lands behind the closed door.
       void Haptics.selectionAsync();
-      await setCourse(db, day, heading);
-      await refresh();
       router.back();
-    } finally {
-      setSaving(false);
-    }
+      await setCourse(db, day, value);
+      await refresh();
+    });
   }
 
   const clearing = normaliseHeading(heading).length === 0;
@@ -100,7 +100,6 @@ export default function CourseScreen() {
         <View style={styles.row}>
           <Pressable
             onPress={() => void save(today)}
-            disabled={saving}
             accessibilityRole="button"
             style={({ pressed }) => [styles.primary, pressed && styles.pressed]}
           >
@@ -108,7 +107,6 @@ export default function CourseScreen() {
           </Pressable>
           <Pressable
             onPress={() => void save(tomorrow)}
-            disabled={saving}
             accessibilityRole="button"
             style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
           >
