@@ -38,6 +38,8 @@ type Shell = {
   standalone: boolean;
   /** Which install grammar won: fullscreen, standalone, or a browser tab. */
   mode: string;
+  /** The theme-color exactly as this launch's HTML was served. */
+  strip: string;
   screen: [number, number];
   inner: [number, number];
   visual: [number, number, number] | null;
@@ -101,6 +103,11 @@ export function ShellReport() {
     // bug was the two disagreeing, so after a reinstall this row is the first
     // thing to read: it says whether the manifest change actually took.
     ['Display mode', shell.mode],
+    // The colour the strip SHOULD be, as served. If this shows the live
+    // ground while the visible strip does not, iOS is reading the manifest
+    // snapshot; if it shows the baked constant, the worker's paint has not
+    // reached this launch yet. One row, two mechanisms separated.
+    ['Strip served', shell.strip || 'not captured'],
     ['Screen', `${shell.screen[0]} × ${shell.screen[1]}`],
     ['Window', `${shell.inner[0]} × ${shell.inner[1]}`],
     ['Visible box', shell.visual ? `${shell.visual[0]} × ${shell.visual[1]}` : 'not reported'],

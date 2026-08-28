@@ -170,6 +170,32 @@ describe('the pinned shell', () => {
     );
   });
 
+  it('never puts the pan back while the keyboard is up', () => {
+    // The pan-back exists for AFTER the keyboard has gone. While an input is
+    // focused the pan is iOS bringing the field into view, and scrolling to
+    // zero fights it — tap a field low on the page and the whole app
+    // snapped back to the top. The resize net had this guard from birth;
+    // the older pan-back branch shipped without it.
+    const at = src.indexOf('function level(');
+    expect(at).toBeGreaterThan(-1);
+    expect(src.slice(at, at + 600), 'level() runs while typing').toMatch(
+      /if \(typing\(\)\) return;/,
+    );
+  });
+
+  it('captures the strip as served, before any script touches it', () => {
+    // The one row that separates the two remaining strip mechanisms: served
+    // ground but wrong visible strip = iOS reads the manifest snapshot;
+    // served constant = the worker's paint has not reached this launch.
+    const cap = src.indexOf('__HAKI_STRIP__');
+    const rewrite = src.indexOf("localStorage.getItem('haki.ground')");
+    expect(cap).toBeGreaterThan(-1);
+    expect(cap, 'the capture runs after the rewrite and lies').toBeLessThan(rewrite);
+    expect(src, 'the readout does not report the served strip').toMatch(
+      /strip:\s*window\.__HAKI_STRIP__/,
+    );
+  });
+
   it('keeps both branches off the keyboard', () => {
     // While the keyboard is up the viewport is *supposed* to move, and
     // correcting for it would squash the layout under every keystroke.

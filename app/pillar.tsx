@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -138,12 +138,21 @@ export default function PillarScreen() {
     }, [load]),
   );
 
+  const dropping = useRef(false);
   async function drop() {
     const value = parseSounding(reading);
-    if (value === null || !open) return;
-    await takeSounding(db, open.key, value);
+    if (value === null || !open || dropping.current) return;
+    // Clear in the same frame as the tap — a field that empties is the
+    // acknowledgement — and hold the ref so a second tap cannot land the
+    // same reading twice while the first write is still in flight.
+    dropping.current = true;
     setReading('');
-    await load();
+    try {
+      await takeSounding(db, open.key, value);
+      await load();
+    } finally {
+      dropping.current = false;
+    }
   }
 
   async function saveUnit() {

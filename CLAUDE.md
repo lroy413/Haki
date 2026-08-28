@@ -55,6 +55,12 @@ landed as one. Three taps to check a box, none of them missed.
 - **Never read-modify-write from a row the screen is holding.** Pass the value
   you want (`onToggle(next)`), not "flip whatever is there" — two quick taps
   both read the stale row and both write the same thing.
+- **A Save closes its form in the same frame as the tap**, with a ref held
+  against re-entry until the write lands — a ref, because state is exactly
+  what is too slow here. The road form closed only after the insert and the
+  reload came back down the single sqlite channel; the button read as dead,
+  a reasonable second tap queued a second insert, and one pillar arrived
+  five times. See `saveRoad` in `app/(tabs)/conquerors.tsx`.
 - **44pt is the floor for anything you tap.** A 26pt box with `hitSlop={8}`
   comes to 42, which is under it. Prefer making the whole row the target over
   growing the hit slop.
@@ -99,7 +105,10 @@ rule. The bug then came back a third way that pinning cannot close: iOS
 standalone pans the layout viewport up for the keyboard and does not always
 pan it back, leaving the whole app — pinned root included — stranded above
 the bottom of the phone. The shell now scrolls any leftover pan to zero on
-`focusout` and visual-viewport resize (same file). And a fourth form the pin
+`focusout` and visual-viewport resize (same file) — and **never while an
+input is focused**: while typing, the pan is iOS bringing the field into
+view, and putting it back mid-keyboard snapped the app to the top of the
+page on every field tap. And a fourth form the pin
 cannot see at all: in a Safari _tab_ the toolbars overlay the layout viewport
 instead of shrinking it, so a correctly pinned app runs its last sixty points
 underneath them. The shell keeps a safety net for that — but **the net never
