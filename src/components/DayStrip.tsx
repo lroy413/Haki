@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path } from 'react-native-svg';
 import { useHaki } from '../state/HakiProvider';
 import { BANDS, manifest, sunAt, watchAt, watchLine, watchName } from '../domain/watches';
+import { bellAt, bellsInWatch, clockLabel, inOrder, type Bell } from '../domain/bells';
 import { formatMinutes, type Task } from '../domain/tasks';
 import { press } from '../theme/surfaces';
 import { radius, space, type } from '../theme/tokens';
@@ -28,10 +29,14 @@ import type { Palette } from '../theme/palettes';
  */
 export function DayStrip({
   tasks,
+  bells,
   onOpen,
+  onBells,
 }: {
   tasks: Task[];
+  bells: Bell[];
   onOpen: (watch: string) => void;
+  onBells: () => void;
 }) {
   const { palette, plainMode, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
@@ -78,6 +83,19 @@ export function DayStrip({
               />
             ))}
             <Line x1={0} y1={42} x2={300} y2={42} stroke={palette.line} strokeWidth={1} />
+            {/* The bells, hanging where they actually fall. Drawn under the
+                sun so a bell at noon never eclipses the time. */}
+            {bells.map((b) => {
+              const at = bellAt(b.at);
+              if (at === null) return null;
+              const x = 6 + at * 288;
+              return (
+                <G key={b.id}>
+                  <Line x1={x} y1={26} x2={x} y2={42} stroke={palette.warn} strokeWidth={1.5} />
+                  <Circle cx={x} cy={24} r={3.5} fill={palette.warn} />
+                </G>
+              );
+            })}
             {sun === null ? null : (
               <G>
                 <Circle
@@ -122,9 +140,30 @@ export function DayStrip({
             {cargo.minutes > 0 ? (
               <Text style={styles.bandMinutes}>{formatMinutes(cargo.minutes)}</Text>
             ) : null}
+            {/* A bell is a fixed point, so it is named rather than counted. */}
+            {bellsInWatch(bells, cargo.watch).map((b) => (
+              <Text key={b.id} style={styles.bell} numberOfLines={1}>
+                {clockLabel(b.at)} {b.title}
+              </Text>
+            ))}
           </Pressable>
         ))}
       </View>
+
+      {/* The bells' own door. Present whether or not any are hung, because
+          the day cannot tell the truth about a Tuesday until it knows about
+          the dentist — and there has to be somewhere to say so. */}
+      <Pressable
+        onPress={onBells}
+        accessibilityRole="button"
+        accessibilityLabel={plainMode ? 'Appointments' : 'The bells'}
+        style={({ pressed }) => [styles.hold, pressed && styles.pressed]}
+      >
+        <Text style={styles.holdLabel}>{plainMode ? 'Appointments' : 'The bells'}</Text>
+        <Text style={styles.holdCount}>
+          {bells.length > 0 ? clockLabel(inOrder(bells)[0].at) : '+'}
+        </Text>
+      </Pressable>
 
       {/* The hold. Not a backlog and not a failure to plan — the ordinary
           place for a thing you have not decided the hour of. */}
@@ -169,7 +208,10 @@ const makeStyles = (c: Palette) =>
       gap: 2,
       // A watch is a target you tap, so it carries its own floor.
       minHeight: 62,
-      justifyContent: 'center',
+      // Top-aligned, not centred: three bands carrying different amounts
+      // centre their contents at three different heights, and the names stop
+      // reading as one row.
+      justifyContent: 'flex-start',
     },
     // Where the day currently is. A ground, never a colour that says a watch
     // is behind or ahead of anything.
@@ -178,6 +220,8 @@ const makeStyles = (c: Palette) =>
     bandNameHere: { color: c.ink },
     bandLine: { ...type.small, color: c.inkDim },
     bandMinutes: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    // Lamplight, like every other fixed mark on a chart in this app.
+    bell: { ...type.mono, fontSize: 11, color: c.warn, marginTop: 1 },
 
     hold: {
       flexDirection: 'row',

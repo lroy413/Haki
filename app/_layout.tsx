@@ -91,6 +91,7 @@ function Chrome() {
         {/* 不変 — the one bearing. See app/eternal.tsx. */}
         <Stack.Screen name="eternal" options={{ title: t.eternalTitle }} />
         <Stack.Screen name="carried" options={{ title: t.carriedTitle }} />
+        <Stack.Screen name="bells" options={{ title: t.bellsTitle }} />
         {/* The settings archipelago — six islands off the settings chart,
             each a page. See app/(tabs)/settings.tsx. */}
         <Stack.Screen name="crew" options={{ title: t.crewTitle }} />

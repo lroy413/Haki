@@ -343,6 +343,7 @@ describe('key hygiene', () => {
         rhythmKey: null,
         createdAt: 1,
       },
+      bell: { title: 'Dentist', day: '2026-09-15', at: 900, createdAt: 1 },
       setting: { key: 'ui.plainMode', value: 'false' },
     };
 

@@ -17,10 +17,12 @@ import { asternOn, type Astern } from '../domain/astern';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
 import type { DayRecord } from '../domain/foresight';
+import { MAX_BELL_CHARS, clampClock, type Bell } from '../domain/bells';
 import { NO_ACTS } from '../domain/hardening';
 import { minutesToday as gearMinutes } from '../domain/gears';
 import { minutesToday as sitMinutes } from '../domain/stillness';
 import {
+  bell,
   carried,
   course,
   dailyRead,
@@ -1291,4 +1293,29 @@ export async function latestSoundings(
 export async function setIslandUnit(db: Db, id: number, unit: string | null): Promise<void> {
   const clean = unit === null ? null : normaliseUnit(unit) || null;
   await db.update(poneglyph).set({ unit: clean, updatedAt: now() }).where(eq(poneglyph.id, id));
+}
+
+/* ------------------------------------------------------------------ bells */
+
+/**
+ * The bells on a day, earliest first.
+ *
+ * No done flag to filter on and none coming: a bell that has passed still
+ * belongs to its day. See `domain/bells.ts`.
+ */
+export async function bellsOn(db: Db, day: DayKey = todayKey()): Promise<Bell[]> {
+  const rows = await db.select().from(bell).where(eq(bell.day, day)).orderBy(bell.at);
+  return rows.map((r) => ({ id: r.id, title: r.title, day: r.day, at: r.at }));
+}
+
+/** Hang a bell. The time is clamped onto the clock rather than trusted. */
+export async function addBell(db: Db, title: string, day: DayKey, at: number): Promise<void> {
+  const clean = title.trim().slice(0, MAX_BELL_CHARS);
+  if (clean.length === 0) return;
+  await db.insert(bell).values({ title: clean, day, at: clampClock(at), createdAt: now() });
+}
+
+/** Take one down. There is no other way to end a bell — it is never ticked. */
+export async function removeBell(db: Db, id: number): Promise<void> {
+  await db.delete(bell).where(eq(bell.id, id));
 }

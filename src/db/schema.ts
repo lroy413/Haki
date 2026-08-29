@@ -354,6 +354,25 @@ export const setting = sqliteTable('setting', {
   value: text('value').notNull(),
 });
 
+/**
+ * The Bells. A title, a day and a time on the clock — nothing else.
+ *
+ * No done flag by design: an appointment is not a task, and a bell that has
+ * passed sits astern rather than being missed. See domain/bells.ts.
+ */
+export const bell = sqliteTable(
+  'bell',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    title: text('title').notNull(),
+    day: text('day').notNull(),
+    /** Minutes past midnight, 0..1439. */
+    at: integer('at').notNull(),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('bell_day').on(t.day, t.at)],
+);
+
 export type DailyReadRow = typeof dailyRead.$inferSelect;
 export type SleepRow = typeof sleepLog.$inferSelect;
 export type EntryRow = typeof entry.$inferSelect;
@@ -371,3 +390,4 @@ export type SailingRow = typeof sailing.$inferSelect;
 export type FlagValueRow = typeof flagValue.$inferSelect;
 export type SoundingRow = typeof sounding.$inferSelect;
 export type EternalPoseRow = typeof eternalPose.$inferSelect;
+export type BellRow = typeof bell.$inferSelect;

@@ -146,6 +146,7 @@ export type Strings = {
   watchPrompt: string;
   backlogLabel: string;
   backlogEmpty: string;
+  bellsTitle: string;
   dayStripLabel: string;
   nextStrikeLabel: string;
   nextStrikeEmpty: string;
@@ -352,6 +353,7 @@ const haki: Strings = {
   watchPrompt: 'The watch',
   backlogLabel: 'Waiting',
   backlogEmpty: 'Nothing waiting.',
+  bellsTitle: 'The Bells',
   dayStripLabel: 'The watches',
   nextStrikeLabel: 'Next strike',
   nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
@@ -470,6 +472,7 @@ const plain: Strings = {
   islandPassConfirm: 'Set it aside',
   islandReopen: 'Reopen it',
   islandHistory: 'Done and set aside',
+  bellsTitle: 'Appointments',
   dayStripLabel: 'Today',
   nextStrikeLabel: 'Next up',
   strikeIt: 'Add a task',
