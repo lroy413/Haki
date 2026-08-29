@@ -774,6 +774,85 @@ one way such a picture can actively mislead.
 - Bells are in the backup. A table outside the export is a data-loss trap when
   the app's own promise is that the export is the only way anything moves.
 
+## The Sea Prism Log, and naming what nullifies
+
+`domain/seaPrism.ts` and `app/seaprism.tsx`. The concept doc's biggest hole,
+and the Reserve's missing input: the burn read _output only_, so the gauge
+could explain an empty evening after four hours of deep work and had nothing
+whatever to say about the commoner one — a day you did almost nothing in and
+are flat anyway. There was nowhere to record that something cost you and no way
+for the number to know.
+
+Kairoseki is the right name and the reason is worth being exact about. Sea
+Prism Stone is not evil and it does not make you weak — it **nullifies**, and
+only while you are in contact with it. **Naming something here is not an
+accusation.** A person on this list is not a bad person; a room is not a bad
+room. They are things that, for you, cost something to be near, and every rule
+below exists to hold that distinction — because this is the one module in the
+app whose data is about other people.
+
+- **Nothing is ever counted per stone.** No tally beside a name, no ordering by
+  how often, no "your worst", no "eleven times this month". `task_move` holds
+  the same line for the same reason: the number is derivable and displaying it
+  turns a record into a rap sheet — bad enough pointed at a task, indefensible
+  pointed at a person. The fact that you would have written it yourself does
+  not make it one you should have to look at.
+- **A stone is named today or it is not.** No second tap, no severity dial. A
+  "how bad was it" scale asks you to score your own suffering, and the day's
+  count would quietly become that score. It also makes the chip an honest
+  toggle — the same tap takes it back — which is what let the screen become one
+  list instead of a list of chips above a list of the same names again.
+- **Logging is one tap and there is nothing to write.** This gets opened on the
+  days there is least will available to open it, so it has to be cheaper than
+  not using it. Naming a new stone costs a word and that is the only writing in
+  the feature — the `note` column was cut before it shipped, because an
+  optional field with no cheap way to fill it makes the tap look expensive, and
+  the journal and Day's End already collect the words.
+- **Letting one go keeps every day it had.** `retired_at`, never a delete: the
+  days it was named on are real days that really did cost something. The
+  read-back looks names up in the whole list, retired ones included — there is
+  a test, and it is visible on the screen, which is the point.
+- **A drain spends the Reserve and does not harden the app.** Both halves
+  matter. It spends because the morning's read cannot know about the
+  afternoon — that is the whole term. It does not harden, because hardening
+  reads the day being _used_, and a day whose only entry is two drains is not
+  a day you used. `PER_STONE` is a flag's worth and caps at three: a day you
+  have named four things on is a day you already know about, and a gauge that
+  kept falling would be the app piling on.
+- **It never says what to do about any of it.** `foresight.ts` holds that line
+  against its own statistics; this holds it against your own report. There are
+  tests forbidding "because", "avoid", "toxic" and their neighbours.
+- 見聞色's light, and the door sits on the Observation tab beside the sit and
+  the loose pages — this tab is noticing your own state, and this is the half
+  of it the app could never hear.
+
+## A backup row is its table's row — except once
+
+The import inserts backup rows **straight into Drizzle**, so a backup type is
+not a description of a table, it _is_ the table's insert shape. Two consequences
+that have both drawn blood:
+
+- **Types must match columns**, booleans included — a flag is 0 or 1 here,
+  because that is what the INTEGER column holds.
+- **A child is keyed by its parent's `created_at`, never by a row id.** Ids are
+  autoincrement values reassigned on import, so a child keyed on one arrives
+  pointing at nothing or at somebody else's row. `poneglyph.road_created_at`,
+  `sounding.island_key`, `task.rhythm_key` and `sea_prism_hit.stone_key` all
+  hold the stamp in the column, which is what lets them round-trip untouched.
+
+`task_move` is the exception, and it had never once been driven: the file
+carries `taskCreatedAt` and the column is a NOT NULL `task_id`, so **every
+restore of a backup that had ever recorded a move died on that table** — which,
+on any device that has carried a task, is every backup. On the one screen whose
+whole job is telling you your data is safe, the only thing it said about the
+failure was `[object Object]`, because `e.message` is not reliably a string.
+Both are fixed: `linkMoves` looks the task up by its stamp (and `taskMove` sits
+after `task` in `TABLE_NAMES` so the tasks it looks up are already in), and
+`said()` in `BackupCard` never renders a non-string. The lesson for the next
+table: if the backup row is not the table row, it needs a translation and a
+place in the order — and a round-trip through the real database, not just
+through `parseBackup`.
+
 ## Will Reserve is a level, a burn and a recovery
 
 The concept doc calls this the one idea worth stealing — will modelled as a

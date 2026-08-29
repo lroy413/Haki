@@ -433,6 +433,56 @@ const MIGRATIONS: { version: number; up: string }[] = [
       ALTER TABLE poneglyph ADD COLUMN port_by TEXT;
     `,
   },
+  {
+    version: 17,
+    up: `
+      -- The Sea Prism Log: what takes the will away.
+      --
+      -- Will Reserve had a level, a burn and a recovery, and the burn read
+      -- output only — gear, sessions, struck tasks. So the gauge could
+      -- explain an empty evening after four hours of deep work and had
+      -- nothing at all to say about the far commoner one: a day you did
+      -- almost nothing in and are flat anyway. There was nowhere to record
+      -- that something cost you and no way for the number to know.
+      --
+      -- Two tables, and the split is the feature. Naming is rare and costs a
+      -- word; logging is one tap and costs nothing, because this gets used at
+      -- the moment there is least will available to use it.
+      --
+      -- retired_at rather than a delete: a stone let go keeps every day it
+      -- was ever named on. Nothing anywhere counts those days — see the
+      -- header of domain/seaPrism.ts for why a per-stone tally is the one
+      -- thing this feature must never grow.
+      CREATE TABLE IF NOT EXISTS sea_prism (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kind TEXT NOT NULL,
+        name TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        retired_at INTEGER
+      );
+
+      CREATE INDEX IF NOT EXISTS sea_prism_live ON sea_prism (retired_at);
+
+      -- Linked by the stone's created_at, not its row id: ids are reassigned
+      -- on import, so a child keyed on one arrives pointing at nothing — or,
+      -- worse, at somebody else's stone. Same shape as poneglyph's
+      -- road_created_at and sounding's island_key.
+      -- No note column, and that is the rule rather than an omission: naming
+      -- is one tap and stays one tap. Where a bad afternoon wants words, the
+      -- journal and Day's End are the places that already collect them — and
+      -- an optional field with no cheap way to fill it is a half-feature that
+      -- makes the tap look more expensive than it is.
+      CREATE TABLE IF NOT EXISTS sea_prism_hit (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        stone_key INTEGER NOT NULL,
+        day TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS sea_prism_hit_day ON sea_prism_hit (day);
+      CREATE INDEX IF NOT EXISTS sea_prism_hit_stone ON sea_prism_hit (stone_key);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

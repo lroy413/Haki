@@ -147,6 +147,12 @@ export type Strings = {
   tideDoor: string;
   tideNow: string;
   tidePorts: string;
+  prismTitle: string;
+  prismDoor: string;
+  prismDoorLine: string;
+  prismList: string;
+  prismAstern: string;
+  prismName: string;
   sailCta: string;
   sailWeekLabel: string;
   sailNeedlesLabel: string;
@@ -383,6 +389,12 @@ const haki: Strings = {
   tideDoor: 'The month',
   tideNow: 'Back to this month',
   tidePorts: 'Ports this month',
+  prismTitle: 'The Sea Prism Log',
+  prismDoor: 'Sea Prism',
+  prismDoorLine: 'What takes it out of you',
+  prismList: 'On the list',
+  prismAstern: 'Astern',
+  prismName: 'Name one',
   sailCta: 'Set sail',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'The needles',
@@ -591,6 +603,12 @@ const plain: Strings = {
   tideDoor: 'The month',
   tideNow: 'This month',
   tidePorts: 'Deadlines this month',
+  prismTitle: 'Drains',
+  prismDoor: 'Drains',
+  prismDoorLine: 'What takes it out of you',
+  prismList: 'Your list',
+  prismAstern: 'Earlier',
+  prismName: 'Add one',
   sailCta: 'Start the review',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'Your goals',

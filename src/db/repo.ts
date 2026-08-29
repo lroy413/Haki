@@ -4,6 +4,7 @@ import type { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
 import type { SleepNight } from '../domain/cascade';
+import { isKind, MAX_NAME, type Hit, type Kind, type Stone } from '../domain/seaPrism';
 import type { Session } from '../domain/training';
 import { isWatch, type Task, type Watch } from '../domain/tasks';
 import type { GearName, GearSession } from '../domain/gears';
@@ -46,6 +47,8 @@ import {
   taskMove,
   dayEnd,
   note,
+  seaPrism,
+  seaPrismHit,
   trainingSession,
   type CarriedRow,
   type EntryRow,
@@ -1532,6 +1535,111 @@ export async function earliestAct(db: Db): Promise<DayKey | null> {
   ]);
   const found = days.filter((d): d is string => d !== null && d.length > 0).sort();
   return (found[0] as DayKey) ?? null;
+}
+
+/* ---------------------------------------------------------------- sea prism */
+
+/**
+ * Every stone, retired ones included.
+ *
+ * The log reads back days a since-let-go stone was named on, so the list those
+ * days look their names up in has to still hold it.
+ */
+export async function listStones(db: Db): Promise<Stone[]> {
+  const rows = await db.select().from(seaPrism).orderBy(asc(seaPrism.createdAt));
+  return rows.map(toStone);
+}
+
+const toStone = (row: typeof seaPrism.$inferSelect): Stone => ({
+  id: row.id,
+  kind: isKind(row.kind) ? row.kind : 'aloop',
+  name: row.name,
+  createdAt: row.createdAt,
+  retiredAt: row.retiredAt,
+});
+
+export async function nameStone(db: Db, kind: Kind, name: string): Promise<void> {
+  const trimmed = name.trim().slice(0, MAX_NAME);
+  if (trimmed.length === 0) return;
+  const at = now();
+  await db.insert(seaPrism).values({ kind, name: trimmed, createdAt: at, retiredAt: null });
+}
+
+/**
+ * Off the list, and nothing else.
+ *
+ * Never a delete: the days it was named on are real days that really did cost
+ * something, and destroying them to tidy a list would be the app editing your
+ * own history. `readBack` still finds it by id.
+ */
+export async function letGoStone(db: Db, id: number): Promise<void> {
+  await db.update(seaPrism).set({ retiredAt: now() }).where(eq(seaPrism.id, id));
+}
+
+/** Named again after being let go. The days it kept are still its own. */
+export async function keepStone(db: Db, id: number): Promise<void> {
+  await db.update(seaPrism).set({ retiredAt: null }).where(eq(seaPrism.id, id));
+}
+
+/**
+ * Name a stone today, or take it back. One tap either way.
+ *
+ * Takes the value it should end up at rather than flipping whatever is there —
+ * the house rule about never read-modify-writing from a row the screen is
+ * holding. Two quick taps on the same chip both read the same stale state, and
+ * without this they would both write the same thing.
+ *
+ * Naming is idempotent for the day: a stone is named or it is not, which is
+ * `namedToday`'s rule and the reason the chip can be a toggle at all.
+ */
+export async function setHit(
+  db: Db,
+  stoneKey: number,
+  on: boolean,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  const where = and(eq(seaPrismHit.stoneKey, stoneKey), eq(seaPrismHit.day, day));
+  if (!on) {
+    await db.delete(seaPrismHit).where(where);
+    return;
+  }
+  const already = await db
+    .select({ id: seaPrismHit.id })
+    .from(seaPrismHit)
+    .where(where)
+    .limit(1);
+  if (already.length > 0) return;
+  await db.insert(seaPrismHit).values({ stoneKey, day, createdAt: now() });
+}
+
+export async function hitsBetween(db: Db, from: DayKey, to: DayKey): Promise<Hit[]> {
+  const rows = await db
+    .select()
+    .from(seaPrismHit)
+    .where(and(gte(seaPrismHit.day, from), lte(seaPrismHit.day, to)))
+    .orderBy(desc(seaPrismHit.createdAt));
+  return rows.map((r) => ({
+    id: r.id,
+    stoneKey: r.stoneKey,
+    day: r.day as DayKey,
+    createdAt: r.createdAt,
+  }));
+}
+
+/**
+ * How many stones were named today — the Reserve's drain term, and the one
+ * figure this feature computes.
+ *
+ * It is a count of one day and it accumulates into nothing: no total, no
+ * per-stone tally, no comparison to yesterday. See the header of
+ * `domain/seaPrism.ts`.
+ */
+export async function drainsOn(db: Db, day: DayKey = todayKey()): Promise<number> {
+  const rows = await db
+    .select({ id: seaPrismHit.id })
+    .from(seaPrismHit)
+    .where(eq(seaPrismHit.day, day));
+  return rows.length;
 }
 
 /* --------------------------------------------------------------------- notes */

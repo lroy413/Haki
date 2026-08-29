@@ -121,6 +121,30 @@ export type TaskMoveBackup = {
   createdAt: number;
 };
 
+/**
+ * A named stone. The kind is a string here rather than a union, because a
+ * backup is data arriving from outside and a widened union in a later version
+ * must not make an older file unreadable — `isKind` decides on the way in.
+ */
+export type SeaPrismBackup = {
+  kind: string;
+  name: string;
+  createdAt: number;
+  retiredAt: number | null;
+};
+
+/**
+ * A day a stone was named on, keyed by the stone's `createdAt` rather than its
+ * row id — ids are not carried across a backup at all, so a child keyed on one
+ * would arrive pointing at nothing. The column holds the same value, so this
+ * row is the table's row.
+ */
+export type SeaPrismHitBackup = {
+  stoneKey: number;
+  day: string;
+  createdAt: number;
+};
+
 export type NoteBackup = {
   title: string;
   body: string;
@@ -239,12 +263,23 @@ export type BackupTables = {
   flagValue: FlagValueBackup[];
   eternalPose: EternalPoseBackup[];
   bell: BellBackup[];
-  taskMove: TaskMoveBackup[];
   dayEnd: DayEndBackup[];
   note: NoteBackup[];
+  seaPrism: SeaPrismBackup[];
+  seaPrismHit: SeaPrismHitBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
+  /**
+   * After `task`, and that is load-bearing.
+   *
+   * `TABLE_NAMES` is this object's key order and the import walks it in that
+   * order. A move is the one row in the file whose shape is not its table's —
+   * it carries the task's stamp where the column holds the task's id — so the
+   * import has to look the task up, and it cannot look up a task it has not
+   * inserted yet. See `importBackup`.
+   */
+  taskMove: TaskMoveBackup[];
   setting: SettingBackup[];
 };
 
@@ -271,12 +306,15 @@ export const EMPTY_TABLES: BackupTables = {
   flagValue: [],
   eternalPose: [],
   bell: [],
-  taskMove: [],
   dayEnd: [],
   note: [],
+  seaPrism: [],
+  seaPrismHit: [],
   sounding: [],
   carried: [],
   task: [],
+  // After `task` — the order is the import's order. See the type above.
+  taskMove: [],
   setting: [],
 };
 
@@ -395,6 +433,12 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     str(r.madeOn) &&
     str(r.reason) &&
     num(r.createdAt),
+  // The kind is checked as a string, not as the union. A file written by a
+  // later version with a fifth kind in it must still import — `isKind` decides
+  // on the way out of the database, and an unknown one lands as a loop rather
+  // than throwing away somebody's row.
+  seaPrism: (r) => str(r.kind) && str(r.name) && num(r.createdAt) && nullableNum(r.retiredAt),
+  seaPrismHit: (r) => num(r.stoneKey) && str(r.day) && num(r.createdAt),
   // The line is never empty — an emptied field deletes the row rather than
   // storing a blank, so a blank one arriving in an import is not a day
   // somebody said nothing about, it is a malformed row.
@@ -552,6 +596,11 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   dayEnd: (r) => String(r.day),
   // Two notes written in the same millisecond would be the same note.
   note: (r) => String(r.createdAt),
+  // A stone is its name under its kind — the same person named twice is one
+  // stone, however many devices the file has been through.
+  seaPrism: (r) => `${r.kind} ${r.name}`,
+  // One tap per stone per moment.
+  seaPrismHit: (r) => `${r.stoneKey} ${r.createdAt}`,
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

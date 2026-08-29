@@ -99,6 +99,8 @@ function Chrome() {
         <Stack.Screen name="dayend" options={{ title: t.dayEndTitle }} />
         {/* Loose pages — writing that is not about a day. See app/notes.tsx. */}
         <Stack.Screen name="notes" options={{ title: t.notesTitle }} />
+        {/* 海楼石 — what takes the will away. See app/seaprism.tsx. */}
+        <Stack.Screen name="seaprism" options={{ title: t.prismTitle }} />
         <Stack.Screen name="note/[id]" options={{ title: '' }} />
         {/* The settings archipelago — six islands off the settings chart,
             each a page. See app/(tabs)/settings.tsx. */}
