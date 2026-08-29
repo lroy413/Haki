@@ -24,9 +24,13 @@ import type { Acts, HardeningLevel } from './hardening';
  * 2. **Nothing is counted or ranked.** No "2 of 6", no percentage, no bar, no
  *    order of importance. Hardening's own rule — never a score — applies to
  *    the thing that displays it, or displaying it undoes it.
- * 3. **Black is an end, not a target.** At the top level the card says there
- *    is nothing left to darken, because the failure mode of making a mechanic
- *    visible is that someone starts farming it.
+ * 3. **Black is an end for the palette, not a verdict on the day.** At the
+ *    top level the card says the app goes no darker, because the failure mode
+ *    of making a mechanic visible is that someone starts farming it. It used
+ *    to add "the rest of the day is yours", which was the card telling you
+ *    your day was finished while listing, directly underneath, the things
+ *    still on offer. Hardening measures the day being *used*; it has never
+ *    known what is left to do, and it must not imply that it does.
  */
 
 export type PracticeKey = 'course' | 'read' | 'stillness' | 'logbook' | 'strike' | 'gear';
@@ -142,6 +146,6 @@ export function dayMessage(level: HardeningLevel): string {
     'Nothing has hardened it yet. Any of these does.',
     'Hardened. It goes darker as more of the day goes in.',
     'Set. Darker still with more in it.',
-    'Black. Nothing left to darken — the rest of the day is yours.',
+    'Black. The app goes no darker — which is not the same as the day being done.',
   ][level];
 }

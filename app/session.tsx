@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { Dial } from '../src/components/Dial';
 import { useStore } from '../src/db/client';
 import { allSessions, logSession } from '../src/db/repo';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { useHaki } from '../src/state/HakiProvider';
 import { underCrew } from '../src/theme/palettes';
 import { gapClosedBy, returnMessage } from '../src/domain/training';
@@ -34,7 +35,7 @@ const QUICK_KINDS = ['Push', 'Pull', 'Legs', 'Full body', 'Run', 'Conditioning']
 export default function SessionScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t, refresh, palette, crew } = useHaki();
+  const { t, refresh, palette, crew, training } = useHaki();
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
 
@@ -42,15 +43,45 @@ export default function SessionScreen() {
   const [minutes, setMinutes] = useState('');
   const [intensity, setIntensity] = useState<number | null>(null);
   const [note, setNote] = useState('');
-  const [saving, setSaving] = useState(false);
   const [returned, setReturned] = useState<string | null>(null);
 
-  const canSave = kind.trim().length > 0 && !saving;
+  // The flight guard, not a state flag, is what stops a second tap: state
+  // is exactly what is too slow here.
+  const canSave = kind.trim().length > 0;
+
+  const committing = useSingleFlight();
 
   async function save() {
     if (!canSave) return;
-    setSaving(true);
-    try {
+
+    // Captured before anything closes, because the fields are about to be
+    // out of reach.
+    const parsedMinutes = Number.parseInt(minutes, 10);
+    const draft = {
+      kind: kind.trim(),
+      minutes: Number.isFinite(parsedMinutes) && parsedMinutes > 0 ? parsedMinutes : null,
+      intensity,
+      note: note.trim() || null,
+    };
+
+    // Whether this lands as a Return is already known synchronously — the
+    // provider works it out on every refresh — so the screen does not have to
+    // wait for a database read to know which acknowledgement to give.
+    const willReturn = training.inGap;
+    const gapDays = training.daysSinceLast ?? 0;
+
+    await committing(async () => {
+      // The screen answers the finger. Three taps on this button used to
+      // write three sessions, because it closed only after the write came
+      // back down the single sqlite channel — the same shape the rest of the
+      // app was swept for, and this file was missed.
+      if (willReturn) {
+        play('returnDrums');
+        setReturned(returnMessage(gapDays));
+      } else {
+        router.back();
+      }
+
       const today = todayKey();
 
       // Work out the gap before writing, or this session becomes its own
@@ -58,35 +89,9 @@ export default function SessionScreen() {
       const existing = await allSessions(db);
       const gap = gapClosedBy(existing, today, settings.training);
 
-      const parsedMinutes = Number.parseInt(minutes, 10);
-
-      await logSession(
-        db,
-        {
-          kind: kind.trim(),
-          minutes: Number.isFinite(parsedMinutes) && parsedMinutes > 0 ? parsedMinutes : null,
-          intensity,
-          note: note.trim() || null,
-          day: today,
-        },
-        gap,
-      );
-
+      await logSession(db, { ...draft, day: today }, gap);
       await refresh();
-
-      const message = returnMessage(gap);
-      if (message) {
-        // A Return is the one moment in this app worth stopping on.
-        play('returnDrums');
-        setReturned(message);
-        setSaving(false);
-        return;
-      }
-
-      router.back();
-    } catch {
-      setSaving(false);
-    }
+    });
   }
 
   if (returned) {

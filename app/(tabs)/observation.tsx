@@ -282,7 +282,12 @@ export default function ObservationScreen() {
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}
           >
             <Text style={styles.rowDay}>
-              {t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · {shortDay(item.day)}
+              {/* An entry written before the voyage's start day has no day
+                  number — counting back from set sail gave "Day -4 at sea",
+                  which is arithmetic showing through. It keeps its date. */}
+              {daysAtSea(settings.setSailAt, item.day) >= 1
+                ? `${t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · ${shortDay(item.day)}`
+                : shortDay(item.day)}
             </Text>
             <Text style={styles.rowBody} numberOfLines={2}>
               {item.body.trim() || 'Empty entry'}
