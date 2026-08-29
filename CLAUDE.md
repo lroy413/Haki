@@ -485,6 +485,30 @@ one away; and nothing anywhere reports how many times a rhythm has been taken
 or skipped. That number is derivable and displaying it would turn a set of
 offers into a set of scores.
 
+## The day has three watches, and a shape
+
+`domain/watches.ts` draws the day the way a crew divides it — three bands, not
+twenty-four rows. Tasks have carried a watch since the capture row grew its
+second chip line; what never existed was the _shape_, so "what does today look
+like" could only be answered by opening the Do tab and reading a list.
+
+- **Load is a fact in minutes, never a capacity.** No bar filling toward a
+  limit, no percentage of the day planned, no colour that changes when a watch
+  is "too full". The app does not know how much you can do, and a figure that
+  implied it would be inventing a denominator.
+- **The hold is the ordinary place to be.** A task with no watch is not
+  unscheduled or late; placing one is an offer. Nothing counts how many were
+  placed.
+- **The sun moves and the ship does not.** The Sunny above the strip is at
+  anchor because a ship travelling somewhere is a progress bar in fancy dress.
+  The sun is not progress — it is the time, and a day getting late is a fact.
+  It is the strip's only variable, and it is a position rather than a quantity.
+- **The small hours belong to the evening watch.** Someone working at one in
+  the morning is in tonight's evening, and the sky above them is dark: the
+  voyage's `dayStartHour` decides which _day_ an act lands on, `watchAt`
+  decides which band of it, and neither needs the other.
+- Plain mode keeps the bands, the names and the loads, and loses the sky.
+
 ## Will Reserve is a level, a burn and a recovery
 
 The concept doc calls this the one idea worth stealing — will modelled as a

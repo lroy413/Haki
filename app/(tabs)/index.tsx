@@ -3,6 +3,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 import { useFocusEffect, useRouter } from 'expo-router';
 import { CourseLine } from '../../src/components/CourseLine';
 import { VoyageNote } from '../../src/components/VoyageNote';
+import { DayStrip } from '../../src/components/DayStrip';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
@@ -38,6 +39,7 @@ export default function Home() {
     next,
     quote,
     course,
+    load,
     voyage: sailing,
     refresh,
   } = useHaki();
@@ -79,6 +81,14 @@ export default function Home() {
         course={course}
         label={t.courseTitle}
         onPress={() => router.push('/course')}
+      />
+
+      {/* What the day looks like: three watches, what each is carrying, and
+          the sun where it actually is. Silent about capacity — see
+          `domain/watches.ts`. */}
+      <DayStrip
+        tasks={[...load.open, ...load.doneToday]}
+        onOpen={() => router.push('/armament')}
       />
 
       {/* The gauge is the way into the Daily Read now that the loose button
