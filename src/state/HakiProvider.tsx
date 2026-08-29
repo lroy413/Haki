@@ -45,6 +45,7 @@ import { NO_ACTS, settleLevel, type Acts, type HardeningLevel } from '../domain/
 import { paletteFor, type Palette } from '../theme/palettes';
 import { addDays, daysAtSea, todayKey } from '../domain/date';
 import {
+  NO_SPEND,
   computeReserve,
   effectIntensity,
   type DailyRead,
@@ -144,6 +145,8 @@ const EMPTY_RESERVE: Reserve = {
   state: 'unknown',
   readScore: null,
   sleepScore: null,
+  spend: NO_SPEND,
+  started: null,
 };
 
 export function HakiProvider({ children }: { children: React.ReactNode }) {
@@ -208,15 +211,9 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       readSetting(db, HARDENING_LEVEL),
     ]);
 
-    const nextReserve = computeReserve({
-      read: todayRead,
-      recentSleepHours: nights.map((n) => n.hours),
-      sleepTargetHours: settings.keystone.targetHours,
-    });
     const nextCascade = assessCascade(nights, settings.keystone, today);
 
     setRead(todayRead);
-    setReserve(nextReserve);
     setCascade(nextCascade);
     setTraining(trainingStatus(sessions, settings.training, today));
 
@@ -240,6 +237,18 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       satMinutes: sitMinutesToday(sits, Date.now()),
     };
     setActs(nextActs);
+
+    // The Reserve reads the day's acts, so it is computed here rather than
+    // with the other loads: the level is what the morning started with, and
+    // the burn is what has gone into the day since.
+    setReserve(
+      computeReserve({
+        read: todayRead,
+        recentSleepHours: nights.map((n) => n.hours),
+        sleepTargetHours: settings.keystone.targetHours,
+        acts: nextActs,
+      }),
+    );
 
     // 武装色 and 見聞色, each read over the same trailing window. Grouped into
     // days here because the domain wants days and the database only has rows.

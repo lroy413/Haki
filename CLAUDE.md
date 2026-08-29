@@ -485,6 +485,37 @@ one away; and nothing anywhere reports how many times a rhythm has been taken
 or skipped. That number is derivable and displaying it would turn a set of
 offers into a set of scores.
 
+## Will Reserve is a level, a burn and a recovery
+
+The concept doc calls this the one idea worth stealing — will modelled as a
+resource rather than as unlimited — and for a long time only half of it was
+here. The Daily Read and recent sleep say how full the tank started; **what
+the day took out of it was not counted**, so the gauge described a mood.
+`domain/willReserve.ts` has all three parts now.
+
+- **Only real output spends, and no act ever adds.** Gear minutes, training
+  sessions, and struck tasks (capped, so clearing twenty small things never
+  arithmetically becomes four hours of deep work). Reading, writing and
+  **sitting cost nothing** — noticing your own state is not an expenditure of
+  will, and a practice that raised the number would be a practice with a score
+  attached. They still darken the app, because hardening reads the day being
+  _used_; they simply do not empty the tank.
+- **Spend is subtracted, never averaged in.** It is what has gone, not another
+  opinion about what was there — and it is capped at `SPEND_MAX`, because a
+  day cannot take more out of the tank than the morning put in it.
+- **Recovery is sleep**, which was already weighted toward recent nights. That
+  is why a spent day reads full again after a good one instead of compounding.
+- **The number must say what took it.** A figure that fell without explaining
+  itself is worse than none: forty having spent two hours in gear is a
+  different day from forty on a Tuesday morning, and `spendNote` is the line
+  that tells them apart. Descriptive only — it names the acts and stops. There
+  is no version of it that says what to do about them, and a spent evening is
+  never treated as a mistake.
+- The gauge and hardening move in opposite directions on the same acts, and
+  both are true: the app goes **darker** as the day is used and **quieter** as
+  the reserve drains, which is the concept's "the interface runs out of Haki
+  alongside you" doing exactly what it was written to do.
+
 ## The Return and the Calm Belt
 
 `domain/voyage.ts` holds the two failure modes the concept doc named and the
