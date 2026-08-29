@@ -417,6 +417,22 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS note_updated ON note (updated_at);
     `,
   },
+  {
+    version: 16,
+    up: `
+      -- A port of call: the day an island actually has to be reached by.
+      --
+      -- Optional by design and rare by intent. Most islands have no date —
+      -- that is the whole point of a journey with no denominator, and an app
+      -- that asked for one every time would turn the Log Pose into a project
+      -- plan. But some things really do have a day attached, and before this
+      -- the only place to put one was the title.
+      --
+      -- Same machinery as a task's due_by one size up: it counts toward, it
+      -- keeps counting after, and it is never red. See domain/pressing.ts.
+      ALTER TABLE poneglyph ADD COLUMN port_by TEXT;
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

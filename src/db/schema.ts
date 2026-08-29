@@ -249,6 +249,8 @@ export const poneglyph = sqliteTable(
      * nature. See `domain/soundings.ts`.
      */
     unit: text('unit'),
+    /** The day it has to be reached by, or null — which is most of them. */
+    portBy: text('port_by'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
   },

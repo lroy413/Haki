@@ -12,6 +12,7 @@ import {
   isWarm,
   parseDay,
   planNote,
+  portLine,
   pressing,
   pressingFirst,
   pressingLabel,
@@ -300,5 +301,41 @@ describe('setting a date', () => {
       '2026-09-23',
       '2026-09-27',
     ]);
+  });
+});
+
+describe('a port of call', () => {
+  it('speaks the Log Pose’s scale, not the task list’s', () => {
+    expect(portLine('2026-10-02' as DayKey, TODAY)).toBe('12 days to port');
+    expect(portLine(TODAY, TODAY)).toBe('Port today');
+    expect(portLine('2026-09-18' as DayKey, TODAY)).toBe('2 days past port');
+  });
+
+  it('gives the date once counting stops helping', () => {
+    // A month out, "43 days" is a number you have to convert back.
+    expect(portLine('2026-09-30' as DayKey, TODAY)).toBe('10 days to port');
+    expect(portLine('2026-12-01' as DayKey, TODAY)).toBe('Port Dec 1');
+  });
+
+  it('says nothing for the ordinary island, which is most of them', () => {
+    expect(portLine(null, TODAY)).toBeNull();
+  });
+
+  it('drops the nautical vocabulary in plain mode', () => {
+    expect(portLine('2026-10-02' as DayKey, TODAY, true)).not.toContain('port');
+    expect(portLine('2026-09-18' as DayKey, TODAY, true)).not.toContain('port');
+    expect(portLine(TODAY, TODAY, true)).not.toContain('Port');
+  });
+
+  it('never turns a missed port into a verdict', () => {
+    const copy = [
+      portLine('2026-01-01' as DayKey, TODAY),
+      portLine('2026-01-01' as DayKey, TODAY, true),
+    ]
+      .join(' ')
+      .toLowerCase();
+    for (const word of ['overdue', 'late', 'missed', 'failed', 'behind', '!']) {
+      expect(copy).not.toContain(word);
+    }
   });
 });

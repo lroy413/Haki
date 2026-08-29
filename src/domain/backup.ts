@@ -218,6 +218,8 @@ export type PoneglyphBackup = {
   openedOn: string;
   closedOn: string | null;
   reason: string | null;
+  /** The day it has to be reached by. Absent in backups before schema v16. */
+  portBy?: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -370,8 +372,10 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     str(r.openedOn) &&
     nullableStr(r.closedOn) &&
     nullableStr(r.reason) &&
-    // `unit` arrived in schema v9 and is absent from every earlier export.
+    // `unit` arrived in schema v9 and is absent from every earlier export;
+    // `portBy` in v16, same story.
     absentableStr(r.unit) &&
+    absentableStr(r.portBy) &&
     num(r.createdAt) &&
     num(r.updatedAt),
   flagValue: (r) => str(r.text) && str(r.setOn) && num(r.createdAt) && num(r.updatedAt),

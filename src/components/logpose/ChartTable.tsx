@@ -5,6 +5,8 @@ import type { HardeningLevel } from '../../domain/hardening';
 import type { Needle } from '../../domain/logpose';
 import { SWELL, swellPath } from '../instruments/Sea';
 import { useHaki } from '../../state/HakiProvider';
+import { portLine } from '../../domain/pressing';
+import { todayKey } from '../../domain/date';
 import { press } from '../../theme/surfaces';
 import { radius, space, type } from '../../theme/tokens';
 import type { Palette } from '../../theme/palettes';
@@ -398,6 +400,7 @@ export function PillarRow({ needle, onPress }: { needle: Needle; onPress: () => 
   const tall = stoneHeight(needle.reached) / stoneHeight(MAX_ISLANDS);
   // An untouched pillar shows its offer, never its absence.
   const sub = needle.next ? needle.next.title : t.islandAdd;
+  const port = needle.next ? portLine(needle.next.portBy, todayKey(), plainMode) : null;
 
   return (
     <Pressable
@@ -423,6 +426,11 @@ export function PillarRow({ needle, onPress }: { needle: Needle; onPress: () => 
             {sub}
           </Text>
         </View>
+        {/* The port of call, when the island has one. The rows carry the
+            words and the stones carry the shape — the chart's own rule — so
+            a date goes here rather than becoming a second mark on the
+            drawing, where the lamp is the whole status system. */}
+        {port ? <Text style={styles.port}>{port}</Text> : null}
       </View>
       {/* What is astern, counted, with nothing beside it. A journey has no
           denominator, so there is no total here and never will be. */}
@@ -459,6 +467,9 @@ const makeStyles = (c: Palette) =>
     rowMeta: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
     lamp: { width: 6, height: 6, borderRadius: 3, backgroundColor: c.warn },
     rowSub: { ...type.mono, fontSize: 12, color: c.inkDim, flexShrink: 1 },
+    // `warn`, like every other date in the app. Never crimson: a port you
+    // have not made yet is not a breach.
+    port: { ...type.mono, fontSize: 11, color: c.warn, marginTop: 2 },
     rowOffer: { color: c.inkFaint },
     astern: { ...type.mono, fontSize: 12, color: c.inkFaint },
     chevron: { ...type.body, color: c.inkFaint, lineHeight: 20 },

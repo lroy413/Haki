@@ -104,6 +104,14 @@ export type Poneglyph = {
    * numeric by nature and offers a depth to log. See `domain/soundings.ts`.
    */
   unit: string | null;
+  /**
+   * The day this has to be reached by, or null — which is most of them.
+   *
+   * Optional by design and rare by intent: a journey has no denominator and
+   * an app that asked for a date on every island would be a project plan.
+   * Some things genuinely have a day attached, and this is where it goes.
+   */
+  portBy: DayKey | null;
 };
 
 /** One Road Poneglyph, read: what it points at and what is astern of it. */

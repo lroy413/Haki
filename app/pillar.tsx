@@ -19,6 +19,7 @@ import {
   listPoneglyphs,
   listRoads,
   openPoneglyph,
+  setPort,
   reopenPoneglyph,
   retireRoad,
   updateRoad,
@@ -265,6 +266,9 @@ export default function PillarScreen() {
                 if (needle.next) void passIsland(needle.next.id, reason);
               }}
               onStrike={(text) => void strike(text, needle.next?.key ?? null)}
+              onPort={(portBy) => {
+                if (needle.next) void setPort(db, needle.next.id, portBy).then(load);
+              }}
             />
             {said ? <Text style={styles.said}>{said}</Text> : null}
           </>
