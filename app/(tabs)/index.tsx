@@ -40,6 +40,7 @@ export default function Home() {
     quote,
     course,
     load,
+    bells,
     voyage: sailing,
     refresh,
   } = useHaki();
@@ -88,7 +89,9 @@ export default function Home() {
           `domain/watches.ts`. */}
       <DayStrip
         tasks={[...load.open, ...load.doneToday]}
+        bells={bells}
         onOpen={() => router.push('/armament')}
+        onBells={() => router.push('/bells')}
       />
 
       {/* The gauge is the way into the Daily Read now that the loose button

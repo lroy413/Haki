@@ -273,6 +273,35 @@ const MIGRATIONS: { version: number; up: string }[] = [
       );
     `,
   },
+  {
+    version: 11,
+    up: `
+      -- The Bells — things that happen at a time on the clock.
+      --
+      -- The one shape the app could not hold: everything else here is elastic
+      -- (a task is for today, a rhythm comes round, an island takes weeks) and
+      -- none of it happens at three o'clock. Without this the day's shape was
+      -- a picture with its fixed points missing, which is the one way such a
+      -- picture can actively mislead.
+      --
+      -- Deliberately absent, and not to be added later: any column that could
+      -- carry a done flag, a count, a snooze or a notification time. A bell is
+      -- a mark on a chart. Ticking one off would make the day's fixed points
+      -- into a checklist, and a bell that has passed is not missed — it simply
+      -- sits astern. See domain/bells.ts.
+      CREATE TABLE IF NOT EXISTS bell (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        title       TEXT    NOT NULL,
+        day         TEXT    NOT NULL,
+        -- Minutes past midnight, 0..1439. Stored as a number rather than a
+        -- string so ordering is arithmetic and needs no parsing.
+        at          INTEGER NOT NULL,
+        created_at  INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS bell_day ON bell (day, at);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

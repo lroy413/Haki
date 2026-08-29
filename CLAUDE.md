@@ -509,6 +509,29 @@ like" could only be answered by opening the Do tab and reading a list.
   decides which band of it, and neither needs the other.
 - Plain mode keeps the bands, the names and the loads, and loses the sky.
 
+## The Bells
+
+`domain/bells.ts` holds the one shape the app could not: a thing that happens
+at a time on the clock. Everything else here is elastic — a task is for today,
+a rhythm comes round, an island takes weeks — and none of it happens at three,
+so the day's picture was a picture with its fixed points missing, which is the
+one way such a picture can actively mislead.
+
+- **A bell does not ring.** No sound, no notification. It is a mark on a
+  chart, and the Den Den Mushi taxonomy is explicit that an escalation channel
+  only means something if it is almost never used.
+- **A bell that has passed is not missed.** It sits astern. There is
+  deliberately **no done column and none coming** — an appointment is not a
+  task, and ticking one off would turn the day's fixed points into a
+  checklist. The only way a bell ends is that you take it down.
+- **It belongs to a watch by arithmetic, never by choice**, so the strip and
+  the list can never disagree about when a thing is.
+- **Today and tomorrow only.** Anything further out is the Log Pose's job, and
+  it does it in islands rather than appointments — a bells screen that let you
+  fill in next March would be a calendar, which this is not.
+- Bells are in the backup. A table outside the export is a data-loss trap when
+  the app's own promise is that the export is the only way anything moves.
+
 ## Will Reserve is a level, a burn and a recovery
 
 The concept doc calls this the one idea worth stealing — will modelled as a

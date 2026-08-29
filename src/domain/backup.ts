@@ -99,6 +99,14 @@ export type FlagValueBackup = {
   updatedAt: number;
 };
 
+export type BellBackup = {
+  title: string;
+  day: string;
+  /** Minutes past midnight. */
+  at: number;
+  createdAt: number;
+};
+
 export type EternalPoseBackup = {
   text: string;
   setOn: string;
@@ -192,6 +200,7 @@ export type BackupTables = {
   sailing: SailingBackup[];
   flagValue: FlagValueBackup[];
   eternalPose: EternalPoseBackup[];
+  bell: BellBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
@@ -220,6 +229,7 @@ export const EMPTY_TABLES: BackupTables = {
   sailing: [],
   flagValue: [],
   eternalPose: [],
+  bell: [],
   sounding: [],
   carried: [],
   task: [],
@@ -332,6 +342,14 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     absentableStr(r.reason) &&
     num(r.createdAt) &&
     num(r.updatedAt),
+  // `at` is minutes past midnight; anything off the clock is not a bell.
+  bell: (r) =>
+    str(r.title) &&
+    str(r.day) &&
+    num(r.at) &&
+    (r.at as number) >= 0 &&
+    (r.at as number) <= 1439 &&
+    num(r.createdAt),
   sounding: (r) => num(r.islandKey) && num(r.value) && str(r.day) && num(r.createdAt),
   carried: (r) =>
     str(r.name) &&
@@ -457,6 +475,9 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   sailing: (r) => r.day,
   flagValue: (r) => String(r.createdAt),
   eternalPose: (r) => String(r.createdAt),
+  // A title at a time on a day is the bell — two at the same minute with
+  // the same name are the same appointment imported twice.
+  bell: (r) => `${r.day} ${r.at} ${r.title}`,
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

@@ -12,6 +12,7 @@ import {
   readSetting,
   recentSleep,
   actsBetween,
+  bellsOn,
   sitSessionsBetween,
   sitSessionsOn,
 } from '../db/repo';
@@ -30,6 +31,7 @@ import {
 } from '../domain/armament';
 import { observation, type Observation, type ObservationDay } from '../domain/observation';
 import { voyage, type Voyage } from '../domain/voyage';
+import type { Bell } from '../domain/bells';
 
 /**
  * How far back the voyage reads.
@@ -93,6 +95,8 @@ type HakiState = {
   observation: Observation;
   /** Returns and the Calm Belt, read from the days themselves. */
   voyage: Voyage;
+  /** Today's bells, earliest first. See `domain/bells.ts`. */
+  bells: Bell[];
   day: number;
   t: Strings;
   plainMode: boolean;
@@ -178,6 +182,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     observation([], null, todayKey(), ARMAMENT_WINDOW),
   );
   const [sailing, setSailing] = useState<Voyage>(() => voyage([], todayKey()));
+  const [bells, setBells] = useState<Bell[]>([]);
 
   const refresh = useCallback(async () => {
     const today = todayKey();
@@ -192,6 +197,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       todayCourse,
       sitWindow,
       actHistory,
+      todayBells,
       markDay,
       markLevel,
     ] = await Promise.all([
@@ -207,6 +213,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       // Far enough back that a long gap has both of its ends inside the
       // window — a return read from a half-seen gap would be invented.
       actsBetween(db, addDays(today, -(VOYAGE_WINDOW - 1)), today),
+      bellsOn(db, today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
     ]);
@@ -237,6 +244,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       satMinutes: sitMinutesToday(sits, Date.now()),
     };
     setActs(nextActs);
+    setBells(todayBells);
 
     // The Reserve reads the day's acts, so it is computed here rather than
     // with the other loads: the level is what the morning started with, and
@@ -419,6 +427,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       hardness: armament,
       observation: seeing,
       voyage: sailing,
+      bells,
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,
