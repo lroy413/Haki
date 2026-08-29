@@ -49,3 +49,35 @@ function phaseName(age: number, fraction: number): string {
   if (fraction < 0.5) return waxing ? 'waxing crescent' : 'waning crescent';
   return waxing ? 'waxing gibbous' : 'waning gibbous';
 }
+
+/**
+ * The lit part of the disc, as an SVG path — the geometry, not the drawing.
+ *
+ * Same rule the Sunny's water follows: the swell is a system and lives in
+ * `Sea.tsx` rather than being thrown away when someone redraws the boat. This
+ * is the terminator, and two places now draw a moon from it — the settings
+ * chart's night sky and the Tide Calendar's phase marks — so they can never
+ * disagree about which way a crescent points.
+ *
+ * Returns `'full'` and `'none'` rather than a path for the two cases a path
+ * cannot express: a full disc is a circle, and a new moon shows nothing at
+ * all.
+ *
+ * The limb runs down the lit side and the terminator comes back across the
+ * disc, bulging toward the limb for a crescent and away from it for a gibbous.
+ */
+export function litPath(
+  r: number,
+  fraction: number,
+  waxing: boolean,
+): string | 'full' | 'none' {
+  if (fraction >= 0.985) return 'full';
+  if (fraction <= 0.015) return 'none';
+  // cos of the phase angle: +1 new, 0 at the quarters, -1 full.
+  const k = 1 - 2 * fraction;
+  const a = Math.abs(k) * r;
+  return (
+    `M 0 ${-r} A ${r} ${r} 0 0 ${waxing ? 1 : 0} 0 ${r}` +
+    ` A ${a.toFixed(2)} ${r} 0 0 ${k < 0 === waxing ? 1 : 0} 0 ${-r} Z`
+  );
+}
