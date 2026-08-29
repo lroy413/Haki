@@ -148,6 +148,11 @@ export type Strings = {
   backlogEmpty: string;
   bellsTitle: string;
   dayEndTitle: string;
+  notesTitle: string;
+  notesBlurb: string;
+  notesEmpty: string;
+  notesNew: string;
+  noteUntitled: string;
   dayEndDoor: string;
   dayEndBlurb: string;
   dayStripLabel: string;
@@ -358,6 +363,11 @@ const haki: Strings = {
   backlogEmpty: 'Nothing waiting.',
   bellsTitle: 'The Bells',
   dayEndTitle: 'Day’s End',
+  notesTitle: 'Loose Pages',
+  notesBlurb: 'Writing that is not about a day. Lists, drafts, things worth keeping.',
+  notesEmpty: 'Nothing here yet. A list, a draft, anything you want again later.',
+  notesNew: 'New page',
+  noteUntitled: 'Untitled page',
   dayEndDoor: 'Close the day',
   dayEndBlurb: 'Read it back, decide what is left, say how it went.',
   dayStripLabel: 'The watches',
@@ -480,6 +490,11 @@ const plain: Strings = {
   islandHistory: 'Done and set aside',
   bellsTitle: 'Appointments',
   dayEndTitle: 'End of day',
+  notesTitle: 'Notes',
+  notesBlurb: 'Notes that are not tied to a day. Lists, drafts, anything to keep.',
+  notesEmpty: 'Nothing here yet. A list, a draft, anything you want again later.',
+  notesNew: 'New note',
+  noteUntitled: 'Untitled note',
   dayEndDoor: 'Review the day',
   dayEndBlurb: 'What happened, what is left, how it went.',
   dayStripLabel: 'Today',

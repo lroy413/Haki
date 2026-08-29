@@ -13,6 +13,8 @@ import {
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '../../src/db/client';
 import { createEntry, deleteEntry, getEntry, updateEntry } from '../../src/db/repo';
+import { WritingBar } from '../../src/components/WritingBar';
+import type { Edit, Selection } from '../../src/domain/markdown';
 import { radius, space, type } from '../../src/theme/tokens';
 import { press } from '../../src/theme/surfaces';
 import type { Palette } from '../../src/theme/palettes';
@@ -46,9 +48,21 @@ export default function EntryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [body, setBody] = useState('');
+  const [selection, setSelection] = useState<Selection>({ start: 0, end: 0 });
   const [error, setError] = useState<string | null>(null);
   const rowId = useRef<number | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const field = useRef<TextInput>(null);
+
+  /**
+   * What the toolbar just wrote, held until the field reports it back.
+   *
+   * Pinning `selection` on every render fights the caret — you cannot type
+   * past a selection the component keeps reasserting. So it is pinned only
+   * for the render after a toolbar press, and released as soon as the field's
+   * own `onSelectionChange` confirms it landed.
+   */
+  const [forced, setForced] = useState<Selection | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +123,14 @@ export default function EntryScreen() {
         if (rid != null) await updateEntry(db, rid, next);
       })();
     }, AUTOSAVE_MS);
+  }
+
+  /** A toolbar press: take its text and pin its caret for one render. */
+  function apply(edit: Edit) {
+    onChange(edit.text);
+    setForced(edit.selection);
+    setSelection(edit.selection);
+    field.current?.focus();
   }
 
   function remove() {
@@ -176,9 +198,18 @@ export default function EntryScreen() {
       />
 
       <TextInput
+        ref={field}
         style={styles.input}
         value={body}
         onChangeText={onChange}
+        selection={forced ?? undefined}
+        onSelectionChange={(e) => {
+          const next = e.nativeEvent.selection;
+          setSelection(next);
+          // Release the pin the moment the field agrees, or the caret is
+          // stuck where the toolbar put it and nothing can be typed.
+          if (forced && next.start === forced.start && next.end === forced.end) setForced(null);
+        }}
         multiline
         // Native only — see the note at the top of this file.
         autoFocus={Platform.OS !== 'web' && id === 'new'}
@@ -197,6 +228,10 @@ export default function EntryScreen() {
       >
         <Text style={styles.doneText}>Done</Text>
       </Pressable>
+
+      {/* Cyan: the journal lives under 見聞色, and one screen carries one
+          light. Below the Done button so the bar sits against the keyboard. */}
+      <WritingBar tint={palette.cyan} value={body} selection={selection} onEdit={apply} />
     </KeyboardAvoidingView>
   );
 }

@@ -357,6 +357,7 @@ describe('key hygiene', () => {
         createdAt: 1,
         updatedAt: 2,
       },
+      note: { title: '', body: '- milk\n- bread', createdAt: 3, updatedAt: 4 },
       setting: { key: 'ui.plainMode', value: 'false' },
     };
 
