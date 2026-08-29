@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -21,6 +22,7 @@ import {
   addTask,
   allTasks,
   commitTask,
+  deleteSession,
   deleteTask,
   lastDoneByRhythm,
   listRhythms,
@@ -176,6 +178,34 @@ export default function ArmamentScreen() {
     setTasks((prev) => prev.filter((item) => item.id !== taskItem.id));
     await deleteTask(db, taskItem.id);
     await reload();
+  }
+
+  /**
+   * Take a logged session back off the record.
+   *
+   * Confirmed, because unlike a task this cannot be undone by re-ticking a
+   * box, and unlike a task it may be carrying a Return. Optimistic once
+   * confirmed: the row leaves on the tap, not on the write.
+   */
+  async function dropSession(id: number, kind: string) {
+    const go = async () => {
+      setSessions((prev) => prev.filter((item) => item.id !== id));
+      await deleteSession(db, id);
+      await reload();
+      await refresh();
+    };
+
+    if (Platform.OS === 'web') {
+      // eslint-disable-next-line no-alert
+      if (typeof window !== 'undefined' && !window.confirm(`Remove the ${kind} session?`))
+        return;
+      await go();
+      return;
+    }
+    Alert.alert(`Remove the ${kind} session?`, 'The day keeps everything else it earned.', [
+      { text: 'Keep', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => void go() },
+    ]);
   }
 
   const day = todayKey();
@@ -621,7 +651,22 @@ export default function ArmamentScreen() {
           <View key={item.id} style={styles.session}>
             <View style={styles.sessionHead}>
               <Text style={styles.sessionKind}>{item.kind}</Text>
-              <Text style={styles.sessionDay}>{shortDay(item.day)}</Text>
+              <View style={styles.sessionRight}>
+                <Text style={styles.sessionDay}>{shortDay(item.day)}</Text>
+                {/* A session logged twice by a slipped thumb is not a record
+                    of anything, and there was no way to take one back. This
+                    removes the row and nothing else — the day it happened on
+                    keeps every other mark it earned. */}
+                <Pressable
+                  onPress={() => void dropSession(item.id, item.kind)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove the ${item.kind} session from ${shortDay(item.day)}`}
+                  hitSlop={10}
+                  style={({ pressed }) => [styles.sessionDrop, pressed && styles.pressed]}
+                >
+                  <Text style={styles.sessionDropText}>Remove</Text>
+                </Pressable>
+              </View>
             </View>
             <Text style={styles.sessionMeta}>
               {[
@@ -1007,6 +1052,9 @@ const makeStyles = (c: Palette) =>
       alignItems: 'baseline',
     },
     sessionKind: { ...type.heading, color: c.ink },
+    sessionRight: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+    sessionDrop: { minHeight: 44, justifyContent: 'center' },
+    sessionDropText: { ...type.mono, fontSize: 11, color: c.inkFaint },
     sessionDay: { ...type.mono, color: c.inkFaint },
     sessionMeta: { ...type.small, fontSize: 13, color: c.inkDim },
     sessionReturn: { ...type.small, fontSize: 13, color: c.violet },

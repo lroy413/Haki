@@ -110,8 +110,32 @@ describe('dayMessage', () => {
   });
 
   it('closes the loop at the top rather than dangling a next thing', () => {
-    // Making a mechanic visible invites farming it. There is no fifth palette.
-    expect(dayMessage(3).toLowerCase()).toContain('nothing left to darken');
+    // Making a mechanic visible invites farming it. There is no fifth palette,
+    // so the top of the ramp must not imply one is coming.
+    const top = dayMessage(3).toLowerCase();
+    expect(top).toContain('no darker');
+    for (const word of ['next', 'keep going', 'almost', 'one more']) {
+      expect(top).not.toContain(word);
+    }
+  });
+
+  it('never tells you the day is finished', () => {
+    // The owner's catch: at Black the card said "the rest of the day is
+    // yours" while listing, directly underneath, the things still on offer.
+    // Hardening reads the day being *used*; it has never known what is left
+    // to do, and it must not imply that it does.
+    for (const level of LEVELS) {
+      const message = dayMessage(level).toLowerCase();
+      for (const claim of [
+        'the rest of the day is yours',
+        'done for the day',
+        'nothing left to do',
+        "you're finished",
+        'all done',
+      ]) {
+        expect(message).not.toContain(claim);
+      }
+    }
   });
 
   it('never scores the day', () => {
