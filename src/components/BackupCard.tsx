@@ -17,6 +17,22 @@ import type { Palette } from '../theme/palettes';
  * databases that share no storage. Three weeks of data crosses over here or
  * not at all.
  */
+/**
+ * Whatever went wrong, as something a person can read.
+ *
+ * `e.message` is not reliably a string. expo-sqlite's web driver throws an
+ * Error carrying an object there, and the card rendered it verbatim: the day a
+ * restore failed, the only thing the settings page said about it was
+ * `[object Object]`. On the one screen whose whole job is telling you whether
+ * your data is safe, that is worse than saying nothing.
+ */
+function said(e: unknown): string {
+  const message = e instanceof Error ? e.message : null;
+  return typeof message === 'string' && message.trim().length > 0
+    ? message
+    : 'Something went wrong. Nothing was deleted — the file is still safe to try again.';
+}
+
 export function BackupCard() {
   const { db } = useStore();
   const { refresh, palette } = useHaki();
@@ -31,7 +47,7 @@ export function BackupCard() {
     try {
       await work();
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : 'Something went wrong.');
+      setStatus(said(e));
     } finally {
       setBusy(false);
     }

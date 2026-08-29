@@ -265,6 +265,25 @@ export default function ObservationScreen() {
               <Text style={styles.stillGo}>Open</Text>
             </Pressable>
 
+            {/* 海楼石 — what takes the will away. Beside the sit and the loose
+                pages because it is the same lens: this whole tab is noticing
+                your own state, and this is the half of it the app could never
+                hear. See app/seaprism.tsx. */}
+            <Pressable
+              onPress={() => router.push('/seaprism')}
+              accessibilityRole="button"
+              accessibilityLabel={t.prismTitle}
+              style={({ pressed }) => [styles.still, pressed && styles.pressed]}
+            >
+              <View style={styles.stillText}>
+                <Text style={styles.stillName}>
+                  {plainMode ? t.prismTitle : `海楼石  ${t.prismDoor}`}
+                </Text>
+                <Text style={styles.stillLine}>{t.prismDoorLine}</Text>
+              </View>
+              <Text style={styles.stillGo}>Open</Text>
+            </Pressable>
+
             <SectionLabel label={t.entriesLabel} style={styles.sectionLabel} />
 
             {/* What you wrote on this date in an earlier year — the feature

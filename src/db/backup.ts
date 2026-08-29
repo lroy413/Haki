@@ -6,6 +6,7 @@ import {
   TABLE_NAMES,
   type Backup,
   type BackupTables,
+  type TaskMoveBackup,
 } from '../domain/backup';
 import { LATEST_VERSION } from './bootstrap';
 import type { Db } from './repo';
@@ -28,6 +29,8 @@ import {
   sleepLog,
   dayEnd,
   note,
+  seaPrism,
+  seaPrismHit,
   task,
   taskMove,
   trainingSession,
@@ -64,6 +67,8 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     moves,
     evenings,
     notes,
+    stones,
+    stoneHits,
     settings,
   ] = await Promise.all([
     db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
@@ -86,6 +91,8 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     db.select().from(taskMove).orderBy(taskMove.createdAt),
     db.select().from(dayEnd).orderBy(dayEnd.day),
     db.select().from(note).orderBy(note.createdAt),
+    db.select().from(seaPrism).orderBy(seaPrism.createdAt),
+    db.select().from(seaPrismHit).orderBy(seaPrismHit.createdAt),
     db.select().from(setting),
   ]);
 
@@ -254,6 +261,19 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     })),
+    seaPrism: stones.map((r) => ({
+      kind: r.kind,
+      name: r.name,
+      createdAt: r.createdAt,
+      retiredAt: r.retiredAt,
+    })),
+    // The hit already carries the stone's stamp in its own column, so unlike
+    // a task move there is nothing to look up on the way out or back in.
+    seaPrismHit: stoneHits.map((r) => ({
+      stoneKey: r.stoneKey,
+      day: r.day,
+      createdAt: r.createdAt,
+    })),
     setting: settings.map((r) => ({ key: r.key, value: r.value })),
   };
 }
@@ -291,6 +311,8 @@ const TABLES = {
   taskMove,
   dayEnd,
   note,
+  seaPrism,
+  seaPrismHit,
   setting,
 } as const;
 
@@ -339,6 +361,38 @@ function chunk<T>(rows: T[], size: number): T[][] {
  * started counting, and letting an import move it would silently renumber every
  * "day at sea" in the app.
  */
+/**
+ * Moves, with their task's id looked up from its creation stamp.
+ *
+ * Ids are reassigned on import, so the file carries the stamp instead — the
+ * same trick `poneglyph.road_created_at` and `sounding.island_key` play, except
+ * those two hold the stamp in the column as well and need no translation. This
+ * one does, and `taskMove` sits after `task` in `TABLE_NAMES` so the tasks it
+ * looks up are already in.
+ *
+ * A move whose task did not make it is dropped rather than inserted pointing
+ * at nothing — the export side already guards the same way round.
+ */
+async function linkMoves(db: Db, moves: TaskMoveBackup[]) {
+  const tasks = await db.select({ id: task.id, createdAt: task.createdAt }).from(task);
+  const byStamp = new Map(tasks.map((t) => [t.createdAt, t.id]));
+  return moves.flatMap((m) => {
+    const taskId = byStamp.get(m.taskCreatedAt);
+    return taskId === undefined
+      ? []
+      : [
+          {
+            taskId,
+            fromDay: m.fromDay,
+            toDay: m.toDay,
+            madeOn: m.madeOn,
+            reason: m.reason,
+            createdAt: m.createdAt,
+          },
+        ];
+  });
+}
+
 export async function importBackup(db: Db, incoming: BackupTables): Promise<ImportReport> {
   const existing = await readAllTables(db);
 
@@ -357,10 +411,19 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
       KEYS[table] as (row: unknown) => string,
     );
 
-    inserted[table] = plan.insert.length;
+    // Almost every backup row *is* its table's row, which is why the import
+    // can insert them straight. `task_move` is the exception and it had never
+    // been driven: the file carries the task's creation stamp and the column
+    // holds the task's id, so every restore of a backup that had ever recorded
+    // a move died on that table — which, on a device that has carried a task,
+    // is every backup. See `linkMoves`.
+    const rows =
+      table === 'taskMove' ? await linkMoves(db, plan.insert as TaskMoveBackup[]) : plan.insert;
+
+    inserted[table] = rows.length;
     skipped[table] = plan.skipped;
 
-    if (plan.insert.length === 0) continue;
+    if (rows.length === 0) continue;
 
     // One transaction per chunk, a yield between chunks — the why is on
     // CHUNK_ROWS above.
@@ -378,7 +441,7 @@ export async function importBackup(db: Db, incoming: BackupTables): Promise<Impo
     // stray microtask can read a payload half-written by another and throw a
     // JSON parse error at a different offset each run. `.run()` executes the
     // statement here and now, which is what the driver was always expecting.
-    for (const batch of chunk(plan.insert, CHUNK_ROWS)) {
+    for (const batch of chunk(rows, CHUNK_ROWS)) {
       db.transaction((tx) => {
         tx.insert(TABLES[table])
           .values(batch as never)

@@ -446,6 +446,52 @@ export const note = sqliteTable(
 
 export type NoteRow = typeof note.$inferSelect;
 
+/**
+ * The Sea Prism Log — a named thing that costs you something to be near.
+ *
+ * Two tables on purpose, and the split is the feature: naming is rare and
+ * costs a word, logging is common and costs one tap. Same shape as a rhythm
+ * and the tasks it produces.
+ *
+ * `retired_at` rather than a delete, because the days it was named on are
+ * real days and stay exactly where they are.
+ */
+export const seaPrism = sqliteTable(
+  'sea_prism',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    /** someone | somewhere | sometime | aloop — see domain/seaPrism.ts. */
+    kind: text('kind').notNull(),
+    name: text('name').notNull(),
+    createdAt: integer('created_at').notNull(),
+    retiredAt: integer('retired_at'),
+  },
+  (t) => [index('sea_prism_live').on(t.retiredAt)],
+);
+
+export type SeaPrismRow = typeof seaPrism.$inferSelect;
+
+/**
+ * One day a stone was named on. Never counted, per stone or in total.
+ *
+ * Linked by the stone's `created_at` rather than its row id, like
+ * `poneglyph.road_created_at` and `sounding.island_key` — ids are autoincrement
+ * values that are reassigned on import, so a child keyed on one arrives
+ * pointing at nothing, or at somebody else's stone.
+ */
+export const seaPrismHit = sqliteTable(
+  'sea_prism_hit',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    stoneKey: integer('stone_key').notNull(),
+    day: text('day').notNull(),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('sea_prism_hit_day').on(t.day), index('sea_prism_hit_stone').on(t.stoneKey)],
+);
+
+export type SeaPrismHitRow = typeof seaPrismHit.$inferSelect;
+
 /** Day's End — the evening line. One per day, revisable. */
 export const dayEnd = sqliteTable('day_end', {
   day: text('day').primaryKey(),

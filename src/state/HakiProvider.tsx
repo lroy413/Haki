@@ -22,6 +22,7 @@ import {
   actsBetween,
   bellsOn,
   getDayEnd,
+  drainsOn,
   sitSessionsBetween,
   sitSessionsOn,
 } from '../db/repo';
@@ -230,6 +231,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       todayCourse,
       todayBells,
       evening,
+      drains,
       markDay,
       markLevel,
     ] = await Promise.all([
@@ -243,6 +245,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       getCourse(db, today),
       bellsOn(db, today),
       getDayEnd(db, today),
+      drainsOn(db, today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
     ]);
@@ -292,6 +295,10 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
         recentSleepHours: nights.map((n) => n.hours),
         sleepTargetHours: settings.keystone.targetHours,
         acts: nextActs,
+        // The other half of the burn: what happened, rather than what was
+        // done. First stage, because the gauge is on the home screen and a
+        // reading that arrives without it would be visibly wrong for a beat.
+        drains,
       }),
     );
 

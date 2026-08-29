@@ -18,9 +18,13 @@ import type { Acts } from './hardening';
  * always for:
  *
  *   **The level** — the Daily Read and recent sleep. What you woke up with.
- *   **The burn** — what the day's acts have cost. Subtracted, not averaged
- *   in, because spend is a different kind of thing from the inputs: it is
- *   what has gone, not what was there.
+ *   **The burn** — what the day has cost. Subtracted, not averaged in,
+ *   because spend is a different kind of thing from the inputs: it is what
+ *   has gone, not what was there. Two sorts of thing spend. What you *did* —
+ *   gear, sessions, struck tasks — and what *happened*: the stones named in
+ *   the Sea Prism Log. The second arrived long after the first and is the
+ *   commoner case by far, because a flat day you spent nothing on is the
+ *   one the gauge used to have nothing to say about.
  *   **The recovery** — sleep, already weighted toward recent nights, which
  *   is why a spent day reads full again after a good one and does not
  *   compound.
@@ -69,6 +73,15 @@ export type ReserveInputs = {
   sleepTargetHours: number;
   /** What today has had in it. Omitted is a day that has spent nothing. */
   acts?: Acts;
+  /**
+   * How many stones were named today — see `domain/seaPrism.ts`.
+   *
+   * The term this file's own header promised and did not have. Everything in
+   * `acts` is *output*: the gauge could explain an empty evening after four
+   * hours of deep work and had nothing whatever to say about the commoner
+   * one, a day you did almost nothing in and are flat anyway.
+   */
+  drains?: number;
 };
 
 /**
@@ -87,6 +100,19 @@ const PER_STRUCK = 0.02;
 const STRUCK_CAP = 0.16;
 
 /**
+ * What a stone costs, and where the app stops adding them up.
+ *
+ * A flag rather than a dial, because there is no honest way to ask somebody to
+ * score their own bad afternoon on a five-point scale — see the header of
+ * `seaPrism.ts`. So each one is worth the same, a little less than a training
+ * session, and the cap lands at three. A fourth adds nothing: a day you have
+ * named four things on is a day you already know about, and a gauge that kept
+ * falling would be the app piling on.
+ */
+const PER_STONE = 0.12;
+const STONE_CAP = 0.36;
+
+/**
  * The most spend can take off the reading, as a fraction of the whole scale.
  *
  * Capped deliberately. A maximal day should read as visibly spent and never
@@ -103,9 +129,17 @@ export type Spend = {
   gearMinutes: number;
   sessions: number;
   struck: number;
+  /** Stones named today. Not an act — a thing that happened. */
+  drains: number;
 };
 
-export const NO_SPEND: Spend = { fraction: 0, gearMinutes: 0, sessions: 0, struck: 0 };
+export const NO_SPEND: Spend = {
+  fraction: 0,
+  gearMinutes: 0,
+  sessions: 0,
+  struck: 0,
+  drains: 0,
+};
 
 /**
  * What the day's acts have cost.
@@ -116,18 +150,20 @@ export const NO_SPEND: Spend = { fraction: 0, gearMinutes: 0, sessions: 0, struc
  * nothing but time for the same reason. They still darken the app, because
  * hardening reads the day being used; they simply do not empty the tank.
  */
-export function spendOf(acts: Acts): Spend {
+export function spendOf(acts: Acts, drains = 0): Spend {
   const gearMinutes = Math.max(0, acts.gearMinutes);
   const sessions = Math.max(0, acts.trained);
   const struck = Math.max(0, acts.struck);
+  const stones = Math.max(0, drains);
 
   const fraction = clamp01(
     gearMinutes / GEAR_MINUTES_FOR_A_DAY +
       sessions * PER_SESSION +
-      Math.min(STRUCK_CAP, struck * PER_STRUCK),
+      Math.min(STRUCK_CAP, struck * PER_STRUCK) +
+      Math.min(STONE_CAP, stones * PER_STONE),
   );
 
-  return { fraction, gearMinutes, sessions, struck };
+  return { fraction, gearMinutes, sessions, struck, drains: stones };
 }
 
 /** Weights within the Daily Read. Must sum to 1. */
@@ -182,9 +218,9 @@ function stateFor(value: number): ReserveState {
 }
 
 export function computeReserve(inputs: ReserveInputs): Reserve {
-  const { read, recentSleepHours, sleepTargetHours, acts } = inputs;
+  const { read, recentSleepHours, sleepTargetHours, acts, drains } = inputs;
   const sleep = sleepScore(recentSleepHours, sleepTargetHours);
-  const spend = acts ? spendOf(acts) : NO_SPEND;
+  const spend = acts ? spendOf(acts, drains) : NO_SPEND;
 
   // No read today means no reading. The app does not guess at your state, and
   // it does not show a stale number as though it were current. A day with
@@ -244,6 +280,15 @@ export function spendNote(spend: Spend, plain = false): string | null {
   }
   if (spend.struck > 0) {
     parts.push(`${spend.struck} ${plain ? 'done' : 'struck'}`);
+  }
+  // Named last, because it is the one thing in the list that happened *to*
+  // you. The line still only describes — what took it, never what to do.
+  if (spend.drains > 0) {
+    parts.push(
+      plain
+        ? `${spend.drains} ${spend.drains === 1 ? 'drain' : 'drains'}`
+        : `${spend.drains} ${spend.drains === 1 ? 'stone' : 'stones'}`,
+    );
   }
   if (parts.length === 0) return null;
 
