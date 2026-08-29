@@ -68,6 +68,27 @@ const head = (build) => `${MARKER}
       body { overscroll-behavior-y: contain; }
       ::selection { background: #B85BFF; color: #0A0B12; }
 
+      /* The focus ring is the app's, not Chromium's.
+
+         Every text field in this app wore a two-pixel gold outline on the
+         web, in a palette that has no gold in it — the browser's default,
+         drawn over borders that were chosen. It reads as a validation
+         error on a form that is fine.
+
+         Removed rather than replaced only where a pointer put it there:
+         ':focus-visible' still gets a ring, because a keyboard user needs
+         to know where they are and taking that away to tidy a screenshot
+         is the wrong trade. The ring it gets is the signature violet, at
+         the app's own radius, and it is the one colour literal in this
+         file's company — the palette moves through four levels and this
+         is painted before the bundle knows which one it is on. */
+      :focus { outline: none; }
+      :focus-visible {
+        outline: 2px solid #B85BFF;
+        outline-offset: 1px;
+        border-radius: 6px;
+      }
+
       /* THE SHELL DOES NOT MEASURE THE VIEWPORT. It is pinned to it.
          
          Every unit that claims to be "the height of the screen" is

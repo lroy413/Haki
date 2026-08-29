@@ -545,6 +545,19 @@ export async function listEntries(db: Db, limit = 100): Promise<EntryRow[]> {
   return db.select().from(entry).orderBy(desc(entry.createdAt)).limit(limit);
 }
 
+/**
+ * Everything, for search.
+ *
+ * The list is capped at a hundred because a hundred rows is all a screen can
+ * usefully scroll — but a search that only looked at the newest hundred would
+ * silently fail to find the thing you are searching *for*, which is nearly
+ * always older than that. A personal journal is a few thousand rows and the
+ * naive scan is instant on all of them.
+ */
+export async function allEntries(db: Db): Promise<EntryRow[]> {
+  return db.select().from(entry).orderBy(desc(entry.createdAt));
+}
+
 export async function getEntry(db: Db, id: number): Promise<EntryRow | null> {
   const rows = await db.select().from(entry).where(eq(entry.id, id)).limit(1);
   return rows[0] ?? null;
@@ -1649,6 +1662,26 @@ export async function drainsOn(db: Db, day: DayKey = todayKey()): Promise<number
     .from(seaPrismHit)
     .where(eq(seaPrismHit.day, day));
   return rows.length;
+}
+
+/**
+ * The weather words on a run of days — the Inner Weather chart.
+ *
+ * Only the day and the word: the dials belong to the Reserve and to Foresight,
+ * and this is a picture of what you *called* it. A day with no word comes back
+ * absent rather than as an empty string, so the run can draw a real gap.
+ */
+export async function weatherBetween(
+  db: Db,
+  from: DayKey,
+  to: DayKey,
+): Promise<{ day: string; weather: string | null }[]> {
+  const rows = await db
+    .select({ day: dailyRead.day, weather: dailyRead.weather })
+    .from(dailyRead)
+    .where(and(gte(dailyRead.day, from), lte(dailyRead.day, to)))
+    .orderBy(asc(dailyRead.day));
+  return rows.map((r) => ({ day: r.day, weather: r.weather }));
 }
 
 /* -------------------------------------------------------------- break list */

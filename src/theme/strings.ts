@@ -160,6 +160,9 @@ export type Strings = {
   breakToday: string;
   breakAstern: string;
   breakName: string;
+  searchLog: string;
+  searchNotes: string;
+  weatherLabel: string;
   sailCta: string;
   sailWeekLabel: string;
   sailNeedlesLabel: string;
@@ -409,6 +412,9 @@ const haki: Strings = {
   breakToday: 'Today',
   breakAstern: 'Astern',
   breakName: 'Name one',
+  searchLog: 'Find a line',
+  searchNotes: 'Find a page',
+  weatherLabel: 'Inner weather',
   sailCta: 'Set sail',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'The needles',
@@ -630,6 +636,9 @@ const plain: Strings = {
   breakToday: 'Today',
   breakAstern: 'Earlier',
   breakName: 'Add one',
+  searchLog: 'Search entries',
+  searchNotes: 'Search notes',
+  weatherLabel: 'Your weather',
   sailCta: 'Start the review',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'Your goals',

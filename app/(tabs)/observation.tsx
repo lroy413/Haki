@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -11,7 +11,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useStore } from '../../src/db/client';
-import { listEntries, asternToday } from '../../src/db/repo';
+import { listEntries, allEntries, asternToday, weatherBetween } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea, shortDay } from '../../src/domain/date';
@@ -31,10 +31,23 @@ import { font, radius, space, type } from '../../src/theme/tokens';
 import { lit, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
 import { asternLine, type Astern } from '../../src/domain/astern';
+import { recentWeather, type Sky } from '../../src/domain/weather';
+import { foundLine, isSearching, matches } from '../../src/domain/search';
+import { SearchField, Excerpt } from '../../src/components/SearchField';
+import { SkyRun } from '../../src/components/SkyRun';
 import type { Palette } from '../../src/theme/palettes';
 
 /** How much the floating button takes on top of the bar's own clearance. */
 const FAB_ROOM = 72;
+
+/**
+ * How far back Inner Weather runs.
+ *
+ * A fortnight: long enough that a stretch of one word is visible, short enough
+ * that the run reads as a run rather than as a chart with a scrollbar. It is
+ * never summarised, so there is no reason to reach further.
+ */
+const SKY_DAYS = 14;
 
 /**
  * 見聞色 — Observation. The mental-health space.
@@ -67,12 +80,37 @@ export default function ObservationScreen() {
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [reading, setReading] = useState<Foresight | null>(null);
   const [astern, setAstern] = useState<Astern | null>(null);
+  const [sky, setSky] = useState<Sky[]>([]);
+  /**
+   * Searching swaps the list for the whole archive.
+   *
+   * The list is capped at a hundred, which is all a screen can usefully
+   * scroll — but the entry you are searching for is nearly always older than
+   * that, so a search over the visible hundred would silently fail at exactly
+   * the job it exists for. The full read runs once, when the field first has
+   * something in it.
+   */
+  const [query, setQuery] = useState('');
+  const [archive, setArchive] = useState<EntryRow[] | null>(null);
 
   const load = useCallback(async () => {
     const [rows, back] = await Promise.all([listEntries(db), asternToday(db)]);
     setEntries(rows);
     setAstern(back);
-  }, [db]);
+    if (archive) setArchive(await allEntries(db));
+  }, [db, archive]);
+
+  const searching = isSearching(query);
+
+  useEffect(() => {
+    if (!searching || archive) return;
+    void allEntries(db).then(setArchive);
+  }, [db, searching, archive]);
+
+  const shown = useMemo(() => {
+    if (!searching) return entries;
+    return (archive ?? entries).filter((e) => matches(e.body, query));
+  }, [searching, archive, entries, query]);
 
   useFocusEffect(
     useCallback(() => {
@@ -87,6 +125,14 @@ export default function ObservationScreen() {
         // screen is actually made of rather than racing it.
         const history = await historyForForesight(db, addDays(todayKey(), -365));
         if (!cancelled) setReading(foresight(history, settings.keystone.targetHours));
+        // The run of weather words, second: the list is what the screen is
+        // made of and this sits under it.
+        const today = todayKey();
+        const days = Array.from({ length: SKY_DAYS }, (_, i) =>
+          addDays(today, -(SKY_DAYS - 1 - i)),
+        );
+        const reads = await weatherBetween(db, days[0], today);
+        if (!cancelled) setSky(recentWeather(reads, days));
       })();
       return () => {
         cancelled = true;
@@ -100,7 +146,7 @@ export default function ObservationScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <FlatList
-        data={entries}
+        data={shown}
         keyExtractor={(item) => String(item.id)}
         // The heading scrolls with the list rather than sitting in a band
         // above it, and the bottom padding clears the floating bar *and* the
@@ -284,6 +330,13 @@ export default function ObservationScreen() {
               <Text style={styles.stillGo}>Open</Text>
             </Pressable>
 
+            {/* Inner Weather. The word is asked for every morning and used
+                to be shown nowhere but that morning's own read row, which
+                made it a question with no answer behind it. See
+                `components/SkyRun.tsx` — no tally, no average, no trend. */}
+            <SectionLabel label={t.weatherLabel} trailing={plainMode ? undefined : '空模様'} />
+            <SkyRun run={sky} tint={palette.violet} today={todayKey()} />
+
             <SectionLabel label={t.entriesLabel} style={styles.sectionLabel} />
 
             {/* What you wrote on this date in an earlier year — the feature
@@ -311,9 +364,20 @@ export default function ObservationScreen() {
 
             {/* 見聞色's own light: this door stands on the violet tab. */}
             <LogLine onLogged={() => void load()} tint={palette.violet} />
+
+            {/* Directly above the list it filters, and under the capture row
+                rather than over it: two text fields in a column read as one
+                form, and the one you write into comes first. */}
+            <SearchField
+              value={query}
+              onChange={setQuery}
+              placeholder={t.searchLog}
+              tint={palette.violet}
+              found={searching ? foundLine(shown.length, plainMode) : null}
+            />
           </View>
         }
-        ListEmptyComponent={<Text style={styles.empty}>{t.logEmpty}</Text>}
+        ListEmptyComponent={searching ? null : <Text style={styles.empty}>{t.logEmpty}</Text>}
         renderItem={({ item }) => (
           <Pressable
             onPress={() => router.push(`/entry/${item.id}`)}
@@ -329,9 +393,18 @@ export default function ObservationScreen() {
                 ? `${t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · ${shortDay(item.day)}`
                 : shortDay(item.day)}
             </Text>
-            <Text style={styles.rowBody} numberOfLines={2}>
-              {item.body.trim() || 'Empty entry'}
-            </Text>
+            {searching ? (
+              <Excerpt
+                text={item.body}
+                query={query}
+                tint={palette.violet}
+                fallback={item.body.trim() || 'Empty entry'}
+              />
+            ) : (
+              <Text style={styles.rowBody} numberOfLines={2}>
+                {item.body.trim() || 'Empty entry'}
+              </Text>
+            )}
           </Pressable>
         )}
       />

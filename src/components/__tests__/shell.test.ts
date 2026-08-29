@@ -403,3 +403,14 @@ describe('the pinned shell', () => {
     expect(src).toMatch(/if\s*\(navigator\.serviceWorker\.controller\)/);
   });
 });
+
+describe('the focus ring', () => {
+  // Chromium's default is a two-pixel gold outline, in a palette that has no
+  // gold in it, drawn over borders that were chosen — on every text field in
+  // the app it reads as a validation error on a form that is fine.
+  it('is cleared for a pointer and kept for a keyboard', () => {
+    const css = String(readFileSync(SHELL, 'utf8'));
+    expect(css).toMatch(/:focus\s*\{[^}]*outline:\s*none/);
+    expect(css).toMatch(/:focus-visible\s*\{[^}]*outline:\s*2px solid/);
+  });
+});

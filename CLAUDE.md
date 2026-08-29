@@ -826,6 +826,66 @@ app whose data is about other people.
   the loose pages — this tab is noticing your own state, and this is the half
   of it the app could never hear.
 
+## Finding a line, and the weather you named
+
+Two halves of one problem: a journal you cannot read back, and a question with
+no answer behind it.
+
+**Search** (`domain/search.ts`, `components/SearchField.tsx`). The Logbook
+listed a hundred entries newest first and there was no way to reach the
+hundred-and-first — which made "read it back a year later", half of what the
+Logbook is _for_, impossible. It is deliberately small: substring,
+case-insensitive, no ranking, no stemming, no index. A search that quietly
+decides one match is better than another is a search that hides things.
+
+- **Search reads the whole archive, not the visible hundred.** The list is
+  capped because a hundred rows is all a screen can scroll, but the entry you
+  are looking for is nearly always older than that — so a search over the cap
+  would silently fail at exactly its job. `allEntries` runs once, when the
+  field first has something in it.
+- **The excerpt is the feature.** Showing an entry's first two lines under a
+  search for "dentist" is not a result, it is the same list, shorter. The
+  window is cut to whole words at both ends — "…he dentist appointmen…" reads
+  as a rendering fault — and the ellipsis keeps a space off the word it elides.
+  The match is marked by face and colour, never a highlight block.
+- **On a note the excerpt reads the preview, not the body.** The body still
+  holds the line printed above as the name, so excerpting it drew the name
+  twice: the tab-labels-drawn-twice bug reintroduced one row down.
+- **One of them speaks at a time.** The line under the field is the feedback;
+  the list's empty state is for a log that is genuinely empty. The first cut
+  printed "Nothing with that in it." twice, four inches apart.
+- `SearchField` and `Excerpt` stand on two screens, so **`tint` has no
+  default** — the shared-control rule from `oneLight.test.ts`.
+
+**Inner Weather** (`domain/weather.ts`, `components/SkyRun.tsx`). The word was
+asked for every morning and shown nowhere but that morning's own read row,
+which is a question with nothing behind it. The run of the last fortnight is
+the answer, and the whole feature is that you can look along it.
+
+- **Not counted, not ranked, not averaged, no trend.** `WEATHER_WORDS` is
+  ordered settled-to-rough for layout and nothing maps it to numbers. A
+  leaderboard of your own bad days is exactly what the vocabulary was chosen to
+  avoid — sea weather carries no verdict.
+- **A morning with no word is a gap, never Calm.** Drawn as a rule rather than
+  as an empty bordered box, because a bordered blank reads as a value.
+- **It scrolls to today on mount.** The run reads left-to-right in time, so the
+  informative end is the right-hand one; opening on a fortnight ago is a screen
+  of empty columns that reads as a broken chart.
+- **Foresight still does not read it, and that is the standing decision.** A
+  categorical word is not a dial. Using it as a _grouping_ would fit the
+  existing Welch machinery, but it multiplies the hypotheses that `MIN_T` was
+  calibrated against — and `foresightNoise.test.ts` is explicit that a change
+  moving the noise rate is the wrong change. If it is ever done, it is done by
+  re-running that simulation first, not by adding a call site.
+
+**And the focus ring is the app's now.** Every text field on the web wore
+Chromium's two-pixel gold outline, in a palette with no gold in it, drawn over
+borders that were chosen — it reads as a validation error on a form that is
+fine. `tools/pwa-head.mjs` clears `:focus` and gives `:focus-visible` the
+signature violet at the app's own radius: a pointer gets no ring, a keyboard
+still gets one, because taking that away to tidy a screenshot is the wrong
+trade.
+
 ## The Break List: urges, not failures
 
 `domain/breakList.ts` and `app/breaklist.tsx`. The concept doc's line is the
