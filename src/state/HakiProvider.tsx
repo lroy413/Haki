@@ -29,6 +29,7 @@ import { setHardeningMark } from '../db/settings';
 import { assessCascade, type CascadeVerdict } from '../domain/cascade';
 import { trainingStatus, type TrainingStatus } from '../domain/training';
 import { nextStrike, todaysLoad, type Load, type Task } from '../domain/tasks';
+import { pressing } from '../domain/pressing';
 import { quoteForDay, type Quote } from '../domain/quotes';
 import { minutesToday } from '../domain/gears';
 import { minutesToday as sitMinutesToday } from '../domain/stillness';
@@ -84,6 +85,12 @@ type HakiState = {
   training: TrainingStatus;
   load: Load;
   next: Task | null;
+  /**
+   * What is bearing down, across every day rather than just today — a task
+   * due today and planned for Saturday lives in Saturday's list, which is
+   * the one place you will not look today.
+   */
+  bearing: Task[];
   quote: Quote;
   /** 0..1 — how strongly the app renders its own Haki. Plain mode pins it to 0. */
   intensity: number;
@@ -194,6 +201,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   );
   const [sailing, setSailing] = useState<Voyage>(() => voyage([], todayKey()));
   const [bells, setBells] = useState<Bell[]>([]);
+  const [bearing, setBearing] = useState<Task[]>([]);
   const [dayEnd, setDayEnd] = useState<string | null>(null);
 
   /**
@@ -271,6 +279,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     };
     setActs(nextActs);
     setBells(todayBells);
+    const nextBearing = pressing(tasks, today);
+    setBearing(nextBearing);
     setDayEnd(evening?.line ?? null);
 
     // The Reserve reads the day's acts, so it is computed here rather than
@@ -452,7 +462,10 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       cascade,
       training,
       load,
-      next: nextStrike(load),
+      // The next *ordinary* thing: anything already bearing down is shown by
+      // its own card above, and one task drawn twice on one screen is the
+      // bug Day's End had to fix once already.
+      next: nextStrike(load, bearing),
       quote: quoteForDay(todayKey()),
       // In plain mode the app stops performing entirely.
       intensity: settings.plainMode ? 0 : effectIntensity(reserve),
@@ -473,6 +486,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       observation: seeing,
       voyage: sailing,
       bells,
+      bearing,
       dayEnd,
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
@@ -483,6 +497,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       read,
       reserve,
       cascade,
+      bearing,
       dayEnd,
       training,
       load,

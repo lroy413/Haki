@@ -22,6 +22,8 @@ const task = (over: Partial<Task> = {}): Task => ({
   doneAt: null,
   rhythmKey: null,
   islandKey: null,
+  priority: false,
+  dueBy: null,
   watch: null,
   createdAt: 1000 + seq,
   ...over,

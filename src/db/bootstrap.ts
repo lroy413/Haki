@@ -363,6 +363,31 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS task_move_made ON task_move (made_on);
     `,
   },
+  {
+    version: 14,
+    up: `
+      -- What is pressing: the flag, and the date it has to be done by.
+      --
+      -- due_by is deliberately not committed_for. One is when the thing has
+      -- to be done and the other is when you plan to do it, and keeping them
+      -- apart is what lets the app say when the two disagree — a task due
+      -- Friday and planned for Saturday is the exact case worth catching, and
+      -- an app with one date field cannot see it at all.
+      --
+      -- priority is one flag and not a scale. A three-level priority system
+      -- is a system you spend Sunday administering, and the middle level
+      -- always comes to mean "not really".
+      --
+      -- Deliberately absent: any count of how many dates have gone past, and
+      -- any stored notion of "late". The date and today are both known, so
+      -- everything else is derived — and a stored late flag is a fact about a
+      -- person that outlives the day it was true.
+      ALTER TABLE task ADD COLUMN priority INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE task ADD COLUMN due_by TEXT;
+
+      CREATE INDEX IF NOT EXISTS task_due ON task (due_by);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

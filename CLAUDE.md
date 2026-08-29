@@ -558,6 +558,52 @@ about a day that has not happened, and worse, a thing you learn to scroll
 past. It wears the signature violet like the Return — this belongs to the day
 rather than to any one lens.
 
+## Priority, and a date you have to make
+
+`domain/pressing.ts`. The owner's words: _"If I set a date I want to have
+something done by I need it to be in my face and emphasized if labeled
+priority."_ Everything else here is elastic on purpose — a task is for today,
+a rhythm comes round, an island takes weeks — and that elasticity is exactly
+what let a real deadline slide past without the app ever raising its voice.
+
+- **`dueBy` is not `committedFor`, and keeping them apart is the design.** One
+  is when the thing has to be done, the other is when you plan to do it.
+  Conflating them is what every task app does and why "due date" ends up
+  meaning nothing: a thing due Friday you plan to do Tuesday is one task with
+  a plan and a deadline. `planNote` is the sentence the split buys, and it is
+  the whole return on the second column.
+- **Priority is one flag, never a scale.** Three levels is a system you spend
+  Sunday administering, and the middle one always comes to mean "not really".
+- **`warn`, never crimson.** The app's one warmth is _look at this_; crimson
+  is _something has gone wrong_, and a date arriving is not a breach. The Calm
+  Belt settled this same question first.
+- **Loud by weight, edge and position — never by alarm.** A bar down the
+  leading edge, the title a weight heavier, and the top of the list. Nothing
+  rings, badges, or counts how many dates have gone past. The count runs
+  toward and keeps running ("3 days", "Due today", "2 days past"), the same
+  figure an island at sea wears.
+- **Two horizons, and they are different numbers on purpose.** `SOON_DAYS`
+  decides what is drawn warm in the list; `BEARING_DAYS` is tighter and
+  decides what reaches the home screen. A card announcing three things are
+  bearing down when one of them is Thursday teaches you to ignore the card,
+  which is the only way this feature can really fail.
+- **The home card reads across every day, and that is why it exists.** A task
+  due today that you planned for Saturday lives in Saturday's list — the one
+  list you will not open today — so filtering by `committedFor` would hide
+  precisely the case this was built to catch. It is capped at `BEARING_SHOWN`
+  with the rest counted in one line, because a wall of undone things above
+  everything else is the ADHD failure this app exists to avoid.
+- **One task is never drawn twice on one screen.** `nextStrike` takes what is
+  already shown elsewhere and skips it, and the Next-up card does not render
+  at all when the bearing card has covered the day.
+- **`strikeToday` lands it on today**, whatever day it was filed under — the
+  same rule the at-sea strike holds, for the same reason.
+- `parseDay` reads `15`, `9/15`, `sep 15`, `2026-09-15`, and **refuses rather
+  than guessing**. A bare day rolls forward to the next time it comes round; a
+  _named_ month within `BACKDATE_GRACE_DAYS` is taken at face value, because
+  recording something that was due last week is ordinary and the first cut
+  silently turned `9/19` typed on the 20th into September of the next year.
+
 ## Nothing committed is quietly dropped
 
 `domain/atSea.ts` closes a hole rather than adding a feature. `todaysLoad`
