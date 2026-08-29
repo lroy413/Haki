@@ -11,6 +11,7 @@ import {
   getRead,
   readSetting,
   recentSleep,
+  actsBetween,
   sitSessionsBetween,
   sitSessionsOn,
 } from '../db/repo';
@@ -28,6 +29,16 @@ import {
   type ArmamentDay,
 } from '../domain/armament';
 import { observation, type Observation, type ObservationDay } from '../domain/observation';
+import { voyage, type Voyage } from '../domain/voyage';
+
+/**
+ * How far back the voyage reads.
+ *
+ * Twelve weeks. Long enough that a serious gap has both of its ends inside
+ * the window — a gap only half seen is not a gap this may report on — and
+ * short enough to stay one query.
+ */
+const VOYAGE_WINDOW = 84;
 import type { Course } from '../domain/course';
 import { reachDays, reachFor, tierFor, type RyuoTier } from '../domain/ryuo';
 import { NO_ACTS, settleLevel, type Acts, type HardeningLevel } from '../domain/hardening';
@@ -79,6 +90,8 @@ type HakiState = {
   hardness: { value: number | null; days: number };
   /** 見聞色 — the practice, and whether today is clear enough to use it. */
   observation: Observation;
+  /** Returns and the Calm Belt, read from the days themselves. */
+  voyage: Voyage;
   day: number;
   t: Strings;
   plainMode: boolean;
@@ -161,6 +174,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   const [seeing, setSeeing] = useState<Observation>(() =>
     observation([], null, todayKey(), ARMAMENT_WINDOW),
   );
+  const [sailing, setSailing] = useState<Voyage>(() => voyage([], todayKey()));
 
   const refresh = useCallback(async () => {
     const today = todayKey();
@@ -174,6 +188,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       sits,
       todayCourse,
       sitWindow,
+      actHistory,
       markDay,
       markLevel,
     ] = await Promise.all([
@@ -186,6 +201,9 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       sitSessionsOn(db, today),
       getCourse(db, today),
       sitSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
+      // Far enough back that a long gap has both of its ends inside the
+      // window — a return read from a half-seen gap would be invented.
+      actsBetween(db, addDays(today, -(VOYAGE_WINDOW - 1)), today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
     ]);
@@ -254,6 +272,16 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       satMinutes: sitMinutesToday(group, now),
     }));
     setSeeing(observation(sitHistory, todayRead?.clarity ?? null, today, ARMAMENT_WINDOW));
+
+    // Today is recomputed live above, so it goes on top of the stored
+    // history: a task struck a second ago has to count as today being used
+    // or the Return would still think the gap was open.
+    setSailing(
+      voyage(
+        [...actHistory.filter((d) => d.day !== today), { day: today, ...nextActs }],
+        today,
+      ),
+    );
 
     const recorded =
       markDay && markLevel !== null
@@ -381,6 +409,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       course,
       hardness: armament,
       observation: seeing,
+      voyage: sailing,
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,

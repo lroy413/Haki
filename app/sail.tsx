@@ -46,6 +46,7 @@ import { usableBottom } from '../src/theme/viewport';
 import { press } from '../src/theme/surfaces';
 import { row } from '../src/theme/surfaces';
 import { SectionLabel } from '../src/components/SectionLabel';
+import { returnsNote } from '../src/domain/voyage';
 import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
 
@@ -71,7 +72,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function SailScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, palette, plainMode, crew } = useHaki();
+  const { t, palette, plainMode, crew, voyage: sailing } = useHaki();
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
   const insets = useSafeAreaInsets();
@@ -208,6 +209,33 @@ export default function SailScreen() {
               .filter(Boolean)
               .join(' · ')}
           </Text>
+        ) : null}
+
+        {/* ---------------------------------------------------- returns */}
+        {/* The arc, listed and left alone. No trend is asserted and the days
+            away are totalled nowhere — every number here exists only because
+            a gap ended. */}
+        {sailing.returns.length > 0 ? (
+          <>
+            <SectionLabel
+              label={plainMode ? 'Coming back' : 'The returns'}
+              style={styles.spaced}
+            />
+            <View style={styles.returns}>
+              {sailing.returns.slice(0, 5).map((r) => (
+                <View key={r.day} style={styles.returnRow}>
+                  <Text style={styles.returnDay}>{shortDay(r.day)}</Text>
+                  {/* Signature violet under both flags — see CLAUDE.md.
+                      The screen's palette is crew-coated, where `violet`
+                      is jade under Zoro, so this takes the raw one. */}
+                  <Text style={[styles.returnAfter, { color: palette.violet }]}>
+                    {plainMode ? `after ${r.after} days` : `back after ${r.after} days`}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.flagAsk}>{returnsNote(sailing.returns.length, plainMode)}</Text>
+          </>
         ) : null}
 
         {previous?.heading ? (
@@ -399,6 +427,13 @@ const makeStyles = (c: Palette) =>
     lastHeadingText: { ...type.body, color: c.inkDim, fontStyle: 'italic', lineHeight: 21 },
 
     flagAsk: { ...type.small, color: c.inkDim, lineHeight: 19 },
+
+    // The returns read as a short ledger rather than as cards: the point
+    // is the column of figures, which is where the arc actually shows.
+    returns: { gap: space.xs, marginTop: space.xs },
+    returnRow: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm },
+    returnDay: { ...type.mono, fontSize: 12, color: c.inkFaint, minWidth: 62 },
+    returnAfter: { ...type.body },
     flagList: {
       borderLeftWidth: 2,
       borderLeftColor: c.violet,
