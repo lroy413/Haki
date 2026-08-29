@@ -53,6 +53,24 @@ looking polished.** A feature that works but looks unfinished is not done.
 
 ## The screen answers the finger, not the write
 
+**And `refresh()` has two halves, in that order.** Leaving a screen that just
+wrote something runs two refreshes at once — the save's own, and the one the
+screen behind it fires as it regains focus — and they queue on expo-sqlite's
+single channel. Two rules came out of the day the Daily Read looked like it
+had not saved:
+
+- **Only the newest refresh may write.** The one that started first reads the
+  _older_ database, so without a guard its stale answer can land last and put
+  the old number back on screen. `refreshes` is a monotonic counter and every
+  stage checks it before calling a setter.
+- **Today's own numbers do not wait behind three months of history.** The
+  trailing windows — twelve weeks of acts across seven tables for the voyage,
+  a month of sits for Observation — are the most expensive thing the provider
+  does and they change nothing already on screen, so they run in a second
+  stage. The read, the Reserve, the load, the bells and **the palette** land
+  first. Anything added to the first stage slows down every act in the app;
+  put it in the second unless the screen is visibly waiting on it.
+
 Striking a task writes one row and then reloads the whole provider. On the web
 every one of those queries goes through expo-sqlite's single synchronous
 channel, so the tick took long enough to appear that the checkbox read as
