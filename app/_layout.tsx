@@ -81,6 +81,8 @@ function Chrome() {
         <Stack.Screen name="rhythms" options={{ title: t.rhythmTitle }} />
         {/* The weekly ritual. See app/sail.tsx. */}
         <Stack.Screen name="sail" options={{ title: t.sailTitle }} />
+        {/* The forward half of the ritual, reachable all week. See app/week.tsx. */}
+        <Stack.Screen name="week" options={{ title: t.weekTitle }} />
         {/* 未来視 — the full readout and its method. See app/foresight.tsx. */}
         <Stack.Screen name="foresight" options={{ title: t.foresightTitle }} />
         <Stack.Screen name="course" options={{ presentation: 'modal', title: t.courseTitle }} />

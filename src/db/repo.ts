@@ -17,7 +17,7 @@ import { asternOn, type Astern } from '../domain/astern';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
 import type { DayRecord } from '../domain/foresight';
-import type { DayEndRow, NoteRow, TaskMoveRow } from './schema';
+import type { BellRow, DayEndRow, NoteRow, TaskMoveRow } from './schema';
 import { MAX_BELL_CHARS, clampClock, type Bell } from '../domain/bells';
 import { MAX_REASON } from '../domain/atSea';
 import { MAX_HOW } from '../domain/dayEnd';
@@ -1461,6 +1461,45 @@ export async function sayWhy(db: Db, moveId: number, reason: string): Promise<vo
     .update(taskMove)
     .set({ reason: reason.trim().slice(0, MAX_REASON) })
     .where(eq(taskMove.id, moveId));
+}
+
+/* ---------------------------------------------------------------------- week */
+
+/** Every bell in a range, for the week chart. */
+export async function bellsBetween(db: Db, from: DayKey, to: DayKey): Promise<BellRow[]> {
+  return db
+    .select()
+    .from(bell)
+    .where(and(gte(bell.day, from), lte(bell.day, to)))
+    .orderBy(bell.day, bell.at);
+}
+
+/**
+ * Islands whose port of call falls in a range, still open.
+ *
+ * Reached and sailed-past islands are excluded: a port you already made is not
+ * something to see coming, and one you sailed past stopped being a date the
+ * moment you decided that.
+ */
+export async function portsBetween(
+  db: Db,
+  from: DayKey,
+  to: DayKey,
+): Promise<{ day: DayKey; title: string }[]> {
+  const rows = await db
+    .select({ day: poneglyph.portBy, title: poneglyph.title })
+    .from(poneglyph)
+    .where(
+      and(
+        eq(poneglyph.state, 'open'),
+        isNotNull(poneglyph.portBy),
+        gte(poneglyph.portBy, from),
+        lte(poneglyph.portBy, to),
+      ),
+    );
+  return rows.flatMap((r) =>
+    r.day === null ? [] : [{ day: r.day as DayKey, title: r.title }],
+  );
 }
 
 /* --------------------------------------------------------------------- notes */

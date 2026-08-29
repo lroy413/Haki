@@ -831,6 +831,34 @@ rows that already exist say it counted.
   being enforced: both need today to have been used, and a used day has
   hardened.
 
+## The week: ink behind, outlines ahead
+
+`domain/week.ts` and `components/WeekChart.tsx`. Setting Sail reads the week
+_behind_ and asks for a heading; there was nowhere to see the week **in front
+of you**, which is the half you can still do something about. Chart the Week is
+that half, reachable all week rather than once at the ritual.
+
+- **Two marks, never one channel.** A day that has happened is solid, at the
+  darkness it earned. A day that has not is a dashed outline holding what is
+  placed on it. A bar meaning "used" on Monday and "planned" on Friday is a
+  chart you cannot read, and one that quietly counts intentions as work. The
+  dashed grammar is already the rhythm's: not in the database, not counted.
+- **Two scales, because they are not the same unit.** Ink is absolute against
+  the darkest a day can come out, so a light week cannot draw its best day as
+  tall as a heavy week's. Outlines are relative to this week's busiest day,
+  because there is no capacity to scale against and the app will not invent
+  one. The first cut shared a scale and drew Wednesday's plans twice as tall as
+  Monday's work.
+- **Never `flexGrow` for a bar.** It distributes _free_ space rather than
+  setting a size, so every column came out the same height whatever the day had
+  earned. Explicit percentage heights, anchored to the bottom.
+- **No total, no capacity, nothing red.** Setting Sail is the one screen
+  allowed to put a denominator on a week and it earns that by saying it once in
+  the ritual; a chart repeating it daily would turn a bounded honest count into
+  a target.
+- **Monday starts the week**, and Sunday ends the one it belongs to — the
+  off-by-one that puts a seventh of all weeks a day out. There is a test.
+
 ## Setting Sail is the one place that totals anything
 
 Everywhere else a count needs a denominator the app does not have — a journey

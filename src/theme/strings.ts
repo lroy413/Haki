@@ -134,6 +134,13 @@ export type Strings = {
   foresightOpen: string;
 
   sailTitle: string;
+  weekTitle: string;
+  weekLegend: string;
+  weekCargo: string;
+  weekPorts: string;
+  weekToday: string;
+  weekRitual: string;
+  weekDoor: string;
   sailCta: string;
   sailWeekLabel: string;
   sailNeedlesLabel: string;
@@ -355,6 +362,13 @@ const haki: Strings = {
   foresightOpen: 'All of it',
 
   sailTitle: 'Setting Sail',
+  weekTitle: 'Chart the Week',
+  weekLegend: 'Solid is what a day held. Dashed is what is placed on one still ahead.',
+  weekCargo: 'What the days carry',
+  weekPorts: 'Ports this week',
+  weekToday: 'Today',
+  weekRitual: 'Read the week back and set the heading.',
+  weekDoor: 'The week',
   sailCta: 'Set sail',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'The needles',
@@ -548,6 +562,13 @@ const plain: Strings = {
   foresightOpen: 'All of it',
 
   sailTitle: 'Weekly review',
+  weekTitle: 'This week',
+  weekLegend: 'Solid is what a day held. Dashed is what is planned on a day still ahead.',
+  weekCargo: 'What the days carry',
+  weekPorts: 'Deadlines this week',
+  weekToday: 'Today',
+  weekRitual: 'Review the week and set the next one.',
+  weekDoor: 'This week',
   sailCta: 'Start the review',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'Your goals',

@@ -118,6 +118,19 @@ export default function Home() {
         onBells={() => router.push('/bells')}
       />
 
+      {/* One size up from the strip above it: the day, then the week. A line
+          rather than a card, because the shape of the week is a thing you go
+          and look at rather than something the home screen should carry. */}
+      <Pressable
+        onPress={() => router.push('/week')}
+        accessibilityRole="button"
+        accessibilityLabel={t.weekTitle}
+        style={({ pressed }) => [styles.weekDoor, pressed && styles.ctaPressed]}
+      >
+        <Text style={styles.weekDoorText}>{t.weekDoor}</Text>
+        <Text style={styles.weekChevron}>›</Text>
+      </Pressable>
+
       {/* The evening pass. Only present during the evening watch — see
           `DayEndDoor`. Directly under the strip, because the strip is the
           day and this is the door that closes it. */}
@@ -235,6 +248,15 @@ const makeStyles = (c: Palette) =>
 
     ctaPressed: { ...press },
 
+    weekDoor: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 44,
+      paddingHorizontal: space.md,
+    },
+    weekDoorText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    weekChevron: { ...type.heading, color: c.inkFaint },
     strip: {
       ...row(c),
       flexDirection: 'row',
