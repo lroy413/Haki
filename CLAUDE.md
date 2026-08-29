@@ -826,6 +826,57 @@ app whose data is about other people.
   the loose pages — this tab is noticing your own state, and this is the half
   of it the app could never hear.
 
+## The Break List: urges, not failures
+
+`domain/breakList.ts` and `app/breaklist.tsx`. The concept doc's line is the
+whole brief: _most apps only let you record the loss._ Every quit-tracker ever
+built is a counter that climbs while you hold and resets when you do not, so
+the only thing it can say about the hardest thing you did all week is that you
+eventually stopped doing it. **There was nowhere in this app to record a win
+that consists of not doing something.**
+
+So the unit is the _urge_, never the day and never the run.
+
+- **There is no streak and nowhere to put one.** Not "14 days clean", not a
+  longest run, not days-since — there is no column for it, no figure derived
+  from one, and the tests forbid the words. This is the shame machine the whole
+  app was built to avoid and it is worse here than anywhere: a number whose
+  only move is to zero turns one bad hour into the erasure of a month.
+- **A slip is data.** Same table, same list, same weight, same colour. Nothing
+  turns red, nothing resets, nothing says "again" — and `outcome` is drawn in
+  ink rather than in the lens, because crimson is this app's _something has
+  gone wrong_ and a hold printed in it says the opposite of what happened. A
+  green Held beside a red Went is a scoreboard; this is a record.
+- **The three endings are the same size, in the same row, in the same
+  colour.** "Went with it" is not smaller, greyer or further away than "Held".
+  A list you can only be honest in one direction is a list that lies.
+- **"Went with it", never "gave in", "relapsed" or "slipped".** Three of those
+  are clinical vocabulary borrowed to make a person feel like a case.
+- **An urge you are still in is a real state.** "Riding it out" records one with
+  no ending yet, because opening the app mid-urge is itself the coping act and
+  the concept says to log the craving _the moment it lands_. Its two endings sit
+  on its own row. It is never nagged and never rolled into tomorrow: an urge
+  that stayed open is a true record of an evening, not a task you failed to
+  close.
+- **Several urges against one break in a day is several urges.** Unlike the Sea
+  Prism Log's stones, which are one-per-day flags, these do not collapse —
+  deciding how many times somebody is allowed to have wanted something is not
+  the app's business.
+- **An urge spends the Reserve whichever way it went**, because the wanting is
+  the expensive part. Charging more for a slip would be a punishment with
+  arithmetic on it; charging more for a hold would tax the thing the feature is
+  for. `spendNote` names the count and never the outcome.
+- **A held urge is `resisted()`, and nothing else.** It breaks the Calm Belt's
+  run of easy days, which is the only thing in the app it feeds — and since the
+  Calm Belt can only ever _lose_ run by finding resistance, there is nothing
+  there to farm. It deliberately does **not** feed hardening: a day whose only
+  entry is three urges is not a day you _used_, and a level that rose as they
+  were logged would corrupt the one dataset that has to be honest. That is why
+  `held` lives on `ActDay` and not in `Acts`.
+- 武装色's light, and it moves with the crew — the door is on the Do tab,
+  because armament is the tool for what you do and holding an urge is the
+  hardest thing it has to hold.
+
 ## A backup row is its table's row — except once
 
 The import inserts backup rows **straight into Drizzle**, so a backup type is

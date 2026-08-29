@@ -23,6 +23,8 @@ import {
   bellsOn,
   getDayEnd,
   drainsOn,
+  heldDaysBetween,
+  urgesOnDay,
   sitSessionsBetween,
   sitSessionsOn,
 } from '../db/repo';
@@ -64,6 +66,7 @@ import {
   type DailyRead,
   type Reserve,
 } from '../domain/willReserve';
+import { heldSomething } from '../domain/breakList';
 import { strings, type Strings } from '../theme/strings';
 import { syncKeystoneWarning } from '../notifications/denDenMushi';
 import { preloadSounds, setSoundEnabled } from '../sound';
@@ -232,6 +235,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       todayBells,
       evening,
       drains,
+      todayUrges,
       markDay,
       markLevel,
     ] = await Promise.all([
@@ -246,6 +250,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       bellsOn(db, today),
       getDayEnd(db, today),
       drainsOn(db, today),
+      urgesOnDay(db, today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
     ]);
@@ -299,6 +304,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
         // done. First stage, because the gauge is on the home screen and a
         // reading that arrives without it would be visibly wrong for a beat.
         drains,
+        urges: todayUrges.length,
       }),
     );
 
@@ -353,11 +359,14 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     // and none of it changes the numbers already on screen — so it runs after
     // them rather than in front of them, and the day's own figures no longer
     // wait behind three months of history on one sqlite channel.
-    const [sitWindow, actHistory] = await Promise.all([
+    const [sitWindow, actHistory, heldDays] = await Promise.all([
       sitSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
       // Far enough back that a long gap has both of its ends inside the
       // window — a return read from a half-seen gap would be invented.
       actsBetween(db, addDays(today, -(VOYAGE_WINDOW - 1)), today),
+      // Which of those days had an urge held on them. Second stage with the
+      // rest of the window: the Calm Belt is the only thing that reads it.
+      heldDaysBetween(db, addDays(today, -(VOYAGE_WINDOW - 1)), today),
     ]);
     if (mine !== refreshes.current) return;
 
@@ -370,9 +379,15 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     // Today is recomputed live above, so it goes on top of the stored
     // history: a task struck a second ago has to count as today being used
     // or the Return would still think the gap was open.
+    const held = new Set(heldDays);
     setSailing(
       voyage(
-        [...actHistory.filter((d) => d.day !== today), { day: today, ...nextActs }],
+        [
+          ...actHistory
+            .filter((d) => d.day !== today)
+            .map((d) => ({ ...d, held: held.has(d.day) })),
+          { day: today, ...nextActs, held: heldSomething(todayUrges) },
+        ],
         today,
       ),
     );

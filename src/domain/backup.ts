@@ -145,6 +145,27 @@ export type SeaPrismHitBackup = {
   createdAt: number;
 };
 
+/** A thing you are trying not to do. */
+export type BreakBackup = {
+  name: string;
+  createdAt: number;
+  retiredAt: number | null;
+};
+
+/**
+ * One urge and what happened, keyed by the break's `createdAt`.
+ *
+ * `outcome` is a string rather than the union for the same reason
+ * `SeaPrismBackup.kind` is: a file written by a later version must still
+ * import, and the reader decides on the way out of the database.
+ */
+export type UrgeBackup = {
+  breakKey: number;
+  day: string;
+  outcome: string;
+  createdAt: number;
+};
+
 export type NoteBackup = {
   title: string;
   body: string;
@@ -267,6 +288,8 @@ export type BackupTables = {
   note: NoteBackup[];
   seaPrism: SeaPrismBackup[];
   seaPrismHit: SeaPrismHitBackup[];
+  breakItem: BreakBackup[];
+  urge: UrgeBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
@@ -310,6 +333,8 @@ export const EMPTY_TABLES: BackupTables = {
   note: [],
   seaPrism: [],
   seaPrismHit: [],
+  breakItem: [],
+  urge: [],
   sounding: [],
   carried: [],
   task: [],
@@ -439,6 +464,8 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
   // than throwing away somebody's row.
   seaPrism: (r) => str(r.kind) && str(r.name) && num(r.createdAt) && nullableNum(r.retiredAt),
   seaPrismHit: (r) => num(r.stoneKey) && str(r.day) && num(r.createdAt),
+  breakItem: (r) => str(r.name) && num(r.createdAt) && nullableNum(r.retiredAt),
+  urge: (r) => num(r.breakKey) && str(r.day) && str(r.outcome) && num(r.createdAt),
   // The line is never empty — an emptied field deletes the row rather than
   // storing a blank, so a blank one arriving in an import is not a day
   // somebody said nothing about, it is a malformed row.
@@ -601,6 +628,10 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   seaPrism: (r) => `${r.kind} ${r.name}`,
   // One tap per stone per moment.
   seaPrismHit: (r) => `${r.stoneKey} ${r.createdAt}`,
+  // A break is its name, however many devices the file has been through.
+  breakItem: (r) => String(r.name),
+  // One urge per break per moment.
+  urge: (r) => `${r.breakKey} ${r.createdAt}`,
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

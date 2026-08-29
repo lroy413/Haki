@@ -153,6 +153,13 @@ export type Strings = {
   prismList: string;
   prismAstern: string;
   prismName: string;
+  breakTitle: string;
+  breakDoor: string;
+  breakDoorLine: string;
+  breakList: string;
+  breakToday: string;
+  breakAstern: string;
+  breakName: string;
   sailCta: string;
   sailWeekLabel: string;
   sailNeedlesLabel: string;
@@ -395,6 +402,13 @@ const haki: Strings = {
   prismList: 'On the list',
   prismAstern: 'Astern',
   prismName: 'Name one',
+  breakTitle: 'The Break List',
+  breakDoor: 'Break List',
+  breakDoorLine: 'Urges, and what happened',
+  breakList: 'On the list',
+  breakToday: 'Today',
+  breakAstern: 'Astern',
+  breakName: 'Name one',
   sailCta: 'Set sail',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'The needles',
@@ -609,6 +623,13 @@ const plain: Strings = {
   prismList: 'Your list',
   prismAstern: 'Earlier',
   prismName: 'Add one',
+  breakTitle: 'Quitting',
+  breakDoor: 'Quitting',
+  breakDoorLine: 'Urges, and what happened',
+  breakList: 'Your list',
+  breakToday: 'Today',
+  breakAstern: 'Earlier',
+  breakName: 'Add one',
   sailCta: 'Start the review',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'Your goals',

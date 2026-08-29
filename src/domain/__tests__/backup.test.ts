@@ -359,6 +359,8 @@ describe('key hygiene', () => {
       },
       seaPrism: { kind: 'someone', name: 'The Tuesday call', createdAt: 1, retiredAt: null },
       seaPrismHit: { stoneKey: 1, day: '2026-09-15', createdAt: 2 },
+      breakItem: { name: 'Doomscrolling', createdAt: 1, retiredAt: null },
+      urge: { breakKey: 1, day: '2026-09-15', outcome: 'held', createdAt: 2 },
       note: { title: '', body: '- milk\n- bread', createdAt: 3, updatedAt: 4 },
       setting: { key: 'ui.plainMode', value: 'false' },
     };

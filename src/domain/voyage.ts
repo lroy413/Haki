@@ -62,7 +62,16 @@ import type { Acts } from './hardening';
  * concept doc says is worth being suspicious of.
  */
 
-export type ActDay = { day: DayKey } & Acts;
+/**
+ * `held` is deliberately outside `Acts`.
+ *
+ * `Acts` is hardening's shape, and hardening reads the day being *used*.
+ * Holding an urge is not the day being used — and a level that rose as urges
+ * were logged would make logging them farmable, which is the one thing that
+ * would corrupt that data. It is resistance, though, which is a different
+ * question and the only one this file asks of it.
+ */
+export type ActDay = { day: DayKey; held?: boolean } & Acts;
 
 /** A gap of this many days or more makes coming back a Return. */
 export const GAP_FOR_RETURN = 3;
@@ -104,14 +113,20 @@ export function used(a: Acts): boolean {
 /**
  * Was anything hard attempted?
  *
- * Two acts, and they are the two you cannot do by accident: a training session
- * and time in gear. Striking a task is one tap and writing a line is one line
- * — both are the day being used, which is what `used()` is for, and neither is
- * resistance. Kept as one predicate so the definition can be retuned in a
- * single place rather than argued with at three call sites.
+ * Three things now, and they are the ones you cannot do by accident: a
+ * training session, time in gear, and holding an urge from the Break List.
+ * Striking a task is one tap and writing a line is one line — both are the day
+ * being used, which is what `used()` is for, and neither is resistance. Kept
+ * as one predicate so the definition can be retuned in a single place rather
+ * than argued with at three call sites.
+ *
+ * A held urge belongs here and nowhere else in the app's arithmetic. It is
+ * unambiguously the hard thing, so a week of them is not a dead calm — and
+ * because the Calm Belt only ever *loses* a day of run by finding resistance,
+ * there is nothing here to farm.
  */
-export function resisted(a: Acts): boolean {
-  return a.trained > 0 || a.gearMinutes > 0;
+export function resisted(a: ActDay | Acts): boolean {
+  return ('held' in a && a.held === true) || a.trained > 0 || a.gearMinutes > 0;
 }
 
 /**
