@@ -1,4 +1,5 @@
 import { lit } from '../theme/surfaces';
+import { spendNote } from '../domain/willReserve';
 import { useHaki } from '../state/HakiProvider';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -38,6 +39,7 @@ export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props)
   const tone = reserveColor(palette)[reserve.state];
   const filled = reserve.value ?? 0;
   const glow = lit(tone, plainMode ? 0 : hardening);
+  const spent = spendNote(reserve.spend, plainMode);
 
   return (
     <View
@@ -66,6 +68,12 @@ export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props)
           <Text style={styles.state}>{STATE_WORD[reserve.state]}</Text>
         </View>
       )}
+
+      {/* What took it. A number that fell without saying why is worse than
+          no number: forty having spent two hours in gear is a different day
+          from forty on a Tuesday morning, and this is the line that tells
+          them apart. Silent on a day that has spent nothing. */}
+      {spent ? <Text style={styles.spent}>{spent}</Text> : null}
 
       {/* No reading, no channel: an empty track under "no reading yet"
           reads as a measured zero, which is the one thing it is not. */}
@@ -108,6 +116,10 @@ const makeStyles = (c: Palette) =>
       fontVariant: ['tabular-nums'],
     },
     state: { ...type.heading, color: c.inkDim },
+    // Mono rather than `type.label`: this is a sentence about a figure,
+    // and the label style uppercases, which turned "1.5h in gear today."
+    // into a shouted fragment with a full stop on the end of it.
+    spent: { ...type.mono, color: c.inkDim, marginTop: space.xs },
     unknown: { ...type.body, color: c.inkDim, paddingVertical: space.md },
     track: {
       height: 6,
