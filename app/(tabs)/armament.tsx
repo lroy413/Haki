@@ -29,7 +29,7 @@ import {
   moveTask,
   recentSessions,
   setTaskDone,
-  strikeAtSea,
+  strikeToday,
   strikeRhythm,
   unstrikeRhythm,
 } from '../../src/db/repo';
@@ -52,6 +52,16 @@ import {
 } from '../../src/domain/tasks';
 import { atSea, atSeaLabel, type AtSea } from '../../src/domain/atSea';
 import { AtSeaRow } from '../../src/components/AtSeaRow';
+import {
+  DUE_CHIPS,
+  PRIORITY_LABEL,
+  dueFromChip,
+  dueLine,
+  heatOf,
+  isWarm,
+  parseDay,
+  daysUntil,
+} from '../../src/domain/pressing';
 import { addDays, shortDay, todayKey } from '../../src/domain/date';
 import {
   cadence,
@@ -103,6 +113,9 @@ export default function ArmamentScreen() {
   const [title, setTitle] = useState('');
   const [minutes, setMinutes] = useState(DEFAULT_TASK_MINUTES);
   const [watch, setWatch] = useState<Watch | null>(null);
+  const [priority, setPriority] = useState(false);
+  const [dueBy, setDueBy] = useState<string | null>(null);
+  const [dueText, setDueText] = useState('');
   const [showBacklog, setShowBacklog] = useState(false);
   const [showTomorrow, setShowTomorrow] = useState(false);
   const [rhythms, setRhythms] = useState<Rhythm[]>([]);
@@ -132,6 +145,10 @@ export default function ArmamentScreen() {
   async function add(committedFor: string | null) {
     const name = title.trim();
     if (!name) return;
+    // Read the typed date before the fields clear — the clearing happens
+    // inside the flight, in this same frame, and reading after it would
+    // silently drop a date somebody had just typed.
+    const chosenDue = dueBy ?? parseDay(dueText, day);
     await committing(async () => {
       // The field empties in the same frame as the tap — the emptying is
       // the acknowledgement — and the flight guard holds off a second tap
@@ -139,11 +156,14 @@ export default function ArmamentScreen() {
       setTitle('');
       setMinutes(DEFAULT_TASK_MINUTES);
       setWatch(null);
+      setPriority(false);
+      setDueBy(null);
+      setDueText('');
       void Haptics.selectionAsync();
       // The watch travels with the task even into the backlog: it says when
       // in a day the thing belongs, and that stays true whichever day it
       // lands.
-      await addTask(db, name, minutes, committedFor, { watch });
+      await addTask(db, name, minutes, committedFor, { watch, priority, dueBy: chosenDue });
       await reload();
     });
   }
@@ -186,7 +206,7 @@ export default function ArmamentScreen() {
         item.id === entry.task.id ? { ...item, committedFor: day, doneAt: stamp } : item,
       ),
     );
-    await strikeAtSea(db, entry.task.id, day);
+    await strikeToday(db, entry.task.id, day);
     await reload();
   }
 
@@ -473,6 +493,10 @@ export default function ArmamentScreen() {
               rhythmKey: r.key,
               islandKey: null,
               watch: null,
+              // A rhythm's offer is never priority and never dated: it comes
+              // round on its own and that is the whole model.
+              priority: false,
+              dueBy: null,
               createdAt: r.key,
             }}
             note={cadence(r)}
@@ -579,6 +603,77 @@ export default function ArmamentScreen() {
                 </Text>
               </Pressable>
             ))}
+          </View>
+
+          {/* The flag and the date. Both optional, both a second tap from
+              gone — a task with neither is the ordinary case and must stay
+              the cheapest thing to write down. */}
+          <View style={styles.chips}>
+            <Pressable
+              onPress={() => setPriority((on) => !on)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: priority }}
+              accessibilityLabel={PRIORITY_LABEL}
+              style={({ pressed }) => [
+                styles.chip,
+                priority && styles.flagOn,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={[styles.chipText, priority && styles.flagTextOn]}>
+                {PRIORITY_LABEL}
+              </Text>
+            </Pressable>
+            {DUE_CHIPS.map((c) => {
+              const at = dueFromChip(c.days, day);
+              const on = dueBy === at;
+              return (
+                <Pressable
+                  key={c.label}
+                  onPress={() => {
+                    setDueBy(on ? null : at);
+                    setDueText('');
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  accessibilityLabel={`Due ${plainMode ? c.plain : c.label}`}
+                  style={({ pressed }) => [
+                    styles.chip,
+                    on && styles.flagOn,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={[styles.chipText, on && styles.flagTextOn]}>
+                    {plainMode ? c.plain : c.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Anything the chips do not cover. Reads 15, 9/15, sep 15 — and
+              refuses rather than guessing, because a date the app got wrong
+              is worse than one it declined: you would not check it. */}
+          <View style={styles.dueRow}>
+            <TextInput
+              value={dueText}
+              onChangeText={(text) => {
+                setDueText(text);
+                setDueBy(null);
+              }}
+              placeholder={plainMode ? 'Or a date — 15, 9/15, sep 15' : 'Or a date to make'}
+              placeholderTextColor={palette.inkFaint}
+              style={styles.dueInput}
+              returnKeyType="done"
+              accessibilityLabel="Due date"
+            />
+            <Text style={styles.dueEcho}>
+              {dueBy !== null
+                ? (dueLine(dueBy, day) ?? '')
+                : dueText.trim().length === 0
+                  ? ''
+                  : (dueLine(parseDay(dueText, day), day) ?? 'Not a date')}
+            </Text>
           </View>
 
           <View style={styles.addRow}>
@@ -827,6 +922,15 @@ function TaskRow({
     onToggle(next);
   }
 
+  const today = todayKey();
+  const days = daysUntil(task.dueBy, today);
+  const heat = heatOf(days);
+  const warm = isWarm(heat, task.priority);
+  const due = dueLine(task.dueBy, today);
+  // Warm covers "look at this"; hot is the narrower case where the date is
+  // today or behind, which is the only thing that earns the colour outright.
+  const hot = heat === 'past' || heat === 'today';
+
   return (
     <Emission
       trigger={strikes}
@@ -834,6 +938,10 @@ function TaskRow({
       style={StyleSheet.flatten([
         styles.task,
         standing && !checked && styles.taskOffer,
+        // Loud by weight and edge, never by alarm. `warn` is the app's one
+        // warmth — crimson would say something has gone wrong, and a date
+        // arriving is not a breach. Same call the Calm Belt made.
+        warm && !checked && styles.taskWarm,
         checked && styles.taskDone,
       ])}
     >
@@ -854,12 +962,29 @@ function TaskRow({
         </View>
 
         <View style={styles.taskBody}>
-          <Text style={[styles.taskTitle, checked && styles.taskTitleDone]} numberOfLines={2}>
+          <Text
+            style={[
+              styles.taskTitle,
+              warm && !checked && styles.taskTitleWarm,
+              checked && styles.taskTitleDone,
+            ]}
+            numberOfLines={2}
+          >
             {task.title}
           </Text>
+          {/* One line, not three. The flag and the date ride with the
+              estimate rather than stacking under it — a row with an action
+              beside it is already narrow, and three stacked lines turned
+              every dated task into a paragraph. */}
           <Text style={styles.taskMinutes}>
             {formatMinutes(task.minutes)}
             {note ? ` · ${note}` : ''}
+            {task.priority && !checked ? (
+              <Text style={styles.markFlag}> · {PRIORITY_LABEL}</Text>
+            ) : null}
+            {due && !checked ? (
+              <Text style={hot ? styles.markHot : styles.markCool}> · {due}</Text>
+            ) : null}
           </Text>
         </View>
       </Pressable>
@@ -959,7 +1084,29 @@ const makeStyles = (c: Palette) =>
     // A standing offer is dashed and unfilled: it is not in the database and
     // will not be unless taken. The moment it is checked it renders solid,
     // because at that moment it becomes a real struck task.
+    flagOn: { borderColor: c.warn, backgroundColor: c.surface2 },
+    flagTextOn: { color: c.warn },
+    dueRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+    dueInput: {
+      ...type.body,
+      fontSize: 15,
+      flex: 1,
+      color: c.ink,
+      backgroundColor: c.surface2,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      minHeight: 44,
+    },
+    // Says back what it read. A date field that silently accepts nonsense is
+    // how a deadline ends up unset without anybody noticing.
+    dueEcho: { ...type.mono, fontSize: 11, color: c.inkDim, minWidth: 76 },
     taskOffer: { ...offer(c), backgroundColor: 'transparent' },
+    // A bar down the leading edge rather than a tinted card: the row still
+    // reads as one of the list, and the edge is what your eye catches
+    // scanning down it.
+    taskWarm: { borderLeftWidth: 3, borderLeftColor: c.warn },
     taskDone: { opacity: 0.45 },
     // The padding lives on the press target rather than the card, so the
     // whole face of the row is tappable rather than a box inside it.
@@ -988,6 +1135,12 @@ const makeStyles = (c: Palette) =>
     tick: { color: c.onAccent, fontSize: 15, fontFamily: font.displayBold },
     taskBody: { flex: 1, gap: 1 },
     taskTitle: { ...type.body, fontSize: 16, color: c.ink },
+    // Weight, not size: nothing in this app goes under 11pt and nothing
+    // grows to shout. The heavier face is the emphasis.
+    taskTitleWarm: { fontFamily: font.bodyMedium },
+    markFlag: { color: c.warn },
+    markHot: { color: c.warn },
+    markCool: { color: c.inkDim },
     taskTitleDone: { textDecorationLine: 'line-through', color: c.inkDim },
     taskMinutes: { ...type.mono, fontSize: 12, color: c.inkFaint },
     secondary: {

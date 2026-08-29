@@ -78,6 +78,17 @@ export type TaskBackup = {
   islandKey?: number | null;
   /** Which watch of the day it was placed in. Absent in older backups. */
   watch?: string | null;
+  /**
+   * The flag, as 0 or 1. Absent in older backups, where it means 0.
+   *
+   * A number rather than a boolean because import inserts these rows straight
+   * into the table — there is no transform between here and the column, and
+   * the column is an INTEGER. `closedGap` next door holds the same shape for
+   * the same reason.
+   */
+  priority?: number;
+  /** The day it had to be done by. Absent in older backups. */
+  dueBy?: string | null;
   createdAt: number;
 };
 
@@ -406,6 +417,9 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     absentableNum(r.rhythmKey) &&
     absentableNum(r.islandKey) &&
     absentableStr(r.watch) &&
+    // priority and dueBy arrived in schema v14.
+    absentableNum(r.priority) &&
+    absentableStr(r.dueBy) &&
     num(r.createdAt),
   rhythm: (r) =>
     str(r.title) &&

@@ -141,6 +141,8 @@ function toTask(row: TaskRow): Task {
     rhythmKey: row.rhythmKey,
     islandKey: row.islandKey,
     watch: row.watch !== null && isWatch(row.watch) ? row.watch : null,
+    priority: row.priority === 1,
+    dueBy: row.dueBy,
     createdAt: row.createdAt,
   };
 }
@@ -150,7 +152,12 @@ export async function addTask(
   title: string,
   minutes: number,
   committedFor: DayKey | null = null,
-  opts: { islandKey?: number | null; watch?: Watch | null } = {},
+  opts: {
+    islandKey?: number | null;
+    watch?: Watch | null;
+    priority?: boolean;
+    dueBy?: DayKey | null;
+  } = {},
 ): Promise<void> {
   await db.insert(task).values({
     title: title.trim(),
@@ -158,8 +165,28 @@ export async function addTask(
     committedFor,
     islandKey: opts.islandKey ?? null,
     watch: opts.watch ?? null,
+    priority: opts.priority ? 1 : 0,
+    dueBy: opts.dueBy ?? null,
     createdAt: now(),
   });
+}
+
+/**
+ * Change what is pressing about a task, after the fact.
+ *
+ * Both fields at once, because the screen that sets them sets them together
+ * and two round trips down the single sqlite channel is two chances for a
+ * stale read to land last.
+ */
+export async function setPressing(
+  db: Db,
+  id: number,
+  next: { priority: boolean; dueBy: DayKey | null },
+): Promise<void> {
+  await db
+    .update(task)
+    .set({ priority: next.priority ? 1 : 0, dueBy: next.dueBy })
+    .where(eq(task.id, id));
 }
 
 /**
@@ -1362,19 +1389,23 @@ export async function moveTask(
 }
 
 /**
- * Strike something that was still at sea.
+ * Strike something that was planned for another day.
  *
- * It lands on **today**, not on the day it was originally committed to. A
- * struck task counts toward its `committedFor` day everywhere in the app —
- * hardening, the voyage's used days, Armament's window — so leaving it where
- * it was would quietly rewrite a day that has already been read, and would
- * credit a Tuesday for something done on Friday. You did it today; today is
- * where it counts.
+ * It lands on **today**, not on the day it was committed to. A struck task
+ * counts toward its `committedFor` day everywhere in the app — hardening, the
+ * voyage's used days, Armament's window — so leaving it where it was would
+ * quietly rewrite a day that has already been read, and would credit a
+ * Tuesday for something done on Friday. You did it today; today is where it
+ * counts.
+ *
+ * Two callers need this and both are the same shape: a task still at sea from
+ * a past day, and a task bearing down that was planned for a future one.
+ * Neither is being done on the day it was filed under.
  *
  * Costs nothing but the tap. The written line is the price of *moving* a
  * task, never of doing one.
  */
-export async function strikeAtSea(db: Db, id: number, today: DayKey): Promise<void> {
+export async function strikeToday(db: Db, id: number, today: DayKey): Promise<void> {
   await db.update(task).set({ committedFor: today, doneAt: now() }).where(eq(task.id, id));
 }
 

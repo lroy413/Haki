@@ -103,12 +103,17 @@ export const task = sqliteTable(
     islandKey: integer('island_key'),
     /** 'morning' | 'afternoon' | 'evening', or null for any time. */
     watch: text('watch'),
+    /** 0 or 1. One flag, never a scale — see `domain/pressing.ts`. */
+    priority: integer('priority').notNull().default(0),
+    /** The day it must be done by, as distinct from `committedFor`. */
+    dueBy: text('due_by'),
     createdAt: integer('created_at').notNull(),
   },
   (t) => [
     index('task_committed_idx').on(t.committedFor),
     index('task_rhythm_idx').on(t.rhythmKey),
     index('task_island_idx').on(t.islandKey),
+    index('task_due').on(t.dueBy),
   ],
 );
 

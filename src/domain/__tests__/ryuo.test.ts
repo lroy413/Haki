@@ -25,6 +25,8 @@ function task(over: Partial<Task> = {}): Task {
     committedFor: TODAY,
     rhythmKey: null,
     islandKey: null,
+    priority: false,
+    dueBy: null,
     watch: null,
     doneAt: null,
     createdAt: seq * 1000,

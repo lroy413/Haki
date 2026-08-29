@@ -20,6 +20,7 @@
  */
 
 import { daysBetween, type DayKey } from './date';
+import { byPressing } from './pressing';
 
 export type Task = {
   id: number;
@@ -42,6 +43,18 @@ export type Task = {
   islandKey: number | null;
   /** Which watch of the day this is placed in, or null for any time. */
   watch: Watch | null;
+  /**
+   * Marked as the thing that matters. One flag, never a scale — see
+   * `domain/pressing.ts` for why a second level always means "not really".
+   */
+  priority: boolean;
+  /**
+   * The day it has to be done by, distinct from `committedFor`, which is the
+   * day you plan to do it. A deadline is a fact about the world; a commitment
+   * is a decision you made. Conflating them is why "due date" ends up meaning
+   * nothing in every other list.
+   */
+  dueBy: DayKey | null;
   createdAt: number;
 };
 
@@ -189,7 +202,10 @@ export function todaysLoad(
   capacityMinutes = DEFAULT_CAPACITY_MINUTES,
 ): Load {
   const forToday = tasks.filter((t) => t.committedFor === today);
-  const open = forToday.filter((t) => !isDone(t)).sort((a, b) => a.createdAt - b.createdAt);
+  // Pressing first: priority, then the nearest date, then the order it was
+  // written down. The list is the one place a deadline can actually be in
+  // your face, and the bottom of a scroll is not in anybody's face.
+  const open = forToday.filter((t) => !isDone(t)).sort((a, b) => byPressing(a, b, today));
   const doneToday = forToday.filter(isDone).sort((a, b) => (a.doneAt ?? 0) - (b.doneAt ?? 0));
 
   const openMinutes = sumMinutes(open);
@@ -223,8 +239,11 @@ export function todaysLoad(
  * urgent — ordering by anything clever turns picking into another decision,
  * and the decision is what you were trying to avoid.
  */
-export function nextStrike(load: Load): Task | null {
-  return load.open[0] ?? null;
+export function nextStrike(load: Load, shownElsewhere: Task[] = []): Task | null {
+  // Anything already on screen in its own card is not "next" — it is
+  // already the thing being looked at. See `Bearing` on the home screen.
+  const taken = new Set(shownElsewhere.map((t) => t.id));
+  return load.open.find((t) => !taken.has(t.id)) ?? null;
 }
 
 export function formatMinutes(minutes: number): string {

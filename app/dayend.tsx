@@ -44,6 +44,7 @@ import {
 } from '../src/domain/dayEnd';
 import { courseFor } from '../src/domain/course';
 import { MAX_REASON } from '../src/domain/atSea';
+import { pressingFirst } from '../src/domain/pressing';
 import { formatMinutes, isDone, type Task } from '../src/domain/tasks';
 import { addDays, todayKey } from '../src/domain/date';
 import { usableBottom } from '../src/theme/viewport';
@@ -94,7 +95,15 @@ export default function DayEndScreen() {
       upcomingCourses(db, day),
       getDayEnd(db, day),
     ]);
-    setOpen(tasks.filter((task) => task.committedFor === day && !isDone(task)));
+    // Pressing first here too. The evening pass is where the leftovers get
+    // decided about, and the flagged and dated ones are the ones the decision
+    // actually matters for.
+    setOpen(
+      pressingFirst(
+        tasks.filter((task) => task.committedFor === day && !isDone(task)),
+        day,
+      ),
+    );
     setMoved(moves);
     setHeading(courseFor(courses, day)?.heading ?? null);
     // Only seed the field once. Re-seeding on a reload would overwrite what

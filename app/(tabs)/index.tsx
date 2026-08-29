@@ -5,6 +5,7 @@ import { CourseLine } from '../../src/components/CourseLine';
 import { VoyageNote } from '../../src/components/VoyageNote';
 import { DayStrip } from '../../src/components/DayStrip';
 import { DayEndDoor } from '../../src/components/DayEndDoor';
+import { Bearing } from '../../src/components/Bearing';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
@@ -13,7 +14,8 @@ import { QuoteLine } from '../../src/components/QuoteLine';
 import { SeaBand } from '../../src/components/SeaBand';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
-import { setTaskDone } from '../../src/db/repo';
+import { todayKey } from '../../src/domain/date';
+import { setTaskDone, strikeToday } from '../../src/db/repo';
 import { useHaki } from '../../src/state/HakiProvider';
 import { useSingleFlight } from '../../src/state/useSingleFlight';
 import { underCrew } from '../../src/theme/palettes';
@@ -42,6 +44,7 @@ export default function Home() {
     course,
     load,
     bells,
+    bearing,
     voyage: sailing,
     refresh,
   } = useHaki();
@@ -74,6 +77,26 @@ export default function Home() {
       {/* The day, as a ship. It never moves along anything — see
           `domain/practice.ts`. */}
       <SeaBand />
+
+      {/* What is bearing down, above everything else on the screen you open.
+          Absent when nothing is — a card that always stands here is one you
+          learn to scroll past. See `Bearing`. */}
+      <Bearing
+        tasks={bearing}
+        onOpenList={() => router.push('/armament')}
+        onStrike={(task) => {
+          // The card fires its own sound, impact and haptic on the tap; this
+          // guard only keeps a second tap from queueing a second write while
+          // the first is still in the sqlite channel.
+          void striking(async () => {
+            // Lands on today, not on the day it was planned for. Doing a
+            // Saturday task on Thursday is a Thursday that counted — see
+            // `strikeToday`.
+            await strikeToday(db, task.id, todayKey());
+            await refresh();
+          });
+        }}
+      />
 
       <QuoteLine quote={quote} />
 
@@ -132,20 +155,26 @@ export default function Home() {
         </View>
       ) : null}
 
-      <NextStrike
-        task={next}
-        emptyLabel={t.nextStrikeEmpty}
-        onOpenList={() => router.push('/armament')}
-        onDone={(task) => {
-          // The card's own sound, impact and haptic land with the tap; this
-          // guard only keeps a second tap from queueing a second write while
-          // the first is still in the channel.
-          void striking(async () => {
-            await setTaskDone(db, task.id, true);
-            await refresh();
-          });
-        }}
-      />
+      {/* The next ordinary thing. Hidden entirely when everything open is
+          already bearing down above — two cards both saying "do this next"
+          is worse than one, and its empty state would be a lie about a day
+          that has plenty in it. */}
+      {next !== null || bearing.length === 0 ? (
+        <NextStrike
+          task={next}
+          emptyLabel={t.nextStrikeEmpty}
+          onOpenList={() => router.push('/armament')}
+          onDone={(task) => {
+            // The card's own sound, impact and haptic land with the tap; this
+            // guard only keeps a second tap from queueing a second write while
+            // the first is still in the channel.
+            void striking(async () => {
+              await setTaskDone(db, task.id, true);
+              await refresh();
+            });
+          }}
+        />
+      ) : null}
 
       {/* The journal's small door, kept on home when the journal moved into
           the Observation tab. One line, folded into today's entry — the door

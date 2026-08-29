@@ -217,6 +217,8 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       rhythmKey: r.rhythmKey,
       islandKey: r.islandKey,
       watch: r.watch,
+      priority: r.priority,
+      dueBy: r.dueBy,
       createdAt: r.createdAt,
     })),
     // Moves reference their task by its creation stamp rather than its id,
