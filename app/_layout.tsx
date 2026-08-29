@@ -101,6 +101,8 @@ function Chrome() {
         <Stack.Screen name="notes" options={{ title: t.notesTitle }} />
         {/* 海楼石 — what takes the will away. See app/seaprism.tsx. */}
         <Stack.Screen name="seaprism" options={{ title: t.prismTitle }} />
+        {/* 断ち — urges, and what happened. See app/breaklist.tsx. */}
+        <Stack.Screen name="breaklist" options={{ title: t.breakTitle }} />
         <Stack.Screen name="note/[id]" options={{ title: '' }} />
         {/* The settings archipelago — six islands off the settings chart,
             each a page. See app/(tabs)/settings.tsx. */}

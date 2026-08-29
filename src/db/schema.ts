@@ -492,6 +492,50 @@ export const seaPrismHit = sqliteTable(
 
 export type SeaPrismHitRow = typeof seaPrismHit.$inferSelect;
 
+/**
+ * The Break List — a thing you are trying not to do.
+ *
+ * Same two-table split as the Sea Prism Log next door, for the same reason:
+ * naming is rare and costs a word, logging is one tap and costs nothing. And
+ * the same `retired_at`, because every urge it carried is a real evening.
+ */
+export const breakItem = sqliteTable(
+  'break_item',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    name: text('name').notNull(),
+    createdAt: integer('created_at').notNull(),
+    retiredAt: integer('retired_at'),
+  },
+  (t) => [index('break_item_live').on(t.retiredAt)],
+);
+
+export type BreakRow = typeof breakItem.$inferSelect;
+
+/**
+ * One urge, and what happened.
+ *
+ * There is no completion table and no run column, and both absences are the
+ * design: the unit here is the urge, never the day and never the streak.
+ * `outcome` is 'held' | 'went' | 'riding' — see `domain/breakList.ts`.
+ *
+ * Keyed by the break's `created_at` rather than its row id, like every other
+ * child in this schema.
+ */
+export const urge = sqliteTable(
+  'urge',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    breakKey: integer('break_key').notNull(),
+    day: text('day').notNull(),
+    outcome: text('outcome').notNull(),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('urge_day').on(t.day), index('urge_break').on(t.breakKey)],
+);
+
+export type UrgeRow = typeof urge.$inferSelect;
+
 /** Day's End — the evening line. One per day, revisable. */
 export const dayEnd = sqliteTable('day_end', {
   day: text('day').primaryKey(),

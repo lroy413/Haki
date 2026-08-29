@@ -858,6 +858,26 @@ export default function ArmamentScreen() {
         >
           <Text style={styles.logSessionText}>{t.trainingLog}</Text>
         </Pressable>
+
+        {/* 断ち — the things you are trying not to do. Under 武装色 because
+            armament is the tool for what you do, and holding an urge is the
+            hardest thing it has to hold. A quiet line rather than a card: it
+            is a place you go when an urge lands, not a thing to be reminded of
+            all day. See app/breaklist.tsx. */}
+        <Pressable
+          onPress={() => router.push('/breaklist')}
+          accessibilityRole="button"
+          accessibilityLabel={t.breakTitle}
+          style={({ pressed }) => [styles.breakDoor, pressed && styles.pressed]}
+        >
+          <View style={styles.breakDoorText}>
+            <Text style={styles.breakDoorName}>
+              {plainMode ? t.breakTitle : `断ち  ${t.breakDoor}`}
+            </Text>
+            <Text style={styles.breakDoorLine}>{t.breakDoorLine}</Text>
+          </View>
+          <Text style={styles.breakDoorGo}>Open</Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -1296,6 +1316,24 @@ const makeStyles = (c: Palette) =>
       marginTop: space.sm,
     },
     logSessionText: { ...type.heading, color: c.onAccent },
+
+    breakDoor: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      backgroundColor: c.surface,
+      paddingHorizontal: space.md,
+      paddingVertical: space.md,
+      marginTop: space.sm,
+      minHeight: 44,
+    },
+    breakDoorText: { flex: 1, gap: 2 },
+    breakDoorName: { ...type.heading, fontSize: 18, color: c.ink },
+    breakDoorLine: { ...type.mono, fontSize: 13, color: c.inkFaint },
+    breakDoorGo: { ...type.heading, fontSize: 16, color: c.crimson },
 
     pressed: { ...press },
   });

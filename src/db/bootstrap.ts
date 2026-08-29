@@ -483,6 +483,44 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS sea_prism_hit_stone ON sea_prism_hit (stone_key);
     `,
   },
+  {
+    version: 18,
+    up: `
+      -- The Break List: urges, not failures.
+      --
+      -- Every quit-tracker ever built is a counter that goes up while you hold
+      -- and resets to zero when you do not, so the only thing it can record
+      -- about the hardest thing you did all week is that you eventually
+      -- stopped doing it. There was nowhere in this app to record a win that
+      -- consists of not doing something.
+      --
+      -- So the unit is the urge. There is no run column, no "days since", and
+      -- nowhere to put one — that figure is the shame machine this whole app
+      -- exists to avoid, and a number whose only move is to zero turns one bad
+      -- hour into the erasure of a month.
+      CREATE TABLE IF NOT EXISTS break_item (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        retired_at INTEGER
+      );
+
+      CREATE INDEX IF NOT EXISTS break_item_live ON break_item (retired_at);
+
+      -- outcome is 'held' | 'went' | 'riding'. A slip is written down in the
+      -- same table, in the same words, at the same weight.
+      CREATE TABLE IF NOT EXISTS urge (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        break_key INTEGER NOT NULL,
+        day TEXT NOT NULL,
+        outcome TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS urge_day ON urge (day);
+      CREATE INDEX IF NOT EXISTS urge_break ON urge (break_key);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

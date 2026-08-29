@@ -5,6 +5,13 @@ import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
 import type { SleepNight } from '../domain/cascade';
 import { isKind, MAX_NAME, type Hit, type Kind, type Stone } from '../domain/seaPrism';
+import {
+  isOutcome,
+  MAX_NAME as MAX_BREAK_NAME,
+  type Break,
+  type Outcome,
+  type Urge,
+} from '../domain/breakList';
 import type { Session } from '../domain/training';
 import { isWatch, type Task, type Watch } from '../domain/tasks';
 import type { GearName, GearSession } from '../domain/gears';
@@ -47,8 +54,10 @@ import {
   taskMove,
   dayEnd,
   note,
+  breakItem,
   seaPrism,
   seaPrismHit,
+  urge,
   trainingSession,
   type CarriedRow,
   type EntryRow,
@@ -1640,6 +1649,91 @@ export async function drainsOn(db: Db, day: DayKey = todayKey()): Promise<number
     .from(seaPrismHit)
     .where(eq(seaPrismHit.day, day));
   return rows.length;
+}
+
+/* -------------------------------------------------------------- break list */
+
+/** Every break, retired ones included — the log names urges from this list. */
+export async function listBreaks(db: Db): Promise<Break[]> {
+  const rows = await db.select().from(breakItem).orderBy(asc(breakItem.createdAt));
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    createdAt: r.createdAt,
+    retiredAt: r.retiredAt,
+  }));
+}
+
+export async function nameBreak(db: Db, name: string): Promise<void> {
+  const trimmed = name.trim().slice(0, MAX_BREAK_NAME);
+  if (trimmed.length === 0) return;
+  await db.insert(breakItem).values({ name: trimmed, createdAt: now(), retiredAt: null });
+}
+
+/** Off the list, never a delete: every urge it carried is a real evening. */
+export async function retireBreak(db: Db, id: number): Promise<void> {
+  await db.update(breakItem).set({ retiredAt: now() }).where(eq(breakItem.id, id));
+}
+
+/**
+ * One urge, one tap, both ways.
+ *
+ * No dedupe and no per-day limit, unlike the Sea Prism Log's stones: three
+ * urges in one evening is three urges, and collapsing them would be the app
+ * deciding how many times you are allowed to have wanted something.
+ */
+export async function logUrge(
+  db: Db,
+  breakKey: number,
+  outcome: Outcome,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  await db.insert(urge).values({ breakKey, day, outcome, createdAt: now() });
+}
+
+/** How one that was ridden out ended. The only thing about an urge that changes. */
+export async function settleUrge(db: Db, id: number, outcome: Outcome): Promise<void> {
+  await db.update(urge).set({ outcome }).where(eq(urge.id, id));
+}
+
+/** A mis-tap must be as cheap as the tap was. */
+export async function unlogUrge(db: Db, id: number): Promise<void> {
+  await db.delete(urge).where(eq(urge.id, id));
+}
+
+export async function urgesBetween(db: Db, from: DayKey, to: DayKey): Promise<Urge[]> {
+  const rows = await db
+    .select()
+    .from(urge)
+    .where(and(gte(urge.day, from), lte(urge.day, to)))
+    .orderBy(desc(urge.createdAt));
+  return rows.map((r) => ({
+    id: r.id,
+    breakKey: r.breakKey,
+    day: r.day as DayKey,
+    outcome: isOutcome(r.outcome) ? r.outcome : 'riding',
+    createdAt: r.createdAt,
+  }));
+}
+
+/** Today's, for the provider — the Reserve and the Calm Belt both read them. */
+export async function urgesOnDay(db: Db, day: DayKey = todayKey()): Promise<Urge[]> {
+  return urgesBetween(db, day, day);
+}
+
+/**
+ * The days in a window that had a held urge on them.
+ *
+ * The one thing the Break List tells the rest of the app, and it goes to
+ * `resisted()` in `voyage.ts` — nowhere else. Days rather than counts, because
+ * a count per day is the beginning of a run, and there is no run here.
+ */
+export async function heldDaysBetween(db: Db, from: DayKey, to: DayKey): Promise<DayKey[]> {
+  const rows = await db
+    .selectDistinct({ day: urge.day })
+    .from(urge)
+    .where(and(eq(urge.outcome, 'held'), gte(urge.day, from), lte(urge.day, to)));
+  return rows.map((r) => r.day as DayKey);
 }
 
 /* --------------------------------------------------------------------- notes */

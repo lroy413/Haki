@@ -29,11 +29,13 @@ import {
   sleepLog,
   dayEnd,
   note,
+  breakItem,
   seaPrism,
   seaPrismHit,
   task,
   taskMove,
   trainingSession,
+  urge,
 } from './schema';
 
 /**
@@ -69,6 +71,8 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     notes,
     stones,
     stoneHits,
+    breaks,
+    urges,
     settings,
   ] = await Promise.all([
     db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
@@ -93,6 +97,8 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     db.select().from(note).orderBy(note.createdAt),
     db.select().from(seaPrism).orderBy(seaPrism.createdAt),
     db.select().from(seaPrismHit).orderBy(seaPrismHit.createdAt),
+    db.select().from(breakItem).orderBy(breakItem.createdAt),
+    db.select().from(urge).orderBy(urge.createdAt),
     db.select().from(setting),
   ]);
 
@@ -274,6 +280,17 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       day: r.day,
       createdAt: r.createdAt,
     })),
+    breakItem: breaks.map((r) => ({
+      name: r.name,
+      createdAt: r.createdAt,
+      retiredAt: r.retiredAt,
+    })),
+    urge: urges.map((r) => ({
+      breakKey: r.breakKey,
+      day: r.day,
+      outcome: r.outcome,
+      createdAt: r.createdAt,
+    })),
     setting: settings.map((r) => ({ key: r.key, value: r.value })),
   };
 }
@@ -313,6 +330,8 @@ const TABLES = {
   note,
   seaPrism,
   seaPrismHit,
+  breakItem,
+  urge,
   setting,
 } as const;
 

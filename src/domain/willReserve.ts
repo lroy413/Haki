@@ -82,6 +82,14 @@ export type ReserveInputs = {
    * one, a day you did almost nothing in and are flat anyway.
    */
   drains?: number;
+  /**
+   * Urges logged today — see `domain/breakList.ts`. Any outcome.
+   *
+   * The wanting is the expensive part, so an urge costs the same whichever way
+   * it went. Charging more for a slip would be a punishment with arithmetic on
+   * it, and charging more for a hold would tax the thing that feature is for.
+   */
+  urges?: number;
 };
 
 /**
@@ -112,6 +120,10 @@ const STRUCK_CAP = 0.16;
 const PER_STONE = 0.12;
 const STONE_CAP = 0.36;
 
+/** An urge, on the same terms as a stone and capped in the same place. */
+const PER_URGE = 0.12;
+const URGE_CAP = 0.36;
+
 /**
  * The most spend can take off the reading, as a fraction of the whole scale.
  *
@@ -131,6 +143,8 @@ export type Spend = {
   struck: number;
   /** Stones named today. Not an act — a thing that happened. */
   drains: number;
+  /** Urges logged today, held or not. Also not an act. */
+  urges: number;
 };
 
 export const NO_SPEND: Spend = {
@@ -139,6 +153,7 @@ export const NO_SPEND: Spend = {
   sessions: 0,
   struck: 0,
   drains: 0,
+  urges: 0,
 };
 
 /**
@@ -150,20 +165,22 @@ export const NO_SPEND: Spend = {
  * nothing but time for the same reason. They still darken the app, because
  * hardening reads the day being used; they simply do not empty the tank.
  */
-export function spendOf(acts: Acts, drains = 0): Spend {
+export function spendOf(acts: Acts, drains = 0, urges = 0): Spend {
   const gearMinutes = Math.max(0, acts.gearMinutes);
   const sessions = Math.max(0, acts.trained);
   const struck = Math.max(0, acts.struck);
   const stones = Math.max(0, drains);
+  const wanting = Math.max(0, urges);
 
   const fraction = clamp01(
     gearMinutes / GEAR_MINUTES_FOR_A_DAY +
       sessions * PER_SESSION +
       Math.min(STRUCK_CAP, struck * PER_STRUCK) +
-      Math.min(STONE_CAP, stones * PER_STONE),
+      Math.min(STONE_CAP, stones * PER_STONE) +
+      Math.min(URGE_CAP, wanting * PER_URGE),
   );
 
-  return { fraction, gearMinutes, sessions, struck, drains: stones };
+  return { fraction, gearMinutes, sessions, struck, drains: stones, urges: wanting };
 }
 
 /** Weights within the Daily Read. Must sum to 1. */
@@ -218,9 +235,9 @@ function stateFor(value: number): ReserveState {
 }
 
 export function computeReserve(inputs: ReserveInputs): Reserve {
-  const { read, recentSleepHours, sleepTargetHours, acts, drains } = inputs;
+  const { read, recentSleepHours, sleepTargetHours, acts, drains, urges } = inputs;
   const sleep = sleepScore(recentSleepHours, sleepTargetHours);
-  const spend = acts ? spendOf(acts, drains) : NO_SPEND;
+  const spend = acts ? spendOf(acts, drains, urges) : NO_SPEND;
 
   // No read today means no reading. The app does not guess at your state, and
   // it does not show a stale number as though it were current. A day with
@@ -289,6 +306,11 @@ export function spendNote(spend: Spend, plain = false): string | null {
         ? `${spend.drains} ${spend.drains === 1 ? 'drain' : 'drains'}`
         : `${spend.drains} ${spend.drains === 1 ? 'stone' : 'stones'}`,
     );
+  }
+  // Named without its outcome, always. "2 urges" is what the day cost; which
+  // way they went is the Break List's own business and not the gauge's.
+  if (spend.urges > 0) {
+    parts.push(`${spend.urges} ${spend.urges === 1 ? 'urge' : 'urges'}`);
   }
   if (parts.length === 0) return null;
 
