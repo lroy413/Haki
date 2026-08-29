@@ -36,7 +36,7 @@ import {
   type Poneglyph,
   type Road,
 } from '../src/domain/logpose';
-import { todayKey } from '../src/domain/date';
+import { shortDay, todayKey } from '../src/domain/date';
 import { fireConquerors } from '../src/impact';
 import { play } from '../src/sound';
 import { NeedleCard } from '../src/components/logpose/NeedleCard';
@@ -112,7 +112,9 @@ export default function PillarScreen() {
     if (mine) {
       setTitle(mine.title);
       setWhy(mine.why ?? '');
-      navigation.setOptions({ title: mine.title });
+      // Long pillar names are the ordinary case, and a header that
+      // truncates one to "…whoever is n…" is not carrying it.
+      navigation.setOptions({ title: mine.title, headerTitleStyle: { fontSize: 17 } });
       const under = glyphs.filter((g) => g.roadKey === mine.key);
       const live = under.find((g) => g.state === 'open') ?? null;
       setHasOpen(live !== null);
@@ -423,7 +425,7 @@ export default function PillarScreen() {
                         <Text style={styles.readingValue}>
                           {formatSounding(s.value, open.unit)}
                         </Text>
-                        <Text style={styles.readingDay}>{s.day}</Text>
+                        <Text style={styles.readingDay}>{shortDay(s.day)}</Text>
                       </View>
                     ))}
                 </>
@@ -458,7 +460,8 @@ export default function PillarScreen() {
                 column against a title that was wrapping too, which read as two
                 competing headings on one card. */}
             <Text style={island.state === 'reached' ? styles.stampReached : styles.stampPassed}>
-              {stateName(island.state, plainMode)} · {island.closedOn}
+              {stateName(island.state, plainMode)}
+              {island.closedOn ? ` · ${shortDay(island.closedOn)}` : ''}
             </Text>
             {/* What the island actually took — counts with no denominator,
                 shown only when something was struck under it. See wakeLine. */}

@@ -39,7 +39,17 @@ looking polished.** A feature that works but looks unfinished is not done.
 - Cards in a row must end up the same height. Labels that wrap where their
   neighbours do not are a bug.
 - An empty value is not a dash. Say what it means: "Not yet", "No sessions
-  yet". A dash at display weight looks like data.
+  yet". A dash at display weight looks like data. **And where there is
+  something on offer, say the offer rather than the absence** — the day's
+  practice card established this ("5, 10 or 15", never "not yet") and it binds
+  everywhere: the home screen's course row reads "Where today points", and a
+  week with no session yet reads "4 planned" rather than a `0/4` in the
+  lens's red. `Stat` takes an `empty` prop for exactly this, because a figure
+  that borrows another row's empty phrase ends up saying "Days off — Not yet".
+- **Dates are said, not stored.** `shortDay()` in `domain/date.ts` renders a
+  day key as "Aug 27", with the year only when it is not this one. The ISO
+  form sorts and belongs in the database; printed next to "Day 3 at sea" it is
+  a schema showing through the app's own voice.
 
 ## The screen answers the finger, not the write
 

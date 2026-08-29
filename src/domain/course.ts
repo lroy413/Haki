@@ -47,14 +47,17 @@ export function courseFor(courses: Course[], day: DayKey): Course | null {
 }
 
 /**
- * What the home screen shows when no heading is set. Never a reproach.
+ * What the home screen shows when no heading is set.
  *
- * Built from the label rather than written out, because plain mode calls this
- * an Intention and a card reading "INTENTION / No course set" is the app
- * talking to itself.
+ * An offer, not an absence — the same law the day's practice card holds, and
+ * the home screen's first card was the last place still breaking it. "No
+ * course set" is a true sentence that reads as a small failure at seven in
+ * the morning; "Where today points" is the same fact said as the thing on
+ * offer, and it works under both names, which is why it no longer needs the
+ * label to build itself.
  */
-export function noCourse(label: string): string {
-  return `No ${label.toLowerCase()} set`;
+export function noCourse(): string {
+  return 'Where today points';
 }
 
 /** The prompt above the field. */

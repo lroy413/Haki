@@ -127,9 +127,16 @@ export function hardnessName(value: number | null): string {
  * to be acknowledged as banked, or acting looks indistinguishable from not
  * acting.
  */
-export function hardnessMessage(value: number | null, days: number, todayIn = false): string {
+export function hardnessMessage(
+  value: number | null,
+  days: number,
+  todayIn = false,
+  plain = false,
+): string {
   if (value === null)
-    return 'Anything done in this tool lands here — a task struck, a session logged.';
+    return plain
+      ? 'Anything done in this tool lands here — a task done, a session logged.'
+      : 'Anything done in this tool lands here — a task struck, a session logged.';
   if (value >= 80) return `${days} of the last 28 days had something in them.`;
   if (todayIn) {
     return days === 1

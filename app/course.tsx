@@ -43,12 +43,15 @@ export default function CourseScreen() {
 
   const [heading, setHeading] = useState('');
   const [tomorrowHeading, setTomorrowHeading] = useState<string | null>(null);
+  const [heldToday, setHeldToday] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const committing = useSingleFlight();
 
   const load = useCallback(async () => {
     const courses = await upcomingCourses(db, today);
-    setHeading(courseFor(courses, today)?.heading ?? '');
+    const set = courseFor(courses, today)?.heading ?? '';
+    setHeading(set);
+    setHeldToday(set.length > 0);
     setTomorrowHeading(courseFor(courses, tomorrow)?.heading ?? null);
     setLoaded(true);
   }, [db, today, tomorrow]);
@@ -69,7 +72,12 @@ export default function CourseScreen() {
     });
   }
 
-  const clearing = normaliseHeading(heading).length === 0;
+  // Emptying the field only *clears* where a heading is actually held. With
+  // nothing saved for that day there is nothing to clear, so the button keeps
+  // its own name and goes quiet instead.
+  const empty = normaliseHeading(heading).length === 0;
+  const clearsToday = empty && heldToday;
+  const clearsTomorrow = empty && tomorrowHeading !== null;
 
   return (
     <KeyboardAvoidingView
@@ -100,17 +108,29 @@ export default function CourseScreen() {
         <View style={styles.row}>
           <Pressable
             onPress={() => void save(today)}
+            disabled={empty && !clearsToday}
             accessibilityRole="button"
-            style={({ pressed }) => [styles.primary, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.primary,
+              empty && !clearsToday && styles.disabled,
+              pressed && styles.pressed,
+            ]}
           >
-            <Text style={styles.primaryText}>{clearing ? 'Clear today' : 'Today'}</Text>
+            <Text style={styles.primaryText}>{clearsToday ? 'Clear today' : 'Today'}</Text>
           </Pressable>
           <Pressable
             onPress={() => void save(tomorrow)}
+            disabled={empty && !clearsTomorrow}
             accessibilityRole="button"
-            style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.secondary,
+              empty && !clearsTomorrow && styles.disabled,
+              pressed && styles.pressed,
+            ]}
           >
-            <Text style={styles.secondaryText}>{clearing ? 'Clear tomorrow' : 'Tomorrow'}</Text>
+            <Text style={styles.secondaryText}>
+              {clearsTomorrow ? 'Clear tomorrow' : 'Tomorrow'}
+            </Text>
           </Pressable>
         </View>
 
@@ -167,6 +187,7 @@ const makeStyles = (c: Palette) =>
     },
     secondaryText: { ...type.heading, color: c.inkDim },
     pressed: { ...press },
+    disabled: { opacity: 0.45 },
 
     ahead: {
       borderWidth: 1,

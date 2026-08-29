@@ -32,7 +32,7 @@ export function NextStrike({
   onOpenList: () => void;
   emptyLabel: string;
 }) {
-  const { palette, crew } = useHaki();
+  const { palette, crew, t } = useHaki();
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
 
@@ -49,7 +49,7 @@ export function NextStrike({
           accessibilityRole="button"
           style={({ pressed }) => [styles.card, styles.empty, pressed && styles.pressed]}
         >
-          <Text style={styles.label}>Next strike</Text>
+          <Text style={styles.label}>{t.nextStrikeLabel}</Text>
           <Text style={styles.emptyText}>{emptyLabel}</Text>
         </Pressable>
       </Emission>
@@ -59,7 +59,7 @@ export function NextStrike({
   return (
     <Emission trigger={strikes} radius={radius.lg} style={styles.card}>
       <View style={styles.head}>
-        <Text style={styles.label}>Next strike</Text>
+        <Text style={styles.label}>{t.nextStrikeLabel}</Text>
         <Text style={styles.minutes}>{formatMinutes(task.minutes)}</Text>
       </View>
 

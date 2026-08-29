@@ -37,7 +37,7 @@ import {
 import { logPose, needleLine, type LogPose } from '../src/domain/logpose';
 import { flagAtSail, type Value } from '../src/domain/flag';
 import { poseLine, type EternalPose } from '../src/domain/eternal';
-import { addDays, todayKey } from '../src/domain/date';
+import { addDays, shortDay, todayKey } from '../src/domain/date';
 import { formatMinutes } from '../src/domain/tasks';
 import { useHaki } from '../src/state/HakiProvider';
 import { useSingleFlight } from '../src/state/useSingleFlight';
@@ -345,7 +345,7 @@ export default function SailScreen() {
             <SectionLabel label={t.sailPastLabel} style={styles.spaced} />
             {past.map((row) => (
               <View key={row.id} style={styles.pastRow}>
-                <Text style={styles.pastDay}>{row.day}</Text>
+                <Text style={styles.pastDay}>{shortDay(row.day)}</Text>
                 <Text style={styles.pastHeading}>{row.heading || '—'}</Text>
               </View>
             ))}

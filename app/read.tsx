@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -42,12 +42,31 @@ export default function DailyReadScreen() {
   const [weather, setWeather] = useState<string | null>(read?.weather ?? null);
   const committing = useSingleFlight();
 
+  // A cold open beats the provider's first load, so the dials seeded above can
+  // be four nulls over a day that was already read. Reconcile once the read
+  // arrives — but only into dials the finger has not already moved, or the
+  // arriving row would overwrite a tap.
+  const touched = useRef(false);
+  useEffect(() => {
+    if (!read || touched.current) return;
+    setEnergy(read.energy);
+    setMood(read.mood);
+    setClarity(read.clarity);
+    setTension(read.tension);
+    setWeather(read.weather ?? null);
+  }, [read]);
+
   useEffect(() => {
     void (async () => {
       const nights = await recentSleep(db, 1, todayKey());
       if (nights[0]) setSleep(String(nights[0].hours));
     })();
   }, [db]);
+
+  const mark = (set: (value: number) => void) => (value: number) => {
+    touched.current = true;
+    set(value);
+  };
 
   const remaining = [energy, mood, clarity, tension].filter((v) => v === null).length;
   const complete = remaining === 0;
@@ -78,20 +97,25 @@ export default function DailyReadScreen() {
         <Dial
           label={t.dials.energy}
           value={energy}
-          onChange={setEnergy}
+          onChange={mark(setEnergy)}
           accent={palette.violet}
         />
-        <Dial label={t.dials.mood} value={mood} onChange={setMood} accent={palette.violet} />
+        <Dial
+          label={t.dials.mood}
+          value={mood}
+          onChange={mark(setMood)}
+          accent={palette.violet}
+        />
         <Dial
           label={t.dials.clarity}
           value={clarity}
-          onChange={setClarity}
+          onChange={mark(setClarity)}
           accent={palette.cyan}
         />
         <Dial
           label={t.dials.tension}
           value={tension}
-          onChange={setTension}
+          onChange={mark(setTension)}
           inverted
           accent={palette.crimson}
         />
@@ -151,9 +175,15 @@ export default function DailyReadScreen() {
           ]}
         >
           <Text style={styles.saveText}>
-            {complete ? 'Save' : `${remaining} ${remaining === 1 ? 'dial' : 'dials'} to go`}
+            {complete
+              ? read
+                ? 'Save the revision'
+                : 'Save'
+              : `${remaining} ${remaining === 1 ? 'dial' : 'dials'} to go`}
           </Text>
         </Pressable>
+
+        {read ? <Text style={styles.already}>Logged today. Saving revises it.</Text> : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -202,5 +232,6 @@ const makeStyles = (c: Palette) =>
     },
     saveDisabled: { backgroundColor: c.surface2 },
     saveText: { ...type.heading, color: c.onAccent },
+    already: { ...type.small, color: c.inkFaint, textAlign: 'center' },
     pressed: { ...press },
   });

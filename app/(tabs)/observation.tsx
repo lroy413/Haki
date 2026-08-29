@@ -14,7 +14,7 @@ import { useStore } from '../../src/db/client';
 import { listEntries, asternToday } from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
-import { daysAtSea } from '../../src/domain/date';
+import { daysAtSea, shortDay } from '../../src/domain/date';
 import { LogLine } from '../../src/components/LogLine';
 import { historyForForesight } from '../../src/db/repo';
 import {
@@ -282,7 +282,7 @@ export default function ObservationScreen() {
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}
           >
             <Text style={styles.rowDay}>
-              {t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · {item.day}
+              {t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · {shortDay(item.day)}
             </Text>
             <Text style={styles.rowBody} numberOfLines={2}>
               {item.body.trim() || 'Empty entry'}
