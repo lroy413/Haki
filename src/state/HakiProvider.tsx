@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Platform } from 'react-native';
 import { crewFor, type Crew } from '../domain/crew';
 import { useStore } from '../db/client';
@@ -184,7 +192,20 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   const [sailing, setSailing] = useState<Voyage>(() => voyage([], todayKey()));
   const [bells, setBells] = useState<Bell[]>([]);
 
+  /**
+   * Which refresh is the current one.
+   *
+   * Leaving the Daily Read runs two of these at once: the save's own, and the
+   * one the home screen fires as it regains focus. They queue on expo-sqlite's
+   * single channel, and the one that started first reads the *older* database
+   * — so without this the stale answer could land last and put the old number
+   * back on screen, which is exactly what "I saved it and nothing happened"
+   * looked like. Only the newest refresh is allowed to write.
+   */
+  const refreshes = useRef(0);
+
   const refresh = useCallback(async () => {
+    const mine = (refreshes.current += 1);
     const today = todayKey();
     const [
       todayRead,
@@ -195,8 +216,6 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       gears,
       sits,
       todayCourse,
-      sitWindow,
-      actHistory,
       todayBells,
       markDay,
       markLevel,
@@ -209,14 +228,15 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       gearSessionsOn(db, today),
       sitSessionsOn(db, today),
       getCourse(db, today),
-      sitSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
-      // Far enough back that a long gap has both of its ends inside the
-      // window — a return read from a half-seen gap would be invented.
-      actsBetween(db, addDays(today, -(VOYAGE_WINDOW - 1)), today),
       bellsOn(db, today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
     ]);
+
+    // A newer refresh started while this one was in flight, so this one's
+    // answers are already history. Dropping them here is what stops a slow
+    // read from overwriting a fast one — see the note on `refreshes` above.
+    if (mine !== refreshes.current) return;
 
     const nextCascade = assessCascade(nights, settings.keystone, today);
 
@@ -284,6 +304,39 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       days: hardDays(armamentHistory, today, ARMAMENT_WINDOW),
     });
 
+    // The palette belongs to the fast half. Hardening is computed entirely
+    // from the day's own acts, and it is the most visible thing the app does
+    // — an act that darkens the screen has to darken it now, not after three
+    // months of history have been read.
+    const recorded =
+      markDay && markLevel !== null
+        ? { day: markDay, level: Number(markLevel) as HardeningLevel }
+        : null;
+    const settled = settleLevel(nextActs, today, recorded);
+    setHardening(settled);
+
+    // Only write when the mark actually moves — every screen focus calls this.
+    if (!recorded || recorded.day !== today || recorded.level !== settled) {
+      await setHardeningMark(db, today, settled);
+    }
+
+    // Fire-and-forget: a notification failure must never break a screen.
+    void syncKeystoneWarning(nextCascade);
+
+    // ---------------------------------------------------------------------
+    // The trailing windows. Twelve weeks of acts across seven tables and a
+    // month of sits are by far the most expensive thing this function does,
+    // and none of it changes the numbers already on screen — so it runs after
+    // them rather than in front of them, and the day's own figures no longer
+    // wait behind three months of history on one sqlite channel.
+    const [sitWindow, actHistory] = await Promise.all([
+      sitSessionsBetween(db, addDays(today, -(ARMAMENT_WINDOW - 1)), today),
+      // Far enough back that a long gap has both of its ends inside the
+      // window — a return read from a half-seen gap would be invented.
+      actsBetween(db, addDays(today, -(VOYAGE_WINDOW - 1)), today),
+    ]);
+    if (mine !== refreshes.current) return;
+
     const sitHistory: ObservationDay[] = [...groupByDay(sitWindow)].map(([key, group]) => ({
       day: key as typeof today,
       satMinutes: sitMinutesToday(group, now),
@@ -299,21 +352,6 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
         today,
       ),
     );
-
-    const recorded =
-      markDay && markLevel !== null
-        ? { day: markDay, level: Number(markLevel) as HardeningLevel }
-        : null;
-    const settled = settleLevel(nextActs, today, recorded);
-    setHardening(settled);
-
-    // Only write when the mark actually moves — every screen focus calls this.
-    if (!recorded || recorded.day !== today || recorded.level !== settled) {
-      await setHardeningMark(db, today, settled);
-    }
-
-    // Fire-and-forget: a notification failure must never break a screen.
-    void syncKeystoneWarning(nextCascade);
   }, [
     db,
     settings.keystone,
