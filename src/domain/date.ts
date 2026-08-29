@@ -91,6 +91,36 @@ export function daysBetween(a: DayKey, b: DayKey): number {
 }
 
 /** Days at sea: day 1 is the day you set sail. */
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/**
+ * A day key, said the way a person says it: "Aug 27".
+ *
+ * The stored form is ISO because it sorts, and for a while it was also the
+ * displayed form — a database talking, sitting next to "Day 3 at sea", which
+ * is the app's own voice. The year appears only when it is not this one, so
+ * an ordinary entry reads short and an old one still says which year it was.
+ */
+export function shortDay(day: DayKey, today: DayKey = todayKey()): string {
+  const [y, m, d] = day.split('-').map(Number);
+  if (!y || !m || !d) return day;
+  const label = `${MONTHS[m - 1]} ${d}`;
+  return day.slice(0, 4) === today.slice(0, 4) ? label : `${label} ${y}`;
+}
+
 export function daysAtSea(setSailDay: DayKey, now: DayKey): number {
   return daysBetween(setSailDay, now) + 1;
 }

@@ -67,22 +67,30 @@ describe('tomorrowNote', () => {
 });
 
 describe('what it says', () => {
-  it('agrees with whatever the card calls it', () => {
-    expect(noCourse('Course')).toBe('No course set');
-    expect(noCourse('Intention')).toBe('No intention set');
+  it('offers the thing rather than reporting its absence', () => {
+    // The practice card's law, applied to the home screen's first card: an
+    // untouched row says what it would be, never that it has not happened.
+    const line = noCourse().toLowerCase();
+    expect(line).not.toContain('no ');
+    expect(line).not.toContain('not ');
+    expect(line).not.toContain('yet');
+  });
+
+  it('reads the same under either name, so plain mode needs no variant', () => {
+    expect(noCourse()).toBe(noCourse());
+    expect(noCourse().toLowerCase()).not.toContain('course');
+    expect(noCourse().toLowerCase()).not.toContain('intention');
   });
 
   it('never turns an unset course into a reproach', () => {
-    const copy = [noCourse('Course'), noCourse('Intention'), COURSE_PROMPT]
-      .join(' ')
-      .toLowerCase();
+    const copy = [noCourse(), COURSE_PROMPT].join(' ').toLowerCase();
     for (const word of ['failed', 'should', 'lazy', 'behind', 'finally', 'forgot', 'missed']) {
       expect(copy).not.toContain(word);
     }
   });
 
   it('does not ask a question, because an empty morning is not a prompt', () => {
-    expect(noCourse('Course')).not.toContain('?');
+    expect(noCourse()).not.toContain('?');
     expect(COURSE_PROMPT).not.toContain('?');
   });
 });

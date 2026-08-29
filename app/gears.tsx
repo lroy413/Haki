@@ -118,6 +118,9 @@ export default function GearsScreen() {
               {state.ready && gear.cost ? (
                 <Text style={styles.gearCost}>{gear.cost}</Text>
               ) : null}
+              {/* The card is a door and looked like a paragraph. The word
+                  goes last, where a call to action is read. */}
+              {state.ready ? <Text style={styles.gearGo}>Start ›</Text> : null}
             </Pressable>
           );
         })
@@ -149,6 +152,10 @@ const makeStyles = (c: Palette) =>
     gearMinutes: { ...type.mono, color: c.inkDim },
     gearBlurb: { ...type.body, color: c.inkDim, lineHeight: 21 },
     gearCost: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    // Says the card is a door. Crimson because the Gears live under
+    // Armament's light, and at label weight so it never competes with
+    // the gear's own name.
+    gearGo: { ...type.label, color: c.crimson, marginTop: space.xs },
 
     gearRunning: {
       backgroundColor: c.surface,

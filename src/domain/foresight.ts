@@ -371,7 +371,7 @@ export function stateMessage(reading: Foresight, plain = false): string {
           ? 'Patterns need a few weeks of check-ins before there is anything to see.'
           : 'Nothing to read yet. Foresight works from a few weeks of Daily Reads.';
       }
-      return `${reading.readDays} reads so far. Patterns start to show around ${MIN_READ_DAYS}.`;
+      return `${reading.readDays} ${reading.readDays === 1 ? 'read' : 'reads'} so far. Patterns start to show around ${MIN_READ_DAYS}.`;
     case 'quiet':
       return plain
         ? `${reading.readDays} reads, and no clear pattern in them. That is an ordinary result.`

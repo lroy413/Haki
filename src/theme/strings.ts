@@ -146,6 +146,7 @@ export type Strings = {
   watchPrompt: string;
   backlogLabel: string;
   backlogEmpty: string;
+  nextStrikeLabel: string;
   nextStrikeEmpty: string;
 
   trainingTitle: string;
@@ -157,6 +158,7 @@ export type Strings = {
   trainingLog: string;
   trainingEmpty: string;
   trainingThisWeek: string;
+  trainingPlanned: (n: number) => string;
   hardnessLabel: string;
   trainingSinceLast: string;
   trainingNever: string;
@@ -349,6 +351,7 @@ const haki: Strings = {
   watchPrompt: 'The watch',
   backlogLabel: 'Waiting',
   backlogEmpty: 'Nothing waiting.',
+  nextStrikeLabel: 'Next strike',
   nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
 
   trainingTitle: 'Armament',
@@ -365,6 +368,7 @@ const haki: Strings = {
   trainingLog: 'Log a session',
   trainingEmpty: 'Nothing logged yet.',
   trainingThisWeek: 'This week',
+  trainingPlanned: (n: number) => `${n} planned`,
   hardnessLabel: 'Hardness',
   trainingSinceLast: 'Days off',
   trainingNever: 'No sessions yet',
@@ -408,7 +412,7 @@ const haki: Strings = {
 
 const plain: Strings = {
   ...haki,
-  appName: 'Journal',
+  appName: 'Daybook',
   tabs: {
     home: { glyph: '', label: 'Today' },
     observation: { glyph: '', label: 'Journal' },
@@ -464,6 +468,7 @@ const plain: Strings = {
   islandPassConfirm: 'Set it aside',
   islandReopen: 'Reopen it',
   islandHistory: 'Done and set aside',
+  nextStrikeLabel: 'Next up',
   strikeIt: 'Add a task',
   strikePlaceholder: 'One thing today that moves this.',
 
@@ -476,7 +481,7 @@ const plain: Strings = {
   stylesTitle: 'Focus',
   crewTitle: 'Style',
   crewBlurb: 'Changes the artwork and the accent colour. Nothing recorded changes.',
-  hardnessLabel: 'Hardness',
+  hardnessLabel: 'Consistency',
 
   rhythmTitle: 'Repeating',
   rhythmLabel: 'Repeats',

@@ -33,7 +33,9 @@ export function Dial({ label, value, onChange, inverted = false, accent }: Props
     <View style={styles.wrap}>
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.hint, { color: tone }]}>{inverted ? 'low is better' : ''}</Text>
+        {/* A hint recedes by weight and colour, never by wearing the lens's
+            red: nothing on this screen has gone wrong. */}
+        <Text style={styles.hint}>{inverted ? 'low is better' : ''}</Text>
       </View>
       <View style={styles.row}>
         {STEPS.map((step) => {
@@ -69,7 +71,7 @@ const makeStyles = (c: Palette) =>
     wrap: { gap: space.sm },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     label: { ...type.heading, color: c.ink },
-    hint: { ...type.mono, fontSize: 11, letterSpacing: 1 },
+    hint: { ...type.mono, fontSize: 11, letterSpacing: 1, color: c.inkFaint },
     row: { flexDirection: 'row', gap: space.sm },
     step: {
       flex: 1,

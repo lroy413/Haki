@@ -145,17 +145,13 @@ export default function Home() {
                 : `${training.daysSinceLast} days since last`}
           </Text>
         </View>
-        <Text
-          style={[
-            styles.stripCount,
-            // Armament's stat on the home screen, so it wears the coating —
-            // amethyst under Zoro. The keystone breach above stays crimson:
-            // that one is semantic red, not a lens.
-            { color: training.inGap ? palette.warn : underCrew(palette, crew).crimson },
-          ]}
-        >
-          {training.sessionsThisWeek}/{training.weeklyTarget}
-        </Text>
+        {training.sessionsThisWeek === 0 ? (
+          <Text style={styles.stripOffer}>{t.trainingPlanned(training.weeklyTarget)}</Text>
+        ) : (
+          <Text style={[styles.stripCount, { color: palette.ink }]}>
+            {training.sessionsThisWeek}/{training.weeklyTarget}
+          </Text>
+        )}
       </Pressable>
     </ScrollView>
   );
@@ -184,4 +180,7 @@ const makeStyles = (c: Palette) =>
     stripLabel: { ...type.label, color: c.inkFaint, marginBottom: 2 },
     stripValue: { ...type.body, color: c.ink },
     stripCount: { fontFamily: font.display, fontSize: 22, fontVariant: ['tabular-nums'] },
+    // Before the first session of the week the slot carries the target as
+    // an offer rather than a zero, so it is set at label weight.
+    stripOffer: { ...type.label, color: c.inkDim },
   });

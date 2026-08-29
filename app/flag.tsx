@@ -102,7 +102,6 @@ export default function FlagScreen() {
             that they are one thing you sail under. */}
         <View style={[styles.flag, lit(lens.violet, hardening)]}>
           {plainMode ? null : <Text style={styles.mark}>旗</Text>}
-          <Text style={styles.flagLabel}>{t.flagTitle}</Text>
 
           {values.length === 0 ? (
             <Text style={styles.empty}>{t.flagEmpty}</Text>

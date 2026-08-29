@@ -46,7 +46,7 @@ import {
   byWatch,
   type Watch,
 } from '../../src/domain/tasks';
-import { addDays, todayKey } from '../../src/domain/date';
+import { addDays, shortDay, todayKey } from '../../src/domain/date';
 import {
   cadence,
   offerLine as rhythmOfferLine,
@@ -297,7 +297,7 @@ export default function ArmamentScreen() {
             </View>
           )}
           <Text style={styles.message}>
-            {hardnessMessage(hardness.value, hardness.days, todayIn)}
+            {hardnessMessage(hardness.value, hardness.days, todayIn, plainMode)}
           </Text>
         </View>
 
@@ -524,17 +524,19 @@ export default function ArmamentScreen() {
         </View>
 
         {/* ------------------------------------------------------ backlog */}
-        <Pressable
-          onPress={() => setShowBacklog((v) => !v)}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.disclosure, pressed && styles.pressed]}
-        >
-          <Text style={styles.disclosureText}>
-            {t.backlogLabel} · {waiting.length}
-            {old.length > 0 ? ` · ${old.length} sitting a while` : ''}
-          </Text>
-          <Text style={styles.chevron}>{showBacklog ? '−' : '+'}</Text>
-        </Pressable>
+        {waiting.length > 0 ? (
+          <Pressable
+            onPress={() => setShowBacklog((v) => !v)}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.disclosure, pressed && styles.pressed]}
+          >
+            <Text style={styles.disclosureText}>
+              {t.backlogLabel} · {waiting.length}
+              {old.length > 0 ? ` · ${old.length} sitting a while` : ''}
+            </Text>
+            <Text style={styles.chevron}>{showBacklog ? '−' : '+'}</Text>
+          </Pressable>
+        ) : null}
 
         {showBacklog
           ? waiting.map((item) => (
@@ -590,13 +592,19 @@ export default function ArmamentScreen() {
         <View style={styles.stats}>
           <Stat
             label={t.trainingThisWeek}
-            value={`${training.sessionsThisWeek}/${training.weeklyTarget}`}
-            tone={lens.crimson}
+            value={
+              training.sessionsThisWeek === 0
+                ? null
+                : `${training.sessionsThisWeek}/${training.weeklyTarget}`
+            }
+            empty={t.trainingPlanned(training.weeklyTarget)}
+            tone={palette.ink}
           />
           <Stat
             label={t.trainingSinceLast}
             value={since === null ? null : String(since)}
-            tone={training.inGap ? palette.warn : lens.crimson}
+            empty={t.trainingNever}
+            tone={training.inGap ? palette.warn : palette.ink}
           />
         </View>
 
@@ -613,7 +621,7 @@ export default function ArmamentScreen() {
           <View key={item.id} style={styles.session}>
             <View style={styles.sessionHead}>
               <Text style={styles.sessionKind}>{item.kind}</Text>
-              <Text style={styles.sessionDay}>{item.day}</Text>
+              <Text style={styles.sessionDay}>{shortDay(item.day)}</Text>
             </View>
             <Text style={styles.sessionMeta}>
               {[
@@ -767,7 +775,17 @@ function TaskRow({
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: string | null; tone: string }) {
+function Stat({
+  label,
+  value,
+  tone,
+  empty = 'Not yet',
+}: {
+  label: string;
+  value: string | null;
+  tone: string;
+  empty?: string;
+}) {
   const { palette, crew } = useHaki();
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
@@ -777,7 +795,7 @@ function Stat({ label, value, tone }: { label: string; value: string | null; ton
         {label}
       </Text>
       {value === null ? (
-        <Text style={styles.statEmpty}>Not yet</Text>
+        <Text style={styles.statEmpty}>{empty}</Text>
       ) : (
         <Text style={[styles.statValue, { color: tone }]}>{value}</Text>
       )}

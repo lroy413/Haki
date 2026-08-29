@@ -43,7 +43,7 @@ export function CourseLine({
     >
       <Text style={styles.label}>{label}</Text>
       <Text style={course ? styles.heading : styles.placeholder}>
-        {course ? course.heading : noCourse(label)}
+        {course ? course.heading : noCourse()}
       </Text>
     </Pressable>
   );

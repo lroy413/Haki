@@ -67,20 +67,24 @@ export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props)
         </View>
       )}
 
-      <View style={styles.track} accessibilityRole="progressbar">
-        <View
-          style={[
-            styles.fill,
-            {
-              width: `${filled}%`,
-              backgroundColor: tone,
-              // The bar itself dims with the reserve, so a low day looks low
-              // before you have read a single digit.
-              opacity: 0.35 + 0.65 * intensity,
-            },
-          ]}
-        />
-      </View>
+      {/* No reading, no channel: an empty track under "no reading yet"
+          reads as a measured zero, which is the one thing it is not. */}
+      {reserve.value === null ? null : (
+        <View style={styles.track} accessibilityRole="progressbar">
+          <View
+            style={[
+              styles.fill,
+              {
+                width: `${filled}%`,
+                backgroundColor: tone,
+                // The bar itself dims with the reserve, so a low day looks low
+                // before you have read a single digit.
+                opacity: 0.35 + 0.65 * intensity,
+              },
+            ]}
+          />
+        </View>
+      )}
     </View>
   );
 }
