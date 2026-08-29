@@ -8,6 +8,8 @@ import type { NoteRow } from '../src/db/schema';
 import { useSingleFlight } from '../src/state/useSingleFlight';
 import { useHaki } from '../src/state/HakiProvider';
 import { firstLine, plainLine } from '../src/domain/markdown';
+import { foundLine, isSearching, matches } from '../src/domain/search';
+import { SearchField, Excerpt } from '../src/components/SearchField';
 import { shortDay, toDayKey, todayKey } from '../src/domain/date';
 import { usableBottom } from '../src/theme/viewport';
 import { radius, space, type } from '../src/theme/tokens';
@@ -32,12 +34,13 @@ import type { Palette } from '../src/theme/palettes';
 export default function NotesScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { palette, t } = useHaki();
+  const { palette, plainMode, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const insets = useSafeAreaInsets();
   const opening = useSingleFlight();
 
   const [rows, setRows] = useState<NoteRow[]>([]);
+  const [query, setQuery] = useState('');
 
   const load = useCallback(async () => {
     setRows(await listNotes(db));
@@ -52,6 +55,17 @@ export default function NotesScreen() {
   // The row is created by the editor on first keystroke, exactly like an
   // entry — a page you open and back out of leaves nothing behind.
   const start = () => void opening(async () => router.push('/note/new'));
+
+  // The whole list is already loaded here — there is no hundred-row cap on a
+  // screen whose entire content is the list — so search is a filter and needs
+  // no second read. The title counts as well as the body: half the reason a
+  // page has a name is so you can find it by one.
+  const searching = isSearching(query);
+  const shown = useMemo(
+    () =>
+      searching ? rows.filter((r) => matches(r.body, query) || matches(r.title, query)) : rows,
+    [rows, query, searching],
+  );
 
   return (
     <ScrollView
@@ -72,9 +86,23 @@ export default function NotesScreen() {
         <Text style={styles.newText}>{t.notesNew}</Text>
       </Pressable>
 
-      {rows.length === 0 ? <Text style={styles.empty}>{t.notesEmpty}</Text> : null}
+      {/* Only once there is a list worth searching. One page and a search
+          field above it is furniture. */}
+      {rows.length > 2 || searching ? (
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder={t.searchNotes}
+          tint={palette.violet}
+          found={searching ? foundLine(shown.length, plainMode) : null}
+        />
+      ) : null}
 
-      {rows.map((row) => {
+      {shown.length === 0 ? (
+        <Text style={styles.empty}>{searching ? foundLine(0, plainMode) : t.notesEmpty}</Text>
+      ) : null}
+
+      {shown.map((row) => {
         // The title if there is one; otherwise the body's first line stands
         // in — and then the preview must skip that line rather than printing
         // it twice under itself.
@@ -92,7 +120,14 @@ export default function NotesScreen() {
             <Text style={[styles.name, !name && styles.unnamed]} numberOfLines={1}>
               {name || t.noteUntitled}
             </Text>
-            {rest ? (
+            {/* The excerpt reads `rest`, not the body: the body still holds
+                the line already printed as the name above, so searching it
+                drew the name twice — the tab-labels-drawn-twice bug that
+                `preview` exists to prevent, reintroduced one row down. A
+                match that is *in* the name is shown by the name. */}
+            {searching ? (
+              <Excerpt text={rest} query={query} tint={palette.violet} fallback={rest} />
+            ) : rest ? (
               <Text style={styles.preview} numberOfLines={2}>
                 {rest}
               </Text>
