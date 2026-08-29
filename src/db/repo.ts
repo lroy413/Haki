@@ -17,7 +17,9 @@ import { asternOn, type Astern } from '../domain/astern';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
 import type { DayRecord } from '../domain/foresight';
+import type { TaskMoveRow } from './schema';
 import { MAX_BELL_CHARS, clampClock, type Bell } from '../domain/bells';
+import { MAX_REASON } from '../domain/atSea';
 import { NO_ACTS } from '../domain/hardening';
 import { minutesToday as gearMinutes } from '../domain/gears';
 import { minutesToday as sitMinutes } from '../domain/stillness';
@@ -39,6 +41,7 @@ import {
   setting,
   sleepLog,
   task,
+  taskMove,
   trainingSession,
   type CarriedRow,
   type EntryRow,
@@ -1318,4 +1321,64 @@ export async function addBell(db: Db, title: string, day: DayKey, at: number): P
 /** Take one down. There is no other way to end a bell — it is never ticked. */
 export async function removeBell(db: Db, id: number): Promise<void> {
   await db.delete(bell).where(eq(bell.id, id));
+}
+
+/* ------------------------------------------------------------ still at sea */
+
+/**
+ * Carry a task forward to a new day, or let it go — each with its reason.
+ *
+ * The reason is not optional and that is the whole mechanic: striking a task
+ * is one tap, and moving it costs a written line. `to` is null to let it go,
+ * which clears the day rather than deleting the task — the record of a thing
+ * you decided not to do is worth more than its absence.
+ */
+export async function moveTask(
+  db: Db,
+  taskItem: { id: number; committedFor: DayKey | null },
+  to: DayKey | null,
+  reason: string,
+): Promise<void> {
+  // An empty line is allowed and is not the same as no record: a first-day
+  // carry is free, and the move is still written down so the day's end can
+  // see it moved and ask about it. `needsLine` in `domain/atSea.ts` owns
+  // which moves must arrive with words.
+  const line = reason.trim().slice(0, MAX_REASON);
+  const from = taskItem.committedFor;
+  if (from === null) return;
+
+  await db.insert(taskMove).values({
+    taskId: taskItem.id,
+    fromDay: from,
+    toDay: to,
+    reason: line,
+    createdAt: now(),
+  });
+  await db.update(task).set({ committedFor: to }).where(eq(task.id, taskItem.id));
+}
+
+/**
+ * Strike something that was still at sea.
+ *
+ * It lands on **today**, not on the day it was originally committed to. A
+ * struck task counts toward its `committedFor` day everywhere in the app —
+ * hardening, the voyage's used days, Armament's window — so leaving it where
+ * it was would quietly rewrite a day that has already been read, and would
+ * credit a Tuesday for something done on Friday. You did it today; today is
+ * where it counts.
+ *
+ * Costs nothing but the tap. The written line is the price of *moving* a
+ * task, never of doing one.
+ */
+export async function strikeAtSea(db: Db, id: number, today: DayKey): Promise<void> {
+  await db.update(task).set({ committedFor: today, doneAt: now() }).where(eq(task.id, id));
+}
+
+/** Everything ever said about why one task moved, oldest first. */
+export async function movesFor(db: Db, taskId: number): Promise<TaskMoveRow[]> {
+  return db
+    .select()
+    .from(taskMove)
+    .where(eq(taskMove.taskId, taskId))
+    .orderBy(taskMove.createdAt);
 }

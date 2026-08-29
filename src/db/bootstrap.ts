@@ -302,6 +302,34 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS bell_day ON bell (day, at);
     `,
   },
+  {
+    version: 12,
+    up: `
+      -- Why a task moved, or why it was let go.
+      --
+      -- The Log Pose's asymmetry, one size down: striking a task is one tap,
+      -- and moving it or letting it go costs a written line. A decision you
+      -- cannot be bothered to write down is drift wearing a different coat.
+      --
+      -- Kept rather than discarded, because the pattern is the point — for
+      -- somebody whose stated problem is avoidance, what keeps getting moved
+      -- and what was said about it is the most useful record in the app.
+      --
+      -- \`to_day\` is null when the task was let go rather than carried.
+      -- Deliberately absent: any count, score, or flag derived from how often
+      -- a task has moved. The rows are the record; nothing tallies them.
+      CREATE TABLE IF NOT EXISTS task_move (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id     INTEGER NOT NULL REFERENCES task(id) ON DELETE CASCADE,
+        from_day    TEXT    NOT NULL,
+        to_day      TEXT,
+        reason      TEXT    NOT NULL,
+        created_at  INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS task_move_task ON task_move (task_id, created_at);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

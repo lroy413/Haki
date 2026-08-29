@@ -26,8 +26,10 @@ import {
   deleteTask,
   lastDoneByRhythm,
   listRhythms,
+  moveTask,
   recentSessions,
   setTaskDone,
+  strikeAtSea,
   strikeRhythm,
   unstrikeRhythm,
 } from '../../src/db/repo';
@@ -48,6 +50,8 @@ import {
   byWatch,
   type Watch,
 } from '../../src/domain/tasks';
+import { atSea, atSeaLabel, type AtSea } from '../../src/domain/atSea';
+import { AtSeaRow } from '../../src/components/AtSeaRow';
 import { addDays, shortDay, todayKey } from '../../src/domain/date';
 import {
   cadence,
@@ -168,6 +172,37 @@ export default function ArmamentScreen() {
     await reload();
   }
 
+  /**
+   * Strike something still at sea. One tap, and it lands on today.
+   *
+   * The row leaves in the tap's own frame — `atSea` is derived from `tasks`,
+   * so marking the local copy done is what takes it off the screen before the
+   * write comes back down the sqlite channel.
+   */
+  async function strikeOld(entry: AtSea) {
+    const stamp = Date.now();
+    setTasks((prev) =>
+      prev.map((item) =>
+        item.id === entry.task.id ? { ...item, committedFor: day, doneAt: stamp } : item,
+      ),
+    );
+    await strikeAtSea(db, entry.task.id, day);
+    await reload();
+  }
+
+  /** Move it, with the line that was written about it. */
+  async function moveOld(entry: AtSea, to: 'today' | null, reason: string) {
+    const landing = to === 'today' ? day : null;
+    setTasks((prev) =>
+      prev.map((item) =>
+        item.id === entry.task.id ? { ...item, committedFor: landing } : item,
+      ),
+    );
+    void Haptics.selectionAsync();
+    await moveTask(db, { id: entry.task.id, committedFor: entry.from }, landing, reason);
+    await reload();
+  }
+
   async function takeRhythm(r: Rhythm, next: boolean) {
     if (next) await strikeRhythm(db, r, todayKey());
     else await unstrikeRhythm(db, r.key, todayKey());
@@ -251,6 +286,15 @@ export default function ArmamentScreen() {
   );
   const waiting = backlog(tasks);
   const old = stale(tasks, todayKey());
+  /**
+   * Committed to a day that has passed, and not done.
+   *
+   * These appeared nowhere at all before — `todaysLoad` wants today and
+   * `backlog` wants no day, so anything committed to yesterday and left
+   * undone fell between them and was orphaned. It sits above the day now,
+   * because the owner's whole ask was to know what did not get done.
+   */
+  const adrift = atSea(tasks, day);
   const message = loadMessage(load);
   const since = training.daysSinceLast;
 
@@ -330,6 +374,32 @@ export default function ArmamentScreen() {
             {hardnessMessage(hardness.value, hardness.days, todayIn, plainMode)}
           </Text>
         </View>
+
+        {/* ---------------------------------------------------- still at sea */}
+        {/*
+          What did not get done, above the day rather than buried under it.
+          Nothing here is coloured red, ranked, or totalled — the days are
+          stated the way an island at sea states them. Doing one is a tap;
+          moving one costs a written line, which is the Log Pose's asymmetry
+          at the scale of a single task.
+        */}
+        {adrift.length > 0 ? (
+          <>
+            <SectionLabel
+              label={atSeaLabel(adrift.length, plainMode)}
+              trailing={plainMode ? undefined : '航海中'}
+            />
+            {adrift.map((entry) => (
+              <AtSeaRow
+                key={entry.task.id}
+                item={entry}
+                tint={lens.crimson}
+                onStrike={() => void strikeOld(entry)}
+                onMove={(to, reason) => void moveOld(entry, to, reason)}
+              />
+            ))}
+          </>
+        ) : null}
 
         {/* ---------------------------------------------------------- today */}
         <View style={styles.head}>
