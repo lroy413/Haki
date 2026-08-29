@@ -351,6 +351,12 @@ describe('key hygiene', () => {
         reason: 'ran out of day',
         createdAt: 2,
       },
+      dayEnd: {
+        day: '2026-09-15',
+        line: 'Slow start, decent finish.',
+        createdAt: 1,
+        updatedAt: 2,
+      },
       setting: { key: 'ui.plainMode', value: 'false' },
     };
 
@@ -591,6 +597,7 @@ describe('a move made without a line', () => {
           taskCreatedAt: 1,
           fromDay: '2026-09-19',
           toDay: '2026-09-20',
+          madeOn: '2026-09-20',
           reason: '',
           createdAt: 5,
         },
@@ -611,6 +618,7 @@ describe('a move made without a line', () => {
           taskCreatedAt: 1,
           fromDay: '2026-09-14',
           toDay: null,
+          madeOn: '2026-09-20',
           reason: 'Not this quarter.',
           createdAt: 6,
         },

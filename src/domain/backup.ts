@@ -104,8 +104,17 @@ export type TaskMoveBackup = {
   taskCreatedAt: number;
   fromDay: string;
   toDay: string | null;
+  /** The day the decision was made on, which is not always `fromDay`. */
+  madeOn: string;
   reason: string;
   createdAt: number;
+};
+
+export type DayEndBackup = {
+  day: string;
+  line: string;
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type BellBackup = {
@@ -211,6 +220,7 @@ export type BackupTables = {
   eternalPose: EternalPoseBackup[];
   bell: BellBackup[];
   taskMove: TaskMoveBackup[];
+  dayEnd: DayEndBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
@@ -241,6 +251,7 @@ export const EMPTY_TABLES: BackupTables = {
   eternalPose: [],
   bell: [],
   taskMove: [],
+  dayEnd: [],
   sounding: [],
   carried: [],
   task: [],
@@ -357,8 +368,18 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     num(r.taskCreatedAt) &&
     str(r.fromDay) &&
     nullableStr(r.toDay) &&
+    str(r.madeOn) &&
     str(r.reason) &&
     num(r.createdAt),
+  // The line is never empty — an emptied field deletes the row rather than
+  // storing a blank, so a blank one arriving in an import is not a day
+  // somebody said nothing about, it is a malformed row.
+  dayEnd: (r) =>
+    str(r.day) &&
+    str(r.line) &&
+    (r.line as string).length > 0 &&
+    num(r.createdAt) &&
+    num(r.updatedAt),
   // `at` is minutes past midnight; anything off the clock is not a bell.
   bell: (r) =>
     str(r.title) &&
@@ -497,6 +518,8 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   bell: (r) => `${r.day} ${r.at} ${r.title}`,
   // One move per task per moment; the stamp is what makes it unique.
   taskMove: (r) => `${r.taskCreatedAt} ${r.createdAt}`,
+  // One evening per day.
+  dayEnd: (r) => String(r.day),
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

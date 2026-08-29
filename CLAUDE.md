@@ -485,6 +485,45 @@ cannot simply be cranked until nothing survives.
 - **Quiet is the ordinary answer**, and the copy says so rather than treating
   an empty result as a failure of the app or of the life.
 
+## Day's End is a ritual you cannot fail
+
+`domain/dayEnd.ts` and `app/dayend.tsx`. The app had a morning (the Daily
+Read) and a week (Setting Sail) and nothing between them, so a day's leftovers
+rolled into tomorrow without anybody looking at them once. The owner asked for
+the look: _"At the end of the day I want it to ask how it went, if I moved
+something or didn't do something I want it to ask why."_
+
+Three movements — the day read back, what is still open and what moved, and
+one question — and five rules:
+
+- **Nothing here is required.** Every field closes empty. A ritual you can
+  fail is a ritual you stop opening, and this one has to survive the bad days
+  to be worth anything on them.
+- **The course is read back and never marked.** `app/course.tsx` promises in
+  as many words that nothing asks at the end of the day whether you held it.
+  Showing the heading is not asking about it; a tick beside it would break a
+  promise the app makes to your face. There is a test forbidding the question.
+- **An empty day gets an offer, not an audit.** `readBack` returns an empty
+  list and the screen says the watch is not over — the day's practice card's
+  rule at day scale. It never says "0 tasks struck".
+- **The ritual is where the writing debt is collected.** The Do tab lets a
+  first-day carry through on one tap on purpose; the wordless moves it lets
+  through are asked about here, once, somewhere you came on purpose. A task
+  shows up once and never twice: a wordless move on a task that is still open
+  rides under that task's own row rather than repeating its title in a
+  section below.
+- **`made_on`, not `from_day`.** A move is stamped with the day the decision
+  was made on, because carrying something that had been at sea since Thursday
+  is a decision you made today — and it is exactly the move the ritual most
+  wants to ask about. The first cut queried `from_day` and missed every one of
+  them. A timestamp cannot stand in: a day here does not end at midnight.
+
+The door on the home screen (`DayEndDoor`) exists only during the evening
+watch. A "close the day" card standing open at nine in the morning is a nag
+about a day that has not happened, and worse, a thing you learn to scroll
+past. It wears the signature violet like the Return — this belongs to the day
+rather than to any one lens.
+
 ## Nothing committed is quietly dropped
 
 `domain/atSea.ts` closes a hole rather than adding a feature. `todaysLoad`

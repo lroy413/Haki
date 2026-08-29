@@ -388,10 +388,15 @@ export const taskMove = sqliteTable(
       .references(() => task.id, { onDelete: 'cascade' }),
     fromDay: text('from_day').notNull(),
     toDay: text('to_day'),
+    /** The day the decision was made on, which is not always `fromDay`. */
+    madeOn: text('made_on').notNull(),
     reason: text('reason').notNull(),
     createdAt: integer('created_at').notNull(),
   },
-  (t) => [index('task_move_task').on(t.taskId, t.createdAt)],
+  (t) => [
+    index('task_move_task').on(t.taskId, t.createdAt),
+    index('task_move_made').on(t.madeOn),
+  ],
 );
 
 export type DailyReadRow = typeof dailyRead.$inferSelect;
@@ -413,3 +418,13 @@ export type SoundingRow = typeof sounding.$inferSelect;
 export type EternalPoseRow = typeof eternalPose.$inferSelect;
 export type BellRow = typeof bell.$inferSelect;
 export type TaskMoveRow = typeof taskMove.$inferSelect;
+
+/** Day's End — the evening line. One per day, revisable. */
+export const dayEnd = sqliteTable('day_end', {
+  day: text('day').primaryKey(),
+  line: text('line').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type DayEndRow = typeof dayEnd.$inferSelect;

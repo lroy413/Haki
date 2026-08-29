@@ -147,6 +147,9 @@ export type Strings = {
   backlogLabel: string;
   backlogEmpty: string;
   bellsTitle: string;
+  dayEndTitle: string;
+  dayEndDoor: string;
+  dayEndBlurb: string;
   dayStripLabel: string;
   nextStrikeLabel: string;
   nextStrikeEmpty: string;
@@ -354,6 +357,9 @@ const haki: Strings = {
   backlogLabel: 'Waiting',
   backlogEmpty: 'Nothing waiting.',
   bellsTitle: 'The Bells',
+  dayEndTitle: 'Day’s End',
+  dayEndDoor: 'Close the day',
+  dayEndBlurb: 'Read it back, decide what is left, say how it went.',
   dayStripLabel: 'The watches',
   nextStrikeLabel: 'Next strike',
   nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
@@ -473,6 +479,9 @@ const plain: Strings = {
   islandReopen: 'Reopen it',
   islandHistory: 'Done and set aside',
   bellsTitle: 'Appointments',
+  dayEndTitle: 'End of day',
+  dayEndDoor: 'Review the day',
+  dayEndBlurb: 'What happened, what is left, how it went.',
   dayStripLabel: 'Today',
   nextStrikeLabel: 'Next up',
   strikeIt: 'Add a task',

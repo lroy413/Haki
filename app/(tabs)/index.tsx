@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { CourseLine } from '../../src/components/CourseLine';
 import { VoyageNote } from '../../src/components/VoyageNote';
 import { DayStrip } from '../../src/components/DayStrip';
+import { DayEndDoor } from '../../src/components/DayEndDoor';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
@@ -93,6 +94,11 @@ export default function Home() {
         onOpen={() => router.push('/armament')}
         onBells={() => router.push('/bells')}
       />
+
+      {/* The evening pass. Only present during the evening watch — see
+          `DayEndDoor`. Directly under the strip, because the strip is the
+          day and this is the door that closes it. */}
+      <DayEndDoor onOpen={() => router.push('/dayend')} />
 
       {/* The gauge is the way into the Daily Read now that the loose button
           below is gone. It already says "no reading yet today" when there

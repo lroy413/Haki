@@ -199,7 +199,7 @@ export default function ArmamentScreen() {
       ),
     );
     void Haptics.selectionAsync();
-    await moveTask(db, { id: entry.task.id, committedFor: entry.from }, landing, reason);
+    await moveTask(db, { id: entry.task.id, committedFor: entry.from }, landing, reason, day);
     await reload();
   }
 
