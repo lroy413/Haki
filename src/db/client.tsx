@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { keep } from '../files/keep';
 import { bootstrap } from './bootstrap';
 import { loadSettings, type Settings } from './settings';
 import type { Db } from './repo';
@@ -39,6 +40,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try {
         const native = await SQLite.openDatabaseAsync(DATABASE_NAME);
         await bootstrap(native);
+        // Ask the browser not to evict the origin, every cold start.
+        //
+        // On the web this database is everything the app has ever been told,
+        // and by default it is best-effort storage: a browser under disk
+        // pressure may throw the whole origin away, silently, with no error
+        // to catch. `keep.anchor()` is the one line that asks it not to, and
+        // it had never been called.
+        //
+        // Every start rather than once, because the answer changes: an
+        // uninstalled app is usually refused and an installed one is usually
+        // granted, and asking again is how the app picks that up without
+        // having to notice it was installed. It never throws and never
+        // blocks — losing the database is the risk here, and refusing to
+        // open is not a better outcome than running unanchored.
+        void keep.anchor();
         const drizzled = drizzle(native) as Db;
         const loaded = await loadSettings(drizzled);
         if (cancelled) return;
