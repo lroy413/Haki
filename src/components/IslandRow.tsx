@@ -16,7 +16,7 @@ import { useHaki } from '../state/HakiProvider';
 import { SWELL, swellPath } from './instruments/Sea';
 import { ISLE_H, ISLE_W, ISLE_WATERLINE, Isle, type IsleKind } from './instruments/Isles';
 import { Skyline } from './instruments/Skyline';
-import type { MoonPhase } from '../domain/moon';
+import { litPath, type MoonPhase } from '../domain/moon';
 import { space, type } from '../theme/tokens';
 import { press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
@@ -111,21 +111,9 @@ function Moon({
   const { palette } = useHaki();
   const { fraction, waxing } = moon;
 
-  // cos of the phase angle: +1 new, 0 at the quarters, -1 full.
-  const k = 1 - 2 * fraction;
-  const a = Math.abs(k) * r;
-
-  // Limb on the lit side, terminator back across the disc. Sweep flags:
-  // travelling top-to-bottom down the lit limb, then bottom-to-top along
-  // the terminator, which bulges toward the limb for a crescent (k > 0)
-  // and away from it for a gibbous (k < 0).
-  const lit =
-    fraction >= 0.985
-      ? 'full'
-      : fraction <= 0.015
-        ? 'none'
-        : `M 0 ${-r} A ${r} ${r} 0 0 ${waxing ? 1 : 0} 0 ${r}` +
-          ` A ${a.toFixed(2)} ${r} 0 0 ${k < 0 === waxing ? 1 : 0} 0 ${-r} Z`;
+  // The terminator is a system, so it lives in `domain/moon.ts` and the Tide
+  // Calendar's phase marks are cut from the same geometry.
+  const lit = litPath(r, fraction, waxing);
 
   // The near side's seas, in disc coordinates (north up, east right).
   const MARIA: [number, number, number, number, number][] = [

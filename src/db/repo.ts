@@ -1,4 +1,5 @@
-import { and, desc, eq, gte, inArray, isNotNull, isNull, lte } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte } from 'drizzle-orm';
+import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import type { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { addDays, todayKey, type DayKey } from '../domain/date';
 import type { DailyRead } from '../domain/willReserve';
@@ -1500,6 +1501,37 @@ export async function portsBetween(
   return rows.flatMap((r) =>
     r.day === null ? [] : [{ day: r.day as DayKey, title: r.title }],
   );
+}
+
+/**
+ * The first day this database has anything on, or null for an empty one.
+ *
+ * The Tide Calendar needs a floor to stop walking backwards at, and
+ * `voyage.setSailAt` is *nearly* it — except that a restore deliberately holds
+ * that setting back, because day one belongs to the install rather than to the
+ * file (see the note in `db/backup.ts`). Without this, a phone that had three
+ * months imported into it this morning would say the voyage began this morning
+ * and refuse to show any of them.
+ *
+ * One `MIN` per day-bearing table. Cheap, and run once when the screen mounts
+ * rather than on every step between months.
+ */
+export async function earliestAct(db: Db): Promise<DayKey | null> {
+  const first = async (col: SQLiteColumn) => {
+    const rows = await db.select({ day: col }).from(col.table).orderBy(asc(col)).limit(1);
+    return (rows[0]?.day as string | null) ?? null;
+  };
+  const days = await Promise.all([
+    first(dailyRead.day),
+    first(entry.day),
+    first(task.committedFor),
+    first(trainingSession.day),
+    first(gearSession.day),
+    first(sitSession.day),
+    first(course.day),
+  ]);
+  const found = days.filter((d): d is string => d !== null && d.length > 0).sort();
+  return (found[0] as DayKey) ?? null;
 }
 
 /* --------------------------------------------------------------------- notes */

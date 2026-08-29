@@ -867,6 +867,49 @@ that half, reachable all week rather than once at the ritual.
 - **Monday starts the week**, and Sunday ends the one it belongs to — the
   off-by-one that puts a seventh of all weeks a day out. There is a test.
 
+## The month is where a streak would grow
+
+`domain/tide.ts` and `app/tide.tsx`. The strip is the day, Chart the Week is
+the week, and the Tide Calendar is the size above both — the one question
+neither can answer is _what has this month actually been like_, and the answer
+is a shape rather than a figure. Reached from the home screen, beside the week.
+
+- **It is the screen where the temptation is strongest, so it is the screen
+  with the most refusals.** A run of used days is _visible_ here in a way it is
+  nowhere else, and a calendar is where every other app grows a streak counter.
+  There is none, no longest run, no percentage and no denominator: `monthLine`
+  says "16 days with something in them" and stops. Setting Sail is still the
+  only place allowed a total, and a week is what it is allowed one _of_.
+  `tideScreen.test.ts` reads the screen for the words, with the comments
+  stripped first — the prose is where the law is written down, so it is allowed
+  the words the code is not.
+- **Nothing is red and nothing counts backwards.** An empty day is a day that
+  was not used, which is a fact about a day the app has nothing to add to. A
+  port of call keeps `warn` like every other date.
+- **Three ink steps, told apart across the room.** The first cut ran
+  0.46/0.70/0.94 and a busy day was indistinguishable from a full one — two
+  measured greys where there should have been three. Same law as the week
+  chart's bars: a shape, never a score.
+- **The grid pads out to whole weeks and the padding days keep their boxes.** A
+  neighbouring day is a real day that really did hold something, so it draws
+  its ink at half strength and its date goes faint; dropping its box left five
+  holes in the top row, which is the thing padding the grid out was for.
+- **`setSailAt` is not the floor on its own.** A restore deliberately holds that
+  setting back — day one belongs to the install, not to the file — so a phone
+  with three months imported into it this morning would refuse to show any of
+  them. `earliestAct` is the other half of the bound.
+- **A month ahead is a calendar, and this is not one.** Forward stops at the
+  month you are in; the week chart is where the future lives, because a week
+  ahead is something you can still act on. Nothing on this screen writes.
+- **The moon is drawn, never typed.** ◐ and ◑ are not in the mono face and came
+  out as clipped slivers — the em-dash-as-filled-bar bug with a different
+  glyph. `litPath` in `domain/moon.ts` is the terminator geometry, lifted out
+  of the settings chart's night sky so both draw the same moon; the chart's
+  `Moon` and the calendar's `MoonMark` can no longer disagree about which way
+  a crescent points. Only the four principal phases are marked: a moon on all
+  thirty is noise with a nautical excuse.
+- Plain mode keeps the grid, the ink and the ports, and loses the sky.
+
 ## Setting Sail is the one place that totals anything
 
 Everywhere else a count needs a denominator the app does not have — a journey

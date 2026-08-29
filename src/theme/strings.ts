@@ -141,6 +141,12 @@ export type Strings = {
   weekToday: string;
   weekRitual: string;
   weekDoor: string;
+  tideTitle: string;
+  tideHint: string;
+  tideEmptyDay: string;
+  tideDoor: string;
+  tideNow: string;
+  tidePorts: string;
   sailCta: string;
   sailWeekLabel: string;
   sailNeedlesLabel: string;
@@ -371,6 +377,12 @@ const haki: Strings = {
   weekToday: 'Today',
   weekRitual: 'Read the week back and set the heading.',
   weekDoor: 'The week',
+  tideTitle: 'The Tide Calendar',
+  tideHint: 'Tap a day to see what it held.',
+  tideEmptyDay: 'Nothing logged that day.',
+  tideDoor: 'The month',
+  tideNow: 'Back to this month',
+  tidePorts: 'Ports this month',
   sailCta: 'Set sail',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'The needles',
@@ -573,6 +585,12 @@ const plain: Strings = {
   weekToday: 'Today',
   weekRitual: 'Review the week and set the next one.',
   weekDoor: 'This week',
+  tideTitle: 'The month',
+  tideHint: 'Tap a day to see what it held.',
+  tideEmptyDay: 'Nothing logged that day.',
+  tideDoor: 'The month',
+  tideNow: 'This month',
+  tidePorts: 'Deadlines this month',
   sailCta: 'Start the review',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'Your goals',
