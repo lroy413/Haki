@@ -424,6 +424,26 @@ export type EternalPoseRow = typeof eternalPose.$inferSelect;
 export type BellRow = typeof bell.$inferSelect;
 export type TaskMoveRow = typeof taskMove.$inferSelect;
 
+/**
+ * A loose page — writing that is not about a day.
+ *
+ * Distinct from `entry` on purpose: the journal is dated and counts toward
+ * the day; a note is kept because you will want it again.
+ */
+export const note = sqliteTable(
+  'note',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    title: text('title').notNull().default(''),
+    body: text('body').notNull(),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (t) => [index('note_updated').on(t.updatedAt)],
+);
+
+export type NoteRow = typeof note.$inferSelect;
+
 /** Day's End — the evening line. One per day, revisable. */
 export const dayEnd = sqliteTable('day_end', {
   day: text('day').primaryKey(),

@@ -121,6 +121,13 @@ export type TaskMoveBackup = {
   createdAt: number;
 };
 
+export type NoteBackup = {
+  title: string;
+  body: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type DayEndBackup = {
   day: string;
   line: string;
@@ -232,6 +239,7 @@ export type BackupTables = {
   bell: BellBackup[];
   taskMove: TaskMoveBackup[];
   dayEnd: DayEndBackup[];
+  note: NoteBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
@@ -263,6 +271,7 @@ export const EMPTY_TABLES: BackupTables = {
   bell: [],
   taskMove: [],
   dayEnd: [],
+  note: [],
   sounding: [],
   carried: [],
   task: [],
@@ -385,6 +394,9 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
   // The line is never empty — an emptied field deletes the row rather than
   // storing a blank, so a blank one arriving in an import is not a day
   // somebody said nothing about, it is a malformed row.
+  // An empty body is a real note somebody opened and has not filled in yet —
+  // unlike a day's end line, where empty means the row should not exist.
+  note: (r) => str(r.title) && str(r.body) && num(r.createdAt) && num(r.updatedAt),
   dayEnd: (r) =>
     str(r.day) &&
     str(r.line) &&
@@ -534,6 +546,8 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   taskMove: (r) => `${r.taskCreatedAt} ${r.createdAt}`,
   // One evening per day.
   dayEnd: (r) => String(r.day),
+  // Two notes written in the same millisecond would be the same note.
+  note: (r) => String(r.createdAt),
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

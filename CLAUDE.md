@@ -558,6 +558,53 @@ about a day that has not happened, and worse, a thing you learn to scroll
 past. It wears the signature violet like the Return — this belongs to the day
 rather than to any one lens.
 
+## Loose pages, and the writing bar
+
+Two things the owner asked for together: _"I want a free notes separate from
+journal and I want a toolbar in journal and the notes."_
+
+**Separate is the specification.** `note` (migration v15) is not `entry`. The
+Logbook is dated — listed by day, feeding the acts a day is measured by, read
+back a year later by "astern". A note is none of that: a list, a draft, a thing
+you looked up and will want again. Folding them together would cost both — notes
+would start counting toward how used a day was, which is untrue, and the Logbook
+would fill up with shopping lists. Loose Pages hangs off the Observation tab
+(writing belongs beside writing) and is `Notes` in plain mode.
+
+- **The name is optional and usually empty.** `firstLine()` reads one off the
+  body, because making you name a thing before you can write it is how a quick
+  list never gets written. The list strips markdown off both the name and the
+  preview (`plainLine`) — `- [ ] bread` in a row is the syntax leaking into the
+  furniture.
+- **No Done button.** A note is not an act you finish; nothing counts it and the
+  back arrow is the whole exit. The journal keeps its Done, because an entry is
+  a thing you write and then have written.
+- **One debounce timer, two fields, so the patch must accumulate.** The first
+  cut replaced it, and every title was silently lost: typing a name and then the
+  body cleared the title's timer and wrote `{ body }` alone.
+
+`domain/markdown.ts` is the bar's actual work — every button is either wrapping
+a selection or prefixing the lines it touches, both toggling, all pure and
+tested on plain Node. `WritingBar` edits text and does not own it, which is what
+lets the same bar sit under the journal, under a note, and under anything
+written later.
+
+- **The edit carries a selection back.** A toolbar that formats and then drops
+  the caret at the end is a toolbar you press once.
+- **`selection` is pinned for exactly one render.** Asserting it every render
+  fights the caret — you cannot type past a selection the component keeps
+  reasserting — so it is released the moment `onSelectionChange` agrees.
+  Dictation inserts a whole phrase at the caret through the same path, so this
+  is what keeps it working too.
+- **Wrapping tightens off whitespace.** A double-click takes the trailing space
+  and dragging to a line end takes the newline; wrapping those verbatim gives
+  `**milk\n**`, a marker on the wrong side of a line break. Only found by
+  selecting a line in a browser and pressing the button.
+- **A prefix leaves a caret as a caret** and a range covering the same lines, so
+  a second press toggles it off.
+- Removal happens only when **every** selected line already carries the prefix;
+  two of three bulleted means the finger wanted the third bulleted too.
+
 ## Priority, and a date you have to make
 
 `domain/pressing.ts`. The owner's words: _"If I set a date I want to have

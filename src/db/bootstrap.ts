@@ -388,6 +388,35 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS task_due ON task (due_by);
     `,
   },
+  {
+    version: 15,
+    up: `
+      -- Loose pages: writing that is not about a day.
+      --
+      -- Deliberately not an entry. The journal is dated — it lives in the
+      -- Logbook, it is listed by day, it feeds the acts a day is measured by,
+      -- and "a year ago today" reads it back. A note is none of those things:
+      -- a list, a draft, a thing you looked up, kept because you will want it
+      -- again and not because of when you wrote it.
+      --
+      -- Folding the two together would have cost both. Notes would start
+      -- counting toward how much a day was used, which is untrue, and the
+      -- Logbook would fill with shopping lists.
+      --
+      -- The title is optional and usually empty: firstLine() in
+      -- domain/markdown.ts reads one off the body, so writing a note never
+      -- starts with naming it.
+      CREATE TABLE IF NOT EXISTS note (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        title      TEXT    NOT NULL DEFAULT '',
+        body       TEXT    NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS note_updated ON note (updated_at);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

@@ -244,6 +244,24 @@ export default function ObservationScreen() {
               <Text style={styles.stillGo}>Sit</Text>
             </Pressable>
 
+            {/* Loose pages, beside the journal but never in it. Writing is
+                writing, so the door belongs here; the two lists stay apart
+                because a note is not about a day. See app/notes.tsx. */}
+            <Pressable
+              onPress={() => router.push('/notes')}
+              accessibilityRole="button"
+              accessibilityLabel={t.notesTitle}
+              style={({ pressed }) => [styles.still, pressed && styles.pressed]}
+            >
+              <View style={styles.stillText}>
+                <Text style={styles.stillName}>
+                  {plainMode ? t.notesTitle : `雑記  ${t.notesTitle}`}
+                </Text>
+                <Text style={styles.stillLine}>{t.notesBlurb}</Text>
+              </View>
+              <Text style={styles.stillGo}>Open</Text>
+            </Pressable>
+
             <SectionLabel label={t.entriesLabel} style={styles.sectionLabel} />
 
             {/* What you wrote on this date in an earlier year — the feature

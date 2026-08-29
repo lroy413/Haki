@@ -17,7 +17,7 @@ import { asternOn, type Astern } from '../domain/astern';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
 import type { DayRecord } from '../domain/foresight';
-import type { DayEndRow, TaskMoveRow } from './schema';
+import type { DayEndRow, NoteRow, TaskMoveRow } from './schema';
 import { MAX_BELL_CHARS, clampClock, type Bell } from '../domain/bells';
 import { MAX_REASON } from '../domain/atSea';
 import { MAX_HOW } from '../domain/dayEnd';
@@ -44,6 +44,7 @@ import {
   task,
   taskMove,
   dayEnd,
+  note,
   trainingSession,
   type CarriedRow,
   type EntryRow,
@@ -1448,6 +1449,46 @@ export async function sayWhy(db: Db, moveId: number, reason: string): Promise<vo
     .update(taskMove)
     .set({ reason: reason.trim().slice(0, MAX_REASON) })
     .where(eq(taskMove.id, moveId));
+}
+
+/* --------------------------------------------------------------------- notes */
+
+/** Every note, most recently touched first — which is where you left off. */
+export async function listNotes(db: Db): Promise<NoteRow[]> {
+  return db.select().from(note).orderBy(desc(note.updatedAt));
+}
+
+export async function getNote(db: Db, id: number): Promise<NoteRow | null> {
+  const rows = await db.select().from(note).where(eq(note.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+/**
+ * Start one. Created empty and on demand, like an entry — a note you open and
+ * back out of leaves nothing behind.
+ */
+export async function createNote(db: Db, body = ''): Promise<number> {
+  const stamp = now();
+  const rows = await db
+    .insert(note)
+    .values({ title: '', body, createdAt: stamp, updatedAt: stamp })
+    .returning({ id: note.id });
+  return rows[0].id;
+}
+
+export async function updateNote(
+  db: Db,
+  id: number,
+  patch: { title?: string; body?: string },
+): Promise<void> {
+  await db
+    .update(note)
+    .set({ ...patch, updatedAt: now() })
+    .where(eq(note.id, id));
+}
+
+export async function deleteNote(db: Db, id: number): Promise<void> {
+  await db.delete(note).where(eq(note.id, id));
 }
 
 /* ----------------------------------------------------------------- day's end */
