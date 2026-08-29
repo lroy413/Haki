@@ -485,6 +485,40 @@ cannot simply be cranked until nothing survives.
 - **Quiet is the ordinary answer**, and the copy says so rather than treating
   an empty result as a failure of the app or of the life.
 
+## The hold, and asking the browser to keep it
+
+The app's whole promise is that everything lives on this device and the export
+is the only way anything moves. That promise had a hole in it for the app's
+entire life: on the web the database is OPFS under one origin, and by default
+that is **best-effort** storage — a browser under disk pressure may evict the
+whole origin, silently, with no error to catch and no event to handle. You open
+the app one morning and it is a fresh install. `navigator.storage.persist()` is
+the one line that changes it and it had never been called.
+
+- **`keep.anchor()` runs on every cold start**, from `db/client.tsx` right
+  after `bootstrap`. Every start rather than once, because the answer changes:
+  an uninstalled app is usually refused and an installed one is usually
+  granted, and asking again is how the app picks that up without having to
+  notice it was installed.
+- **It never throws and never blocks.** An origin with storage disabled throws
+  on the _accessor_, not just the call. Losing the database is the risk being
+  managed here; refusing to open is not a better outcome than running
+  unanchored.
+- **Then it says what the answer was**, on the settings data page, directly
+  under the export — because when the answer is "not anchored", the thing to
+  do about it is the card above. Same argument as `ShellReport` beside it: a
+  guarantee you cannot verify is not one, and the phone is the only thing that
+  knows.
+- **The quota is stated and never drawn as a fraction.** It is a browser
+  implementation detail that moves on its own — 1.0 GB on one launch and 924 MB
+  on the next — and this app's data against it would be a denominator nobody
+  chose. Not red either: an origin the browser has not promised to keep is a
+  fact about a browser, not a failure of the person reading it.
+- One implementation per platform (`files/keep.ts`, `files/keep.web.ts`), both
+  `satisfies Keep`, exactly like `Transfer` next door. Native has nothing to
+  ask for and nothing to measure — the file is in the app's own container — so
+  it says so rather than inventing a number.
+
 ## Day's End is a ritual you cannot fail
 
 `domain/dayEnd.ts` and `app/dayend.tsx`. The app had a morning (the Daily
