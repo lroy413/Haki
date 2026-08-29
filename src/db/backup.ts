@@ -26,6 +26,7 @@ import {
   setting,
   sitSession,
   sleepLog,
+  dayEnd,
   task,
   taskMove,
   trainingSession,
@@ -60,6 +61,7 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     people,
     tasks,
     moves,
+    evenings,
     settings,
   ] = await Promise.all([
     db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
@@ -80,6 +82,7 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     db.select().from(carried).orderBy(desc(carried.createdAt)),
     db.select().from(task).orderBy(desc(task.createdAt)),
     db.select().from(taskMove).orderBy(taskMove.createdAt),
+    db.select().from(dayEnd).orderBy(dayEnd.day),
     db.select().from(setting),
   ]);
 
@@ -226,12 +229,19 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
               taskCreatedAt: owner.createdAt,
               fromDay: r.fromDay,
               toDay: r.toDay,
+              madeOn: r.madeOn,
               reason: r.reason,
               createdAt: r.createdAt,
             },
           ]
         : [];
     }),
+    dayEnd: evenings.map((r) => ({
+      day: r.day,
+      line: r.line,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })),
     setting: settings.map((r) => ({ key: r.key, value: r.value })),
   };
 }
@@ -267,6 +277,7 @@ const TABLES = {
   carried,
   task,
   taskMove,
+  dayEnd,
   setting,
 } as const;
 

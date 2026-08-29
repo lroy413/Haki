@@ -330,6 +330,39 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS task_move_task ON task_move (task_id, created_at);
     `,
   },
+  {
+    version: 13,
+    up: `
+      -- How the day went, in one line, in your own words.
+      --
+      -- One row per day and revisable, because an evening you come back to at
+      -- eleven is the same evening. Deliberately not a journal entry: the
+      -- journal is the free space and a ritual that silently wrote into it
+      -- would make the journal a place things appear rather than a place you
+      -- write. Deliberately not a rating either — there is no scale here, no
+      -- score, and nothing that could be charted into a verdict about a run
+      -- of days.
+      CREATE TABLE IF NOT EXISTS day_end (
+        day        TEXT PRIMARY KEY,
+        line       TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      -- Which day the decision was made on, as distinct from which day the
+      -- task was scheduled for.
+      --
+      -- Day's End asks about the moves *you made today*, and carrying a task
+      -- that had been at sea since Thursday is one of those — its from_day is
+      -- Thursday, so the obvious query missed exactly the moves the ritual
+      -- most wants to ask about. A timestamp cannot answer this either: a day
+      -- here does not end at midnight (see voyage.dayStartHour), so the day
+      -- is stamped by the writer, which is the only place that knows.
+      ALTER TABLE task_move ADD COLUMN made_on TEXT NOT NULL DEFAULT '';
+
+      CREATE INDEX IF NOT EXISTS task_move_made ON task_move (made_on);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

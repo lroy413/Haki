@@ -92,6 +92,7 @@ function Chrome() {
         <Stack.Screen name="eternal" options={{ title: t.eternalTitle }} />
         <Stack.Screen name="carried" options={{ title: t.carriedTitle }} />
         <Stack.Screen name="bells" options={{ title: t.bellsTitle }} />
+        <Stack.Screen name="dayend" options={{ title: t.dayEndTitle }} />
         {/* The settings archipelago — six islands off the settings chart,
             each a page. See app/(tabs)/settings.tsx. */}
         <Stack.Screen name="crew" options={{ title: t.crewTitle }} />

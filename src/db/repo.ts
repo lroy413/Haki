@@ -17,9 +17,10 @@ import { asternOn, type Astern } from '../domain/astern';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
 import type { DayRecord } from '../domain/foresight';
-import type { TaskMoveRow } from './schema';
+import type { DayEndRow, TaskMoveRow } from './schema';
 import { MAX_BELL_CHARS, clampClock, type Bell } from '../domain/bells';
 import { MAX_REASON } from '../domain/atSea';
+import { MAX_HOW } from '../domain/dayEnd';
 import { NO_ACTS } from '../domain/hardening';
 import { minutesToday as gearMinutes } from '../domain/gears';
 import { minutesToday as sitMinutes } from '../domain/stillness';
@@ -42,6 +43,7 @@ import {
   sleepLog,
   task,
   taskMove,
+  dayEnd,
   trainingSession,
   type CarriedRow,
   type EntryRow,
@@ -1338,6 +1340,7 @@ export async function moveTask(
   taskItem: { id: number; committedFor: DayKey | null },
   to: DayKey | null,
   reason: string,
+  madeOn: DayKey,
 ): Promise<void> {
   // An empty line is allowed and is not the same as no record: a first-day
   // carry is free, and the move is still written down so the day's end can
@@ -1351,6 +1354,7 @@ export async function moveTask(
     taskId: taskItem.id,
     fromDay: from,
     toDay: to,
+    madeOn,
     reason: line,
     createdAt: now(),
   });
@@ -1381,4 +1385,67 @@ export async function movesFor(db: Db, taskId: number): Promise<TaskMoveRow[]> {
     .from(taskMove)
     .where(eq(taskMove.taskId, taskId))
     .orderBy(taskMove.createdAt);
+}
+
+/**
+ * Every move *decided on* a given day, with the task it belongs to.
+ *
+ * `madeOn`, not `fromDay`: carrying something that had been at sea since
+ * Thursday is a decision you made today, and it is exactly the one the
+ * evening ritual most wants to ask about — the query that read `fromDay`
+ * missed every one of them.
+ *
+ * The join is here rather than in the screen because a move without its
+ * task's title is unaskable — "why did this move?" needs a *this*.
+ */
+export async function movesMadeOn(
+  db: Db,
+  day: DayKey,
+): Promise<{ move: TaskMoveRow; title: string }[]> {
+  const rows = await db
+    .select({ move: taskMove, title: task.title })
+    .from(taskMove)
+    .innerJoin(task, eq(task.id, taskMove.taskId))
+    .where(eq(taskMove.madeOn, day))
+    .orderBy(taskMove.createdAt);
+  return rows.map((r) => ({ move: r.move, title: r.title }));
+}
+
+/** Put words to a move that was made without them. */
+export async function sayWhy(db: Db, moveId: number, reason: string): Promise<void> {
+  await db
+    .update(taskMove)
+    .set({ reason: reason.trim().slice(0, MAX_REASON) })
+    .where(eq(taskMove.id, moveId));
+}
+
+/* ----------------------------------------------------------------- day's end */
+
+export async function getDayEnd(db: Db, day: DayKey): Promise<DayEndRow | null> {
+  const rows = await db.select().from(dayEnd).where(eq(dayEnd.day, day)).limit(1);
+  return rows[0] ?? null;
+}
+
+/**
+ * Save the evening line, or clear it.
+ *
+ * Emptying the field deletes the row rather than storing a blank one — the
+ * same rule the course holds. A blank row is a day that looks answered and
+ * is not, and it would show up in the backup as a fact about an evening that
+ * had nothing said about it.
+ */
+export async function saveDayEnd(db: Db, day: DayKey, line: string): Promise<void> {
+  const value = line.trim().slice(0, MAX_HOW);
+  if (value.length === 0) {
+    await db.delete(dayEnd).where(eq(dayEnd.day, day));
+    return;
+  }
+  const stamp = now();
+  await db
+    .insert(dayEnd)
+    .values({ day, line: value, createdAt: stamp, updatedAt: stamp })
+    .onConflictDoUpdate({
+      target: dayEnd.day,
+      set: { line: value, updatedAt: stamp },
+    });
 }

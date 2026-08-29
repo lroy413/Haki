@@ -21,6 +21,7 @@ import {
   recentSleep,
   actsBetween,
   bellsOn,
+  getDayEnd,
   sitSessionsBetween,
   sitSessionsOn,
 } from '../db/repo';
@@ -105,6 +106,8 @@ type HakiState = {
   voyage: Voyage;
   /** Today's bells, earliest first. See `domain/bells.ts`. */
   bells: Bell[];
+  /** The evening line, if one has been written today. */
+  dayEnd: string | null;
   day: number;
   t: Strings;
   plainMode: boolean;
@@ -191,6 +194,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
   );
   const [sailing, setSailing] = useState<Voyage>(() => voyage([], todayKey()));
   const [bells, setBells] = useState<Bell[]>([]);
+  const [dayEnd, setDayEnd] = useState<string | null>(null);
 
   /**
    * Which refresh is the current one.
@@ -217,6 +221,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       sits,
       todayCourse,
       todayBells,
+      evening,
       markDay,
       markLevel,
     ] = await Promise.all([
@@ -229,6 +234,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       sitSessionsOn(db, today),
       getCourse(db, today),
       bellsOn(db, today),
+      getDayEnd(db, today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
     ]);
@@ -265,6 +271,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     };
     setActs(nextActs);
     setBells(todayBells);
+    setDayEnd(evening?.line ?? null);
 
     // The Reserve reads the day's acts, so it is computed here rather than
     // with the other loads: the level is what the morning started with, and
@@ -466,6 +473,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       observation: seeing,
       voyage: sailing,
       bells,
+      dayEnd,
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,
@@ -475,6 +483,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       read,
       reserve,
       cascade,
+      dayEnd,
       training,
       load,
       hardening,
