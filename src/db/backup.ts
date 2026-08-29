@@ -158,6 +158,7 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       closedOn: r.closedOn,
       reason: r.reason,
       unit: r.unit,
+      portBy: r.portBy,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     })),

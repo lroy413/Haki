@@ -23,6 +23,7 @@ import {
   listPoneglyphs,
   listRoads,
   openPoneglyph,
+  setPort,
   setDream,
   wakesFor,
   listFlag,
@@ -39,7 +40,7 @@ import {
   type Poneglyph,
   type Road,
 } from '../../src/domain/logpose';
-import { todayKey } from '../../src/domain/date';
+import { shortDay, todayKey } from '../../src/domain/date';
 import { isDue, offerLine as sailOfferLine } from '../../src/domain/sail';
 import { fireConquerors } from '../../src/impact';
 import { play } from '../../src/sound';
@@ -339,7 +340,12 @@ export default function ConquerorsScreen() {
               {dream ? (
                 <>
                   <Text style={styles.dreamText}>{dream.text}</Text>
-                  <Text style={styles.dreamMeta}>{t.dreamNamedOn(dream.setOn)}</Text>
+                  <Text style={styles.dreamMeta}>
+                    {/* Said, not stored. The ISO form sorts and belongs in
+                        the database; printed under the dream it is a schema
+                        showing through the app's own voice. */}
+                    {t.dreamNamedOn(shortDay(dream.setOn, todayKey()))}
+                  </Text>
                 </>
               ) : (
                 <>
@@ -439,6 +445,9 @@ export default function ConquerorsScreen() {
                   if (needle.next) void passed(needle.next.id, reason);
                 }}
                 onStrike={(title) => void strike(title, needle.next?.key ?? null)}
+                onPort={(portBy) => {
+                  if (needle.next) void setPort(db, needle.next.id, portBy).then(load);
+                }}
               />
             </Rise>
           ))

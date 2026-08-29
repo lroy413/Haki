@@ -71,6 +71,12 @@ export type Strings = {
   islandPassConfirm: string;
   islandReopen: string;
   islandHistory: string;
+  portAdd: string;
+  portChange: string;
+  portField: string;
+  portSet: string;
+  portClear: string;
+  portClearHint: string;
   strikeIt: string;
   strikePlaceholder: string;
   strikeAdded: string;
@@ -271,6 +277,12 @@ const haki: Strings = {
   islandPassConfirm: 'Sail past it',
   islandReopen: 'Put back to sea',
   islandHistory: 'Astern',
+  portAdd: 'Set a port of call',
+  portChange: 'Change the port of call',
+  portField: 'The day it has to be reached by',
+  portSet: 'Set the port',
+  portClear: 'Clear the port',
+  portClearHint: 'Leave it empty to clear the date.',
   strikeIt: 'Strike it',
   strikePlaceholder: 'One thing today that moves this.',
   strikeAdded: 'On today.',
@@ -488,6 +500,12 @@ const plain: Strings = {
   islandPassConfirm: 'Set it aside',
   islandReopen: 'Reopen it',
   islandHistory: 'Done and set aside',
+  portAdd: 'Set a deadline',
+  portChange: 'Change the deadline',
+  portField: 'The day it has to be done by',
+  portSet: 'Set the date',
+  portClear: 'Clear the date',
+  portClearHint: 'Leave it empty to clear the date.',
   bellsTitle: 'Appointments',
   dayEndTitle: 'End of day',
   notesTitle: 'Notes',

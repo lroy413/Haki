@@ -629,6 +629,14 @@ what let a real deadline slide past without the app ever raising its voice.
   rings, badges, or counts how many dates have gone past. The count runs
   toward and keeps running ("3 days", "Due today", "2 days past"), the same
   figure an island at sea wears.
+- **An island gets the same date one size up.** `portLine` is a port of call —
+  "12 days to port", "Port today", "2 days past port" — sharing `daysUntil`
+  with the task list rather than growing a second module that would drift.
+  Optional by design and rare by intent: a journey has no denominator, and an
+  app that asked for a date on every island would be a project plan. It is cut
+  in the stone's own light on the card, and it goes on the pillar _row_ rather
+  than the chart drawing, because the rows carry the words and the lamp is the
+  chart's whole status system.
 - **Two horizons, and they are different numbers on purpose.** `SOON_DAYS`
   decides what is drawn warm in the list; `BEARING_DAYS` is tighter and
   decides what reaches the home screen. A card announcing three things are

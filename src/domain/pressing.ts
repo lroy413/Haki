@@ -123,6 +123,33 @@ export function dueLine(dueBy: DayKey | null, today: DayKey): string | null {
 export const PRIORITY_LABEL = 'Priority';
 
 /**
+ * The same date, one size up — an island's port of call.
+ *
+ * The Log Pose's voice rather than the task list's, because an island is a
+ * different scale of thing: weeks wide, and reached rather than done. The
+ * arithmetic underneath is identical, which is the point of it living here
+ * beside `dueLine` instead of in a second module that would drift.
+ *
+ * Counts toward and keeps counting. Never red, never a countdown to a
+ * failure — a port you have not made yet is a port you have not made yet.
+ */
+export function portLine(portBy: DayKey | null, today: DayKey, plain = false): string | null {
+  const days = daysUntil(portBy, today);
+  if (days === null || portBy === null) return null;
+  if (days === 0) return plain ? 'Due today' : 'Port today';
+  if (days < 0) {
+    const past = Math.abs(days);
+    return plain
+      ? `${past} ${past === 1 ? 'day' : 'days'} past`
+      : `${past} ${past === 1 ? 'day' : 'days'} past port`;
+  }
+  if (days <= 30) {
+    return plain ? `${days} days left` : `${days} ${days === 1 ? 'day' : 'days'} to port`;
+  }
+  return plain ? `Due ${shortDay(portBy, today)}` : `Port ${shortDay(portBy, today)}`;
+}
+
+/**
  * What should be looked at first.
  *
  * Priority outranks everything, then the nearest date, then the order it was

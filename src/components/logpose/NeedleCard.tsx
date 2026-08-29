@@ -4,6 +4,8 @@ import { needleLine, reachedLine, type Needle } from '../../domain/logpose';
 import { wakeLine } from '../../domain/tasks';
 import { formatSounding, type Sounding } from '../../domain/soundings';
 import { useHaki } from '../../state/HakiProvider';
+import { parseDay, portLine } from '../../domain/pressing';
+import { todayKey, type DayKey } from '../../domain/date';
 import { font, radius, space, type } from '../../theme/tokens';
 import { press, row } from '../../theme/surfaces';
 import { Stone } from '../instruments/Stone';
@@ -55,7 +57,7 @@ import type { Palette } from '../../theme/palettes';
  * and enormous actually lives.
  */
 
-type Mode = 'idle' | 'naming' | 'passing' | 'striking';
+type Mode = 'idle' | 'naming' | 'passing' | 'striking' | 'porting';
 
 /**
  * The head: what pillar this is, and why the dream needs it.
@@ -100,6 +102,7 @@ export function NeedleCard({
   onReached,
   onPass,
   onStrike,
+  onPort,
   onDetail,
 }: {
   needle: Needle;
@@ -111,6 +114,11 @@ export function NeedleCard({
   onReached: () => void;
   onPass: (reason: string) => void;
   onStrike: (title: string) => void;
+  /**
+   * Set or clear the island's port of call. Left off where the card is read
+   * only — a control that cannot be honoured should not be drawn.
+   */
+  onPort?: (portBy: DayKey | null) => void;
   /**
    * The way through to the pillar's own screen. Left off when the card is
    * already mounted *on* that screen — a header that navigates to where you
@@ -127,6 +135,9 @@ export function NeedleCard({
 
   const [mode, setMode] = useState<Mode>('idle');
   const [draft, setDraft] = useState('');
+
+  const today = todayKey();
+  const port = needle.next ? portLine(needle.next.portBy, today, plainMode) : null;
 
   const ready = draft.trim().length > 0;
   function commit(run: (value: string) => void) {
@@ -193,6 +204,11 @@ export function NeedleCard({
           </View>
           <Text style={styles.islandTitle}>{needle.next.title}</Text>
           <Text style={styles.atSea}>{needleLine(needle, plainMode)}</Text>
+          {/* The port of call: a real day this has to be reached by, when
+              there is one. Counting toward and still counting after — never
+              red, because a port you have not made is not a breach. Drawn in
+              the stone's own light, like everything else cut into it. */}
+          {port ? <Text style={styles.port}>{port}</Text> : null}
           {/* The wake so far: strikes under this island, visible while the
               work happens rather than only at arrival. Absent until
               something has actually been struck. */}
@@ -201,6 +217,54 @@ export function NeedleCard({
               beside it saying whether it is the right one. */}
           {depth && needle.next.unit ? (
             <Text style={styles.depth}>{formatSounding(depth.value, needle.next.unit)}</Text>
+          ) : null}
+
+          {mode === 'porting' ? (
+            <View style={styles.form}>
+              {/* Reads 15, 9/15, sep 15 — the same parser the task dates use,
+                  and it refuses rather than guessing. */}
+              <Text style={styles.fieldLabel}>{t.portField}</Text>
+              <TextInput
+                value={draft}
+                onChangeText={setDraft}
+                autoFocus={Platform.OS !== 'web'}
+                style={styles.input}
+                placeholder="15, 9/15, sep 15"
+                placeholderTextColor={palette.inkFaint}
+                accessibilityLabel={t.portField}
+              />
+              <Text style={styles.portEcho}>
+                {draft.trim().length === 0
+                  ? t.portClearHint
+                  : (portLine(parseDay(draft, today), today, plainMode) ?? 'Not a date')}
+              </Text>
+              <View style={styles.row}>
+                <Pressable
+                  onPress={() => setMode('idle')}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+                >
+                  <Text style={styles.ghostText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    // Empty clears it, which costs nothing — a date you
+                    // decided was arbitrary is not a decision worth a line.
+                    const next = draft.trim().length === 0 ? null : parseDay(draft, today);
+                    if (draft.trim().length > 0 && next === null) return;
+                    setDraft('');
+                    setMode('idle');
+                    onPort?.(next);
+                  }}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+                >
+                  <Text style={styles.ghostText}>
+                    {draft.trim().length === 0 ? t.portClear : t.portSet}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           ) : null}
 
           {mode === 'passing' ? (
@@ -303,6 +367,21 @@ export function NeedleCard({
               >
                 <Text style={styles.strikeText}>{t.strikeIt}</Text>
               </Pressable>
+              {/* Quiet, and below the acts: a date is optional on an island
+                  and most will never carry one. Reaching it stays the loud
+                  thing on this card. */}
+              {onPort ? (
+                <Pressable
+                  onPress={() => {
+                    setDraft('');
+                    setMode('porting');
+                  }}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.portDoor, pressed && styles.pressed]}
+                >
+                  <Text style={styles.portDoorText}>{port ? t.portChange : t.portAdd}</Text>
+                </Pressable>
+              ) : null}
             </>
           )}
         </View>
@@ -457,6 +536,12 @@ const makeStyles = (c: Palette, stone: boolean) => {
     },
     islandTitle: { ...type.title, fontSize: 21, color: ink, lineHeight: 27 },
     atSea: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
+    // Cut in the stone's own light, like everything else on the slab — a
+    // lens colour on dark rock measures under the contrast floor.
+    port: { ...type.mono, color: faint, opacity: 1, fontSize: 12, marginTop: 2 },
+    portEcho: { ...type.mono, color: faint, opacity: faintO, fontSize: 11 },
+    portDoor: { minHeight: 44, justifyContent: 'center', alignItems: 'center' },
+    portDoorText: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
     wake: { ...type.mono, color: stone ? c.onStone : c.violet, opacity: dimO, fontSize: 12 },
     depth: {
       fontFamily: font.displayBold,

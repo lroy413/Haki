@@ -1054,6 +1054,7 @@ export async function listPoneglyphs(db: Db): Promise<Poneglyph[]> {
     closedOn: row.closedOn,
     reason: row.reason,
     unit: row.unit,
+    portBy: row.portBy,
   }));
 }
 
@@ -1119,6 +1120,17 @@ export async function reopenPoneglyph(db: Db, id: number): Promise<void> {
     .update(poneglyph)
     .set({ state: 'open', closedOn: null, reason: null, updatedAt: now() })
     .where(eq(poneglyph.id, id));
+}
+
+/**
+ * Set or clear an island's port of call.
+ *
+ * Clearing is passing null, and it costs nothing — a date you set and then
+ * decided was arbitrary is not a decision the app needs a line about. Sailing
+ * past the island is the decision, and that already costs one.
+ */
+export async function setPort(db: Db, id: number, portBy: DayKey | null): Promise<void> {
+  await db.update(poneglyph).set({ portBy, updatedAt: now() }).where(eq(poneglyph.id, id));
 }
 
 export async function renamePoneglyph(db: Db, id: number, title: string): Promise<void> {
