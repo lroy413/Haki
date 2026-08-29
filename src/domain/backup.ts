@@ -99,6 +99,15 @@ export type FlagValueBackup = {
   updatedAt: number;
 };
 
+export type TaskMoveBackup = {
+  /** Identifies the task by its creation stamp, as tasks do elsewhere here. */
+  taskCreatedAt: number;
+  fromDay: string;
+  toDay: string | null;
+  reason: string;
+  createdAt: number;
+};
+
 export type BellBackup = {
   title: string;
   day: string;
@@ -201,6 +210,7 @@ export type BackupTables = {
   flagValue: FlagValueBackup[];
   eternalPose: EternalPoseBackup[];
   bell: BellBackup[];
+  taskMove: TaskMoveBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
@@ -230,6 +240,7 @@ export const EMPTY_TABLES: BackupTables = {
   flagValue: [],
   eternalPose: [],
   bell: [],
+  taskMove: [],
   sounding: [],
   carried: [],
   task: [],
@@ -342,6 +353,12 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     absentableStr(r.reason) &&
     num(r.createdAt) &&
     num(r.updatedAt),
+  taskMove: (r) =>
+    num(r.taskCreatedAt) &&
+    str(r.fromDay) &&
+    nullableStr(r.toDay) &&
+    str(r.reason) &&
+    num(r.createdAt),
   // `at` is minutes past midnight; anything off the clock is not a bell.
   bell: (r) =>
     str(r.title) &&
@@ -478,6 +495,8 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   // A title at a time on a day is the bell — two at the same minute with
   // the same name are the same appointment imported twice.
   bell: (r) => `${r.day} ${r.at} ${r.title}`,
+  // One move per task per moment; the stamp is what makes it unique.
+  taskMove: (r) => `${r.taskCreatedAt} ${r.createdAt}`,
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

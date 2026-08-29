@@ -485,6 +485,48 @@ cannot simply be cranked until nothing survives.
 - **Quiet is the ordinary answer**, and the copy says so rather than treating
   an empty result as a failure of the app or of the life.
 
+## Nothing committed is quietly dropped
+
+`domain/atSea.ts` closes a hole rather than adding a feature. `todaysLoad`
+wants `committedFor` to be today and `backlog` wants it to be null, so a task
+committed to yesterday and left undone **appeared nowhere at all** — still in
+the database, never shown, never decided about. The owner's words were "it
+shouldn't just drop it"; the app was doing something worse, which was losing
+it silently.
+
+It is the Log Pose's model one size down, and the concept doc's own claim that
+**showing the count is most of the intervention**.
+
+- **Striking is always one tap, and always free.** Doing the thing is the one
+  act this must never make more expensive. `needsLine` cannot even be asked
+  about a strike — its second argument is a destination, and a struck task has
+  none.
+- **A move can cost a written line, and which ones do is graded.** Leaving the
+  day entirely always costs one — that is the decision, and it is "sailed past"
+  at task scale. Carrying forward costs one only after `LINE_AFTER_DAYS`,
+  because a first-day carry is a Tuesday and a writing tax on every leftover is
+  how a list gets expensive enough to abandon — which is the exact failure the
+  feature exists to treat.
+- **A struck at-sea task lands on today, not on the day it was committed to.**
+  Everything in the app counts a task against its `committedFor` — hardening,
+  the voyage's used days, Armament's window — so leaving it where it was would
+  rewrite a day that has already been read. `strikeAtSea` in `db/repo.ts` is
+  the one place that knows this.
+- **Days at sea are never a score.** No colour turns as the figure grows,
+  nothing is ranked by it, and there is no total anywhere of how much has been
+  carried. Same figure an island wears, read the same way.
+- **The reasons are kept and never counted.** `task_move` holds every move with
+  whatever was written about it (an empty line is a real record of a real
+  move, and it round-trips through the backup — there is a test). Nothing
+  displays how many times a task has moved; that number is derivable and
+  showing it would turn a record into a rap sheet.
+- **Name the list, not the mood.** The actions are `Today` and `Waiting`,
+  because those are the two lists the task can land in. Not "Carry today" —
+  the capture form's primary button already says that and means something else,
+  and two controls with one name on one screen is how a row gets mis-tapped.
+  Not "drop it" or "let it go" either: nothing is destroyed, and the row it
+  lands in has its own delete.
+
 ## The rhythm is an offer, not a queue
 
 Recurring things (`domain/rhythm.ts`) create **nothing** until you take them.

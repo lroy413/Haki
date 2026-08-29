@@ -344,6 +344,13 @@ describe('key hygiene', () => {
         createdAt: 1,
       },
       bell: { title: 'Dentist', day: '2026-09-15', at: 900, createdAt: 1 },
+      taskMove: {
+        taskCreatedAt: 1,
+        fromDay: '2026-09-14',
+        toDay: '2026-09-15',
+        reason: 'ran out of day',
+        createdAt: 2,
+      },
       setting: { key: 'ui.plainMode', value: 'false' },
     };
 
@@ -568,5 +575,51 @@ describe('entriesToMarkdown', () => {
 
   it('handles an empty log without crashing', () => {
     expect(entriesToMarkdown([], 0)).toContain('0 entries');
+  });
+});
+
+describe('a move made without a line', () => {
+  it('survives the round trip', () => {
+    // A first-day carry costs nothing to write, so its reason is empty — and
+    // an empty reason is a real record of a real move, not a malformed row.
+    // The validator must not confuse "no words" with "no data", or the day a
+    // task quietly moved would be missing from the only copy that leaves the
+    // device.
+    const original = tables({
+      taskMove: [
+        {
+          taskCreatedAt: 1,
+          fromDay: '2026-09-19',
+          toDay: '2026-09-20',
+          reason: '',
+          createdAt: 5,
+        },
+      ],
+    });
+    const result = parseBackup(serializeBackup(buildBackup(original, 12, 1)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.rejected).toEqual({});
+    expect(result.backup.data.taskMove).toHaveLength(1);
+    expect(result.backup.data.taskMove[0].reason).toBe('');
+  });
+
+  it('still keeps the words when there are some', () => {
+    const original = tables({
+      taskMove: [
+        {
+          taskCreatedAt: 1,
+          fromDay: '2026-09-14',
+          toDay: null,
+          reason: 'Not this quarter.',
+          createdAt: 6,
+        },
+      ],
+    });
+    const result = parseBackup(serializeBackup(buildBackup(original, 12, 1)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.taskMove[0].reason).toBe('Not this quarter.');
+    expect(result.backup.data.taskMove[0].toDay).toBeNull();
   });
 });

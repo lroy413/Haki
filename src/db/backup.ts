@@ -27,6 +27,7 @@ import {
   sitSession,
   sleepLog,
   task,
+  taskMove,
   trainingSession,
 } from './schema';
 
@@ -58,6 +59,7 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     soundings,
     people,
     tasks,
+    moves,
     settings,
   ] = await Promise.all([
     db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
@@ -77,6 +79,7 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     db.select().from(sounding).orderBy(sounding.createdAt),
     db.select().from(carried).orderBy(desc(carried.createdAt)),
     db.select().from(task).orderBy(desc(task.createdAt)),
+    db.select().from(taskMove).orderBy(taskMove.createdAt),
     db.select().from(setting),
   ]);
 
@@ -213,6 +216,22 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       watch: r.watch,
       createdAt: r.createdAt,
     })),
+    // Moves reference their task by its creation stamp rather than its id,
+    // because ids are reassigned on import and the stamp is not.
+    taskMove: moves.flatMap((r) => {
+      const owner = tasks.find((t) => t.id === r.taskId);
+      return owner
+        ? [
+            {
+              taskCreatedAt: owner.createdAt,
+              fromDay: r.fromDay,
+              toDay: r.toDay,
+              reason: r.reason,
+              createdAt: r.createdAt,
+            },
+          ]
+        : [];
+    }),
     setting: settings.map((r) => ({ key: r.key, value: r.value })),
   };
 }
@@ -247,6 +266,7 @@ const TABLES = {
   sounding,
   carried,
   task,
+  taskMove,
   setting,
 } as const;
 

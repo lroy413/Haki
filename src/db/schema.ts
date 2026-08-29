@@ -373,6 +373,27 @@ export const bell = sqliteTable(
   (t) => [index('bell_day').on(t.day, t.at)],
 );
 
+/**
+ * Why a task moved, or why it was let go.
+ *
+ * `toDay` is null when it was let go. Nothing counts these rows — they are the
+ * record of what was said, not a tally of how often. See domain/atSea.ts.
+ */
+export const taskMove = sqliteTable(
+  'task_move',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    taskId: integer('task_id')
+      .notNull()
+      .references(() => task.id, { onDelete: 'cascade' }),
+    fromDay: text('from_day').notNull(),
+    toDay: text('to_day'),
+    reason: text('reason').notNull(),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('task_move_task').on(t.taskId, t.createdAt)],
+);
+
 export type DailyReadRow = typeof dailyRead.$inferSelect;
 export type SleepRow = typeof sleepLog.$inferSelect;
 export type EntryRow = typeof entry.$inferSelect;
@@ -391,3 +412,4 @@ export type FlagValueRow = typeof flagValue.$inferSelect;
 export type SoundingRow = typeof sounding.$inferSelect;
 export type EternalPoseRow = typeof eternalPose.$inferSelect;
 export type BellRow = typeof bell.$inferSelect;
+export type TaskMoveRow = typeof taskMove.$inferSelect;
