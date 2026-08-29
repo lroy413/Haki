@@ -485,6 +485,40 @@ one away; and nothing anywhere reports how many times a rhythm has been taken
 or skipped. That number is derivable and displaying it would turn a set of
 offers into a set of scores.
 
+## The Return and the Calm Belt
+
+`domain/voyage.ts` holds the two failure modes the concept doc named and the
+app never answered. Both read one thing — the days that had something in them
+— and neither has a table, for the reason Ryuo does not: a day counts when
+rows that already exist say it counted.
+
+- **A gap is silent.** Nothing counts the days away, nothing greets you with
+  how long it has been, and no screen shows a gap length. The app's first word
+  after an absence is about the return. The figure it carries is how long it
+  took to come back — a number that only exists because you did.
+- **No trend is claimed.** The returns are listed with their times and the arc
+  is left to the reader. Two returns is not a trend, and "your comebacks are
+  getting quicker" off three points is the exact overreach `foresight.ts`
+  exists to refuse.
+- **The Calm Belt fires on ease, not on failure.** Its run counts days that
+  were _used_ and had nothing hard in them, so a gap, a bad week, or a day you
+  did not open the app all break it. It can only ever speak to somebody whose
+  week is going fine — which is why an app with no shame mechanics is allowed
+  to have it, and it is non-negotiable #7 finally made operative. It asks a
+  question rather than giving a verdict, because the app does not know whether
+  an easy week was the rest or the drift.
+- **Resistance is a training session or time in gear**, and it lives in one
+  predicate (`resisted`) so the definition is retuned in one place. A struck
+  task is the day being used, not resistance — it is one tap.
+- **The Return keeps the signature violet under both flags**; it is not a
+  lens's light. The Calm Belt takes `warn`, the app's one warmth — crimson
+  would say something has gone wrong, and nothing has. Note that screens
+  built on `underCrew` have a crew-coated `violet` that is jade under Zoro,
+  so the Return takes the raw palette's.
+- Neither card can appear on paper, and that falls out of the rule rather than
+  being enforced: both need today to have been used, and a used day has
+  hardened.
+
 ## Setting Sail is the one place that totals anything
 
 Everywhere else a count needs a denominator the app does not have — a journey

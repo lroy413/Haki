@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { CourseLine } from '../../src/components/CourseLine';
+import { VoyageNote } from '../../src/components/VoyageNote';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
@@ -26,8 +27,20 @@ export default function Home() {
   const pad = useTabInsets();
   const router = useRouter();
   const { db } = useStore();
-  const { reserve, cascade, intensity, day, t, read, training, next, quote, course, refresh } =
-    useHaki();
+  const {
+    reserve,
+    cascade,
+    intensity,
+    day,
+    t,
+    read,
+    training,
+    next,
+    quote,
+    course,
+    voyage: sailing,
+    refresh,
+  } = useHaki();
 
   // Coming back from the Daily Read modal should show the new number at once.
   useFocusEffect(
@@ -84,6 +97,10 @@ export default function Home() {
           unknownLabel={t.reserveUnknown}
         />
       </Pressable>
+
+      {/* The two sentences about the run rather than the day. Silent on
+          an ordinary one, which is nearly all of them. */}
+      <VoyageNote voyage={sailing} />
 
       {cascade.message ? (
         <View style={[styles.warning, breach ? styles.warningBreach : styles.warningWatch]}>
