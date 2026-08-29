@@ -251,12 +251,12 @@ const makeStyles = (c: Palette) =>
       color: c.violetSoft,
       opacity: 0.55,
     },
-    bearing: { fontFamily: font.body, fontSize: 22, lineHeight: 31, color: c.ink },
-    offer: { ...type.body, fontSize: 16, color: c.inkDim, lineHeight: 23 },
-    meta: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    bearing: { fontFamily: font.body, fontSize: 24, lineHeight: 31, color: c.ink },
+    offer: { ...type.body, fontSize: 18, color: c.inkDim, lineHeight: 23 },
+    meta: { ...type.mono, fontSize: 13, color: c.inkFaint },
 
     form: { gap: space.sm, marginTop: space.xs },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 12 },
     input: {
       ...type.body,
       color: c.ink,
@@ -280,7 +280,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    filledText: { ...type.heading, fontSize: 16, color: c.onAccent },
     ghost: {
       flex: 1,
       borderWidth: 1,
@@ -291,13 +291,13 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    ghostText: { ...type.heading, fontSize: 15, color: c.inkDim },
+    ghostText: { ...type.heading, fontSize: 16, color: c.inkDim },
     disabled: { opacity: 0.4 },
 
     section: { gap: space.sm },
     past: { ...row(c), padding: space.md, gap: space.xs },
-    pastText: { ...type.body, fontSize: 16, color: c.inkDim, lineHeight: 22 },
-    pastMeta: { ...type.mono, fontSize: 12, color: c.inkFaint },
-    pastReason: { ...type.small, fontSize: 13, color: c.inkFaint, lineHeight: 18 },
+    pastText: { ...type.body, fontSize: 18, color: c.inkDim, lineHeight: 22 },
+    pastMeta: { ...type.mono, fontSize: 13, color: c.inkFaint },
+    pastReason: { ...type.small, fontSize: 14, color: c.inkFaint, lineHeight: 18 },
     pressed: { ...press },
   });

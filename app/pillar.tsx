@@ -115,7 +115,7 @@ export default function PillarScreen() {
       setWhy(mine.why ?? '');
       // Long pillar names are the ordinary case, and a header that
       // truncates one to "…whoever is n…" is not carrying it.
-      navigation.setOptions({ title: mine.title, headerTitleStyle: { fontSize: 17 } });
+      navigation.setOptions({ title: mine.title, headerTitleStyle: { fontSize: 19 } });
       const under = glyphs.filter((g) => g.roadKey === mine.key);
       const live = under.find((g) => g.state === 'open') ?? null;
       setHasOpen(live !== null);
@@ -524,7 +524,7 @@ const makeStyles = (c: Palette) =>
     retiredFlag: { ...type.label, color: c.inkFaint },
     // What the act said, in the lens's own colour and at label weight. It
     // is a receipt, not a verdict — see `arrivalMessage`.
-    said: { ...type.mono, color: c.violet, fontSize: 12 },
+    said: { ...type.mono, color: c.violet, fontSize: 13 },
 
     card: {
       backgroundColor: c.surface,
@@ -535,7 +535,7 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.sm,
     },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 12 },
     input: {
       ...type.body,
       color: c.ink,
@@ -554,9 +554,9 @@ const makeStyles = (c: Palette) =>
     sectionNote: { ...type.small, color: c.inkDim },
     empty: { ...type.body, color: c.inkFaint, lineHeight: 21 },
 
-    islandTitle: { fontFamily: font.displayBold, fontSize: 17, color: c.ink, lineHeight: 22 },
-    stampReached: { ...type.mono, color: c.violet, fontSize: 12 },
-    wake: { ...type.mono, color: c.inkFaint, fontSize: 12 },
+    islandTitle: { fontFamily: font.displayBold, fontSize: 19, color: c.ink, lineHeight: 22 },
+    stampReached: { ...type.mono, color: c.violet, fontSize: 13 },
+    wake: { ...type.mono, color: c.inkFaint, fontSize: 13 },
 
     row: { flexDirection: 'row', gap: space.sm, alignItems: 'stretch' },
 
@@ -584,9 +584,9 @@ const makeStyles = (c: Palette) =>
     // Not a warning colour. Sailing past is allowed and the record of it is
     // not a mark against anybody — it reads quieter than reaching, and that is
     // the only difference the styling is permitted to make.
-    stampPassed: { ...type.mono, color: c.inkFaint, fontSize: 12 },
+    stampPassed: { ...type.mono, color: c.inkFaint, fontSize: 13 },
     quiet: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' },
-    quietText: { ...type.mono, color: c.inkDim, fontSize: 12 },
+    quietText: { ...type.mono, color: c.inkDim, fontSize: 13 },
     reason: { ...type.body, color: c.inkDim, lineHeight: 21, fontStyle: 'italic' },
 
     filled: {
@@ -597,7 +597,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    filledText: { ...type.heading, fontSize: 16, color: c.onAccent },
     ghost: {
       borderWidth: 1,
       borderColor: c.line,
@@ -607,7 +607,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    ghostText: { ...type.heading, fontSize: 15, color: c.inkDim },
+    ghostText: { ...type.heading, fontSize: 16, color: c.inkDim },
     disabled: { opacity: 0.4 },
 
     retireBlock: {

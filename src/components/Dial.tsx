@@ -71,7 +71,7 @@ const makeStyles = (c: Palette) =>
     wrap: { gap: space.sm },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     label: { ...type.heading, color: c.ink },
-    hint: { ...type.mono, fontSize: 11, letterSpacing: 1, color: c.inkFaint },
+    hint: { ...type.mono, fontSize: 12, letterSpacing: 1, color: c.inkFaint },
     row: { flexDirection: 'row', gap: space.sm },
     step: {
       flex: 1,

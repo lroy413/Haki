@@ -257,7 +257,10 @@ export default function ObservationScreen() {
                 <Text style={styles.stillName}>
                   {plainMode ? t.notesTitle : `雑記  ${t.notesTitle}`}
                 </Text>
-                <Text style={styles.stillLine}>{t.notesBlurb}</Text>
+                {/* The short form here. The full sentence is on the screen
+                    itself — a door's line has one line's worth of room, and
+                    at the raised type scale this one wrapped to three. */}
+                <Text style={styles.stillLine}>{t.notesDoorLine}</Text>
               </View>
               <Text style={styles.stillGo}>Open</Text>
             </Pressable>
@@ -363,7 +366,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'baseline',
     },
     readingLabel: { ...type.label, color: c.violet },
-    readingState: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    readingState: { fontFamily: font.displayBold, fontSize: 20, color: c.ink },
     readingBody: { ...type.body, color: c.ink, lineHeight: 22 },
 
     still: {
@@ -375,9 +378,9 @@ const makeStyles = (c: Palette) =>
       minHeight: 44,
     },
     stillText: { flex: 1, gap: 2 },
-    stillName: { fontFamily: font.displayBold, fontSize: 17, color: c.ink },
-    stillLine: { ...type.mono, fontSize: 12, color: c.inkDim },
-    stillGo: { ...type.heading, fontSize: 15, color: c.violet },
+    stillName: { fontFamily: font.displayBold, fontSize: 19, color: c.ink },
+    stillLine: { ...type.mono, fontSize: 13, color: c.inkDim },
+    stillGo: { ...type.heading, fontSize: 16, color: c.violet },
 
     foresight: {
       ...plate(c),
@@ -398,10 +401,10 @@ const makeStyles = (c: Palette) =>
       alignItems: 'baseline',
     },
     foresightLabel: { ...type.label, color: c.cyan },
-    foresightGlyph: { fontFamily: font.display, fontSize: 15, color: c.cyan },
+    foresightGlyph: { fontFamily: font.display, fontSize: 16, color: c.cyan },
     foresightLine: { ...type.body, color: c.ink, lineHeight: 22 },
     foresightQuiet: { ...type.body, color: c.inkDim, lineHeight: 22 },
-    foresightMore: { ...type.mono, fontSize: 12, color: c.cyan },
+    foresightMore: { ...type.mono, fontSize: 13, color: c.cyan },
 
     sectionLabel: { marginTop: space.xs },
 
@@ -418,7 +421,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'baseline',
     },
     settleLabel: { ...type.label, color: c.cyan },
-    settleGlyph: { fontFamily: font.display, fontSize: 15, color: c.cyan },
+    settleGlyph: { fontFamily: font.display, fontSize: 16, color: c.cyan },
     settleLine: { ...type.body, color: c.ink, lineHeight: 21 },
     empty: { ...type.body, color: c.inkDim, textAlign: 'center', marginTop: space.xxxl },
 
@@ -439,7 +442,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'baseline',
     },
     asternLabel: { ...type.label, color: c.violet },
-    asternGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    asternGlyph: { fontFamily: font.display, fontSize: 16, color: c.violet },
     asternWhen: { ...type.mono, color: c.inkFaint },
     asternBody: { ...type.body, color: c.ink, lineHeight: 22, fontStyle: 'italic' },
 

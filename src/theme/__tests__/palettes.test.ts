@@ -29,6 +29,18 @@ function luminance(hex: string): number {
   );
 }
 
+/**
+ * The floors, raised a second time.
+ *
+ * 4.5:1 is the WCAG minimum for normal text and it assumes a screen at full
+ * output. This app is read on a phone at whatever brightness the room asks
+ * for, and lowering a screen's brightness compresses the range the eye has to
+ * work with — so a pair that measures 4.6 in the arithmetic is genuinely hard
+ * at half brightness. That was the owner's report, twice.
+ */
+const FAINT_FLOOR = 6;
+const ACCENT_FLOOR = 5.8;
+
 function contrast(a: string, b: string): number {
   const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
   return (x + 0.05) / (y + 0.05);
@@ -114,13 +126,18 @@ describe.each(LEVELS)('palette %i', (level) => {
     // Dates, units, cadences and stat labels live here — nearly every small
     // word in the app. The floor used to be 3:1 on the ground alone, and the
     // result measured 2.9:1 on the palette the app spends its day in: under
-    // the minimum for *normal* text, at eleven points. "Faint" is a role in
-    // the hierarchy, not permission to disappear.
+    // the minimum for *normal* text. "Faint" is a role in the hierarchy, not
+    // permission to disappear.
+    //
+    // Raised again from 4.5 to 6, because 4.5 is a full-brightness standard
+    // and this app is read on a phone at whatever brightness the room asks
+    // for. The owner's second report was about exactly that: fine at full
+    // output, hard at half. The weakest pair measured 4.61.
     for (const ground of ['bg', 'surface', 'surface2'] as const) {
       expect(
         contrast(p.inkFaint, p[ground]),
         `${where} inkFaint on ${ground}`,
-      ).toBeGreaterThanOrEqual(4.5);
+      ).toBeGreaterThanOrEqual(FAINT_FLOOR);
     }
     // It also sits on the two tinted plates — the reading and Foresight cards.
     for (const tint of ['violetSoft', 'cyanSoft'] as const) {
@@ -133,14 +150,14 @@ describe.each(LEVELS)('palette %i', (level) => {
 
   it('reads every accent as text against the ground it sits on', () => {
     // Not merely visible as a shape: every accent carries words somewhere —
-    // section labels, the cadence on a needle, "Sit", a rhythm's link. 4.5 is
-    // the floor for text, and these are the app's smallest words.
+    // section labels, the cadence on a needle, "Sit", a rhythm's link. These
+    // are the app's smallest words, so they get the raised floor too.
     for (const key of ACCENTS) {
       for (const ground of ['bg', 'surface', 'surface2'] as const) {
         expect(
           contrast(p[key] as string, p[ground]),
           `${where} ${key} on ${ground}`,
-        ).toBeGreaterThanOrEqual(4.5);
+        ).toBeGreaterThanOrEqual(ACCENT_FLOOR);
       }
     }
   });
@@ -363,7 +380,7 @@ describe('the ramp as a whole', () => {
     // mono. Pinned here so it can drift for a stated reason and never by
     // accident.
     expect(PALETTES[3].bg).toBe('#0A0B12');
-    expect(PALETTES[3].violet).toBe('#B85BFF');
+    expect(PALETTES[3].violet).toBe('#D073FF');
   });
 });
 

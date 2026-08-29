@@ -491,11 +491,11 @@ const makeStyles = (c: Palette, stone: boolean) => {
 
     head: { flexDirection: 'row', gap: space.md, minHeight: 44 },
     headText: { flex: 1, gap: space.xs, justifyContent: 'center' },
-    title: { fontFamily: font.displayBold, fontSize: 19, color: ink, lineHeight: 24 },
+    title: { fontFamily: font.displayBold, fontSize: 21, color: ink, lineHeight: 24 },
     why: { ...type.small, color: faint, opacity: faintO, lineHeight: 18 },
     glyph: {
       fontFamily: font.display,
-      fontSize: 22,
+      fontSize: 24,
       color: stone ? c.onStone : c.violet,
       opacity: stone ? 0.55 : 1,
       alignSelf: 'center',
@@ -525,35 +525,35 @@ const makeStyles = (c: Palette, stone: boolean) => {
     islandLabelRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
     islandGlyph: {
       fontFamily: font.display,
-      fontSize: 13,
+      fontSize: 14,
       color: stone ? c.onStone : c.violet,
     },
     islandLabel: {
       ...type.label,
       color: stone ? c.onStone : c.violet,
       opacity: stone ? 0.72 : 1,
-      fontSize: 11,
+      fontSize: 12,
     },
-    islandTitle: { ...type.title, fontSize: 21, color: ink, lineHeight: 27 },
-    atSea: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
+    islandTitle: { ...type.title, fontSize: 23, color: ink, lineHeight: 27 },
+    atSea: { ...type.mono, color: faint, opacity: faintO, fontSize: 13 },
     // Cut in the stone's own light, like everything else on the slab — a
     // lens colour on dark rock measures under the contrast floor.
-    port: { ...type.mono, color: faint, opacity: 1, fontSize: 12, marginTop: 2 },
-    portEcho: { ...type.mono, color: faint, opacity: faintO, fontSize: 11 },
+    port: { ...type.mono, color: faint, opacity: 1, fontSize: 13, marginTop: 2 },
+    portEcho: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
     portDoor: { minHeight: 44, justifyContent: 'center', alignItems: 'center' },
-    portDoorText: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
-    wake: { ...type.mono, color: stone ? c.onStone : c.violet, opacity: dimO, fontSize: 12 },
+    portDoorText: { ...type.mono, color: faint, opacity: faintO, fontSize: 13 },
+    wake: { ...type.mono, color: stone ? c.onStone : c.violet, opacity: dimO, fontSize: 13 },
     depth: {
       fontFamily: font.displayBold,
-      fontSize: 17,
+      fontSize: 19,
       color: ink,
       fontVariant: ['tabular-nums'],
     },
     spinning: { ...type.body, color: dim, opacity: dimO, lineHeight: 22 },
-    astern: { ...type.mono, color: faint, opacity: faintO, fontSize: 12 },
+    astern: { ...type.mono, color: faint, opacity: faintO, fontSize: 13 },
 
     form: { gap: space.sm },
-    fieldLabel: { ...type.label, color: faint, opacity: faintO, fontSize: 11 },
+    fieldLabel: { ...type.label, color: faint, opacity: faintO, fontSize: 12 },
     input: {
       ...type.body,
       color: ink,
@@ -584,7 +584,7 @@ const makeStyles = (c: Palette, stone: boolean) => {
     },
     filledText: {
       ...type.heading,
-      fontSize: 15,
+      fontSize: 16,
       color: stone ? c.stoneIsleCarve : c.onAccent,
     },
     ghost: {
@@ -597,14 +597,14 @@ const makeStyles = (c: Palette, stone: boolean) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    ghostText: { ...type.heading, fontSize: 15, color: dim, opacity: dimO },
+    ghostText: { ...type.heading, fontSize: 16, color: dim, opacity: dimO },
     // Not a warning colour and not red-for-failure: sailing past is allowed.
     // It is bordered rather than filled so the two doors are visibly not the
     // same weight, which is the only ranking this card does.
     danger: { borderColor: stone ? c.onStone : c.violet },
-    dangerText: { ...type.heading, fontSize: 15, color: stone ? c.onStone : c.violet },
+    dangerText: { ...type.heading, fontSize: 16, color: stone ? c.onStone : c.violet },
     invite: { borderColor: stone ? c.onStone : c.violet, borderStyle: 'dashed' },
-    inviteText: { ...type.heading, fontSize: 15, color: stone ? c.onStone : c.violet },
+    inviteText: { ...type.heading, fontSize: 16, color: stone ? c.onStone : c.violet },
     disabled: { opacity: 0.4 },
 
     strike: {
@@ -617,7 +617,7 @@ const makeStyles = (c: Palette, stone: boolean) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    strikeText: { ...type.mono, color: dim, opacity: dimO, fontSize: 12 },
+    strikeText: { ...type.mono, color: dim, opacity: dimO, fontSize: 13 },
     pressed: { ...press },
   });
 };

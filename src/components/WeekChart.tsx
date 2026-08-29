@@ -128,8 +128,8 @@ const makeStyles = (c: Palette) =>
       borderRadius: radius.sm,
       minHeight: 8,
     },
-    letter: { ...type.mono, fontSize: 11, color: c.inkFaint, marginTop: 2 },
-    date: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    letter: { ...type.mono, fontSize: 12, color: c.inkFaint, marginTop: 2 },
+    date: { ...type.mono, fontSize: 12, color: c.inkFaint },
     today: { color: c.ink },
     waterline: {
       position: 'absolute',

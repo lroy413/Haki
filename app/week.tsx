@@ -195,7 +195,7 @@ const makeStyles = (c: Palette) =>
     where: { ...type.label, color: c.inkFaint },
     legend: { ...type.small, color: c.inkFaint, lineHeight: 18 },
     lines: { gap: space.xs },
-    line: { ...type.body, fontSize: 17, color: c.ink, lineHeight: 24 },
+    line: { ...type.body, fontSize: 19, color: c.ink, lineHeight: 24 },
     quiet: { ...type.small, color: c.inkDim, lineHeight: 19 },
     group: { gap: space.sm },
     row: {
@@ -210,11 +210,11 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.md,
       minHeight: 44,
     },
-    when: { ...type.mono, fontSize: 12, color: c.inkFaint, minWidth: 58 },
+    when: { ...type.mono, fontSize: 13, color: c.inkFaint, minWidth: 58 },
     whenNow: { color: c.ink },
     rowBody: { flex: 1, gap: 2 },
-    cargo: { ...type.body, fontSize: 16, color: c.ink, flex: 1 },
-    minutes: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    cargo: { ...type.body, fontSize: 18, color: c.ink, flex: 1 },
+    minutes: { ...type.mono, fontSize: 12, color: c.inkFaint },
     door: {
       borderWidth: 1,
       borderColor: c.line,

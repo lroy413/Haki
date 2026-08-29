@@ -409,12 +409,12 @@ const makeStyles = (c: Palette) =>
     },
     factValue: {
       fontFamily: font.display,
-      fontSize: 22,
+      fontSize: 24,
       color: c.ink,
       fontVariant: ['tabular-nums'],
     },
-    factLabel: { ...type.mono, fontSize: 11, color: c.inkFaint, lineHeight: 13 },
-    closed: { ...type.mono, fontSize: 12, color: c.violet, marginTop: space.xs },
+    factLabel: { ...type.mono, fontSize: 12, color: c.inkFaint, lineHeight: 13 },
+    closed: { ...type.mono, fontSize: 13, color: c.violet, marginTop: space.xs },
 
     lastHeading: {
       borderLeftWidth: 2,
@@ -423,7 +423,7 @@ const makeStyles = (c: Palette) =>
       marginTop: space.md,
       gap: 2,
     },
-    lastHeadingLabel: { ...type.label, fontSize: 11, color: c.inkFaint },
+    lastHeadingLabel: { ...type.label, fontSize: 12, color: c.inkFaint },
     lastHeadingText: { ...type.body, color: c.inkDim, fontStyle: 'italic', lineHeight: 21 },
 
     flagAsk: { ...type.small, color: c.inkDim, lineHeight: 19 },
@@ -432,7 +432,7 @@ const makeStyles = (c: Palette) =>
     // is the column of figures, which is where the arc actually shows.
     returns: { gap: space.xs, marginTop: space.xs },
     returnRow: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm },
-    returnDay: { ...type.mono, fontSize: 12, color: c.inkFaint, minWidth: 62 },
+    returnDay: { ...type.mono, fontSize: 13, color: c.inkFaint, minWidth: 62 },
     returnAfter: { ...type.body },
     flagList: {
       borderLeftWidth: 2,
@@ -441,16 +441,16 @@ const makeStyles = (c: Palette) =>
       gap: space.xs,
       marginTop: space.xs,
     },
-    flagValue: { fontFamily: font.displayBold, fontSize: 17, lineHeight: 23, color: c.ink },
+    flagValue: { fontFamily: font.displayBold, fontSize: 19, lineHeight: 23, color: c.ink },
 
     needle: {
       ...row(c),
       padding: space.lg,
       gap: 3,
     },
-    needleRoad: { ...type.label, fontSize: 11, color: c.violet },
-    needleIsland: { fontFamily: font.displayBold, fontSize: 17, color: c.ink, lineHeight: 22 },
-    needleMeta: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    needleRoad: { ...type.label, fontSize: 12, color: c.violet },
+    needleIsland: { fontFamily: font.displayBold, fontSize: 19, color: c.ink, lineHeight: 22 },
+    needleMeta: { ...type.mono, fontSize: 13, color: c.inkFaint },
     needleSpinning: { ...type.body, color: c.inkDim, lineHeight: 21 },
     emptyNeedles: {
       borderWidth: 1,
@@ -485,8 +485,8 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
       marginTop: space.xs,
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
-    doneLine: { ...type.mono, fontSize: 12, color: c.violet },
+    filledText: { ...type.heading, fontSize: 16, color: c.onAccent },
+    doneLine: { ...type.mono, fontSize: 13, color: c.violet },
 
     carried: {
       borderTopWidth: 1,
@@ -496,8 +496,8 @@ const makeStyles = (c: Palette) =>
       gap: 3,
       minHeight: 44,
     },
-    carriedLabel: { ...type.label, fontSize: 11, color: c.inkFaint },
-    carriedName: { fontFamily: font.displayBold, fontSize: 17, color: c.ink },
+    carriedLabel: { ...type.label, fontSize: 12, color: c.inkFaint },
+    carriedName: { fontFamily: font.displayBold, fontSize: 19, color: c.ink },
     carriedBody: { ...type.body, color: c.inkDim, lineHeight: 21 },
 
     pastRow: {
@@ -507,7 +507,7 @@ const makeStyles = (c: Palette) =>
       borderBottomWidth: 1,
       borderBottomColor: c.lineSoft,
     },
-    pastDay: { ...type.mono, fontSize: 12, color: c.inkFaint },
-    pastHeading: { ...type.body, fontSize: 15, color: c.inkDim, flex: 1 },
+    pastDay: { ...type.mono, fontSize: 13, color: c.inkFaint },
+    pastHeading: { ...type.body, fontSize: 16, color: c.inkDim, flex: 1 },
     pressed: { ...press },
   });

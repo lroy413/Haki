@@ -804,6 +804,6 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       gap: 2,
     },
-    name: { ...type.label, fontSize: 12, color: c.ink, textAlign: 'center' },
+    name: { ...type.label, fontSize: 13, color: c.ink, textAlign: 'center' },
     value: { ...type.mono, color: c.inkDim, textAlign: 'center' },
   });

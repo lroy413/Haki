@@ -85,7 +85,7 @@ const makeStyles = (c: Palette, tint: string) =>
     input: {
       ...type.body,
       flex: 1,
-      fontSize: 16,
+      fontSize: 18,
       color: c.ink,
       backgroundColor: c.surface,
       borderWidth: 1,

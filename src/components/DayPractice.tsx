@@ -129,7 +129,7 @@ const makeStyles = (c: Palette) =>
     },
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     label: { ...type.label, color: c.inkFaint },
-    level: { ...type.mono, fontSize: 12, color: c.inkDim },
+    level: { ...type.mono, fontSize: 13, color: c.inkDim },
     message: { ...type.small, color: c.inkDim, lineHeight: 19 },
 
     row: { flexDirection: 'row', gap: space.sm },
@@ -151,11 +151,11 @@ const makeStyles = (c: Palette) =>
       top: space.sm,
       left: space.sm,
       fontFamily: font.display,
-      fontSize: 15,
+      fontSize: 16,
       color: c.inkFaint,
     },
     words: { gap: 1 },
-    tileLabel: { ...type.heading, fontSize: 14, color: c.ink },
-    line: { ...type.mono, fontSize: 11, color: c.inkFaint, lineHeight: 14 },
+    tileLabel: { ...type.heading, fontSize: 15, color: c.ink },
+    line: { ...type.mono, fontSize: 12, color: c.inkFaint, lineHeight: 14 },
     pressed: { ...press },
   });

@@ -163,6 +163,8 @@ export type Strings = {
   dayEndTitle: string;
   notesTitle: string;
   notesBlurb: string;
+  /** The short form, for the door on the tab — see notes on line length. */
+  notesDoorLine: string;
   notesEmpty: string;
   notesNew: string;
   noteUntitled: string;
@@ -391,6 +393,7 @@ const haki: Strings = {
   dayEndTitle: 'Day’s End',
   notesTitle: 'Loose Pages',
   notesBlurb: 'Writing that is not about a day. Lists, drafts, things worth keeping.',
+  notesDoorLine: 'Lists, drafts, anything to keep',
   notesEmpty: 'Nothing here yet. A list, a draft, anything you want again later.',
   notesNew: 'New page',
   noteUntitled: 'Untitled page',
@@ -524,6 +527,7 @@ const plain: Strings = {
   dayEndTitle: 'End of day',
   notesTitle: 'Notes',
   notesBlurb: 'Notes that are not tied to a day. Lists, drafts, anything to keep.',
+  notesDoorLine: 'Lists, drafts, anything to keep',
   notesEmpty: 'Nothing here yet. A list, a draft, anything you want again later.',
   notesNew: 'New note',
   noteUntitled: 'Untitled note',

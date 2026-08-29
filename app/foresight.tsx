@@ -124,9 +124,9 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.xs,
     },
-    finding: { fontFamily: font.displayBold, fontSize: 17, color: c.ink, lineHeight: 23 },
+    finding: { fontFamily: font.displayBold, fontSize: 19, color: c.ink, lineHeight: 23 },
     note: { ...type.body, color: c.inkDim, lineHeight: 21 },
-    evidence: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    evidence: { ...type.mono, fontSize: 13, color: c.inkFaint },
 
     waiting: {
       borderWidth: 1,

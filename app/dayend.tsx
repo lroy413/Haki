@@ -378,9 +378,9 @@ const makeStyles = (c: Palette) =>
     },
     cardLabel: { ...type.label, color: c.inkFaint },
     facts: { gap: space.xs },
-    fact: { ...type.body, fontSize: 17, color: c.ink, lineHeight: 24 },
+    fact: { ...type.body, fontSize: 19, color: c.ink, lineHeight: 24 },
     empty: { ...type.body, color: c.inkDim, lineHeight: 24 },
-    heading: { ...type.body, fontSize: 19, color: c.ink, lineHeight: 26 },
+    heading: { ...type.body, fontSize: 21, color: c.ink, lineHeight: 26 },
 
     group: { gap: space.sm },
 
@@ -409,11 +409,11 @@ const makeStyles = (c: Palette) =>
       borderColor: c.line,
     },
     rowBody: { flex: 1, gap: 1 },
-    rowTitle: { ...type.body, fontSize: 17, color: c.ink, lineHeight: 22 },
-    rowMeta: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    rowTitle: { ...type.body, fontSize: 19, color: c.ink, lineHeight: 22 },
+    rowMeta: { ...type.mono, fontSize: 12, color: c.inkFaint },
     moves: { alignItems: 'flex-end' },
     move: { minHeight: 22, justifyContent: 'center', paddingHorizontal: space.xs },
-    moveText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    moveText: { ...type.mono, fontSize: 13, color: c.inkDim },
 
     moveCard: {
       borderWidth: 1,
@@ -438,7 +438,7 @@ const makeStyles = (c: Palette) =>
     question: { ...type.heading, color: c.ink },
     input: {
       ...type.body,
-      fontSize: 19,
+      fontSize: 21,
       lineHeight: 27,
       color: c.ink,
       backgroundColor: c.surface,

@@ -148,10 +148,10 @@ const makeStyles = (c: Palette) =>
     // not be dimmed to the point where the reason cannot be read.
     gearLocked: { backgroundColor: c.bg, borderColor: c.lineSoft },
     gearHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    gearName: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    gearName: { fontFamily: font.displayBold, fontSize: 20, color: c.ink },
     gearMinutes: { ...type.mono, color: c.inkDim },
     gearBlurb: { ...type.body, color: c.inkDim, lineHeight: 21 },
-    gearCost: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    gearCost: { ...type.mono, fontSize: 13, color: c.inkFaint },
     // Says the card is a door. Crimson because the Gears live under
     // Armament's light, and at label weight so it never competes with
     // the gear's own name.
@@ -165,7 +165,7 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.xs,
     },
-    gearRunningLabel: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    gearRunningLabel: { fontFamily: font.displayBold, fontSize: 20, color: c.ink },
     gearRunningHint: { ...type.mono, color: c.inkDim },
 
     pressed: { ...press },

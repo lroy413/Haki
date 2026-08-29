@@ -92,8 +92,8 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    stepText: { ...type.heading, fontSize: 22, color: c.ink },
+    stepText: { ...type.heading, fontSize: 24, color: c.ink },
     dayStart: { ...type.display, fontSize: 30, color: c.violet },
-    footnote: { ...type.mono, fontSize: 12, color: c.inkFaint, marginTop: space.xs },
+    footnote: { ...type.mono, fontSize: 13, color: c.inkFaint, marginTop: space.xs },
     pressed: { ...press },
   });

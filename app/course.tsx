@@ -152,7 +152,7 @@ const makeStyles = (c: Palette) =>
     prompt: { ...type.label, color: c.inkFaint },
     input: {
       ...type.body,
-      fontSize: 20,
+      fontSize: 22,
       lineHeight: 28,
       color: c.ink,
       backgroundColor: c.surface,

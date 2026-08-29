@@ -255,7 +255,7 @@ const makeStyles = (c: Palette) =>
       minHeight: 44,
       paddingHorizontal: space.md,
     },
-    weekDoorText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    weekDoorText: { ...type.mono, fontSize: 13, color: c.inkDim },
     weekChevron: { ...type.heading, color: c.inkFaint },
     strip: {
       ...row(c),
@@ -266,7 +266,7 @@ const makeStyles = (c: Palette) =>
     },
     stripLabel: { ...type.label, color: c.inkFaint, marginBottom: 2 },
     stripValue: { ...type.body, color: c.ink },
-    stripCount: { fontFamily: font.display, fontSize: 22, fontVariant: ['tabular-nums'] },
+    stripCount: { fontFamily: font.display, fontSize: 24, fontVariant: ['tabular-nums'] },
     // Before the first session of the week the slot carries the target as
     // an offer rather than a zero, so it is set at label weight.
     stripOffer: { ...type.label, color: c.inkDim },

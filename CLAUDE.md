@@ -20,13 +20,21 @@ looking polished.** A feature that works but looks unfinished is not done.
   ```
 - Check **both modes** — Haki (default) and plain — and the empty state as
   well as the populated one. Most of the bugs above only appeared in one.
-- **Nothing is smaller than 11pt, and nothing is fainter than 4.5:1.** Both
-  floors are tested (`typeSizes.test.ts`, `palettes.test.ts`). They exist
-  because the owner said the app was hard to read at full brightness and the
-  arithmetic agreed: `inkFaint` measured 2.9:1 on the palette the app spends
-  its day in, under forty-two styles that had each shaved a point off the type
-  scale. If something needs to recede, use colour, weight or space — never
-  another point off a figure that is already small.
+- **Nothing is smaller than 12pt, and nothing is fainter than 6:1.** Both
+  floors are tested (`typeSizes.test.ts`, `palettes.test.ts`), and both have
+  now been raised twice. The first round: `inkFaint` measured 2.9:1 on the
+  palette the app spends its day in, under forty-two styles that had each
+  shaved a point off the type scale. The second: _"a little hard to read for
+  me, and when the phone brightness isn't all the way up it's a little
+  difficult to see"_ — which is two problems in one sentence. Size was the
+  whole scale being one step small (body 16, small 14, label 11); brightness
+  is contrast, because **4.5:1 is a full-output standard** and lowering a
+  screen compresses the range the eye has to work with. The weakest pair
+  measured 4.61. If something needs to recede, use colour, weight or space —
+  never another point off a figure that is already small.
+- **Raise the whole scale, never one step of it.** Lifting the body and
+  leaving the labels flattens the hierarchy, and a screen where everything is
+  nearly the same size is harder to read than a small one that is ranked.
 - **Colour comes from `useHaki().palette`, never from a literal.** The app
   runs four palettes: it opens on paper and hardens as the day is used
   (`src/domain/hardening.ts`). A hex in a screen looks fine until the ground

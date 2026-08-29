@@ -167,10 +167,10 @@ const makeStyles = (c: Palette) =>
       borderRadius: radius.sm,
       paddingHorizontal: space.sm,
     },
-    keyText: { ...type.body, fontSize: 17 },
+    keyText: { ...type.body, fontSize: 19 },
     heavy: { fontFamily: font.displayBold },
     italic: { fontFamily: font.bodyItalic },
-    mono: { fontFamily: font.mono, fontSize: 15 },
+    mono: { fontFamily: font.mono, fontSize: 16 },
     divider: { width: 1, height: 20, backgroundColor: c.line, marginHorizontal: space.xs },
     pressed: { ...press },
   });

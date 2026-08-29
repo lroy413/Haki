@@ -90,7 +90,7 @@ const makeStyles = (c: Palette) =>
       gap: space.xs,
       minHeight: 44,
     },
-    crewName: { ...type.heading, fontSize: 15, color: c.ink },
-    crewBlurb: { ...type.small, fontSize: 13, color: c.inkDim, lineHeight: 18 },
+    crewName: { ...type.heading, fontSize: 16, color: c.ink },
+    crewBlurb: { ...type.small, fontSize: 14, color: c.inkDim, lineHeight: 18 },
     pressed: { ...press },
   });

@@ -173,7 +173,7 @@ const makeStyles = (c: Palette) =>
     },
     listName: { ...type.body, color: c.ink, flex: 1 },
     listValue: { ...type.mono, color: c.inkDim },
-    chevron: { ...type.body, fontSize: 18, color: c.inkFaint },
+    chevron: { ...type.body, fontSize: 20, color: c.inkFaint },
     pressed: { ...press },
 
     footer: { ...type.small, color: c.inkFaint, textAlign: 'center' },

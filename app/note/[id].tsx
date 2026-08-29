@@ -242,7 +242,7 @@ const makeStyles = (c: Palette) =>
     // body run together as one paragraph in two faces.
     title: {
       ...type.heading,
-      fontSize: 20,
+      fontSize: 22,
       color: c.ink,
       paddingHorizontal: space.lg,
       paddingTop: space.lg,
@@ -255,7 +255,7 @@ const makeStyles = (c: Palette) =>
     body: {
       flex: 1,
       ...type.body,
-      fontSize: 17,
+      fontSize: 19,
       lineHeight: 26,
       color: c.ink,
       paddingHorizontal: space.lg,

@@ -142,7 +142,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
       marginBottom: space.sm,
     },
-    newText: { ...type.heading, fontSize: 16, color: c.ink },
+    newText: { ...type.heading, fontSize: 18, color: c.ink },
     empty: { ...type.body, color: c.inkDim, lineHeight: 24, paddingVertical: space.md },
     row: {
       borderWidth: 1,
@@ -152,9 +152,9 @@ const makeStyles = (c: Palette) =>
       padding: space.md,
       gap: 3,
     },
-    name: { ...type.body, fontSize: 17, color: c.ink, lineHeight: 23 },
+    name: { ...type.body, fontSize: 19, color: c.ink, lineHeight: 23 },
     unnamed: { color: c.inkFaint },
     preview: { ...type.small, color: c.inkDim, lineHeight: 19 },
-    when: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    when: { ...type.mono, fontSize: 12, color: c.inkFaint },
     pressed: { ...press },
   });

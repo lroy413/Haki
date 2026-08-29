@@ -120,7 +120,7 @@ const makeStyles = (c: Palette) =>
     head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     label: { ...type.label, color: c.crimson },
     minutes: { ...type.mono, color: c.inkDim },
-    title: { fontFamily: font.displayBold, fontSize: 22, lineHeight: 28, color: c.ink },
+    title: { fontFamily: font.displayBold, fontSize: 24, lineHeight: 28, color: c.ink },
     emptyText: { ...type.body, color: c.inkDim },
 
     row: { flexDirection: 'row', gap: space.sm },

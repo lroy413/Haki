@@ -61,10 +61,10 @@ const makeStyles = (c: Palette) =>
     label: { ...type.label, color: c.cyan },
     heading: {
       fontFamily: font.body,
-      fontSize: 19,
+      fontSize: 21,
       lineHeight: 26,
       color: c.ink,
     },
-    placeholder: { ...type.body, fontSize: 16, color: c.inkFaint },
+    placeholder: { ...type.body, fontSize: 18, color: c.inkFaint },
     pressed: { ...press },
   });

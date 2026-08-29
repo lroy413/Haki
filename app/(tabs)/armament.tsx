@@ -989,17 +989,24 @@ function TaskRow({
         </View>
       </Pressable>
 
-      {(actions ?? []).map((action) => (
-        <Pressable
-          key={action.label}
-          onPress={action.run}
-          accessibilityRole="button"
-          accessibilityLabel={`${action.label}: ${task.title}`}
-          style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
-        >
-          <Text style={styles.secondaryText}>{action.label}</Text>
-        </Pressable>
-      ))}
+      {/* Stacked, not side by side. At the raised type scale two words on
+          one line took enough width to wrap every task title to two lines —
+          the same shape the at-sea rows already use, for the same reason. */}
+      {(actions ?? []).length > 0 ? (
+        <View style={styles.actions}>
+          {(actions ?? []).map((action) => (
+            <Pressable
+              key={action.label}
+              onPress={action.run}
+              accessibilityRole="button"
+              accessibilityLabel={`${action.label}: ${task.title}`}
+              style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
+            >
+              <Text style={styles.secondaryText}>{action.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
 
       {onRemove ? (
         <Pressable
@@ -1063,12 +1070,12 @@ const makeStyles = (c: Palette) =>
     // The way into the workshop, sitting on the label rather than as a button
     // of its own — the day's work is the subject of this section, not this.
     rhythmLink: { flexDirection: 'row', alignItems: 'baseline', gap: space.md, minHeight: 44 },
-    rhythmLinkText: { ...type.mono, fontSize: 12, color: c.crimson },
+    rhythmLinkText: { ...type.mono, fontSize: 13, color: c.crimson },
     // Full-bleed within the padding; the drawing keeps its own aspect.
     bolt: { width: '100%', aspectRatio: 200 / 26, marginVertical: -2 },
     carrying: {
       fontFamily: font.display,
-      fontSize: 22,
+      fontSize: 24,
       color: c.ink,
       fontVariant: ['tabular-nums'],
     },
@@ -1089,7 +1096,7 @@ const makeStyles = (c: Palette) =>
     dueRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     dueInput: {
       ...type.body,
-      fontSize: 15,
+      fontSize: 16,
       flex: 1,
       color: c.ink,
       backgroundColor: c.surface2,
@@ -1101,7 +1108,7 @@ const makeStyles = (c: Palette) =>
     },
     // Says back what it read. A date field that silently accepts nonsense is
     // how a deadline ends up unset without anybody noticing.
-    dueEcho: { ...type.mono, fontSize: 11, color: c.inkDim, minWidth: 76 },
+    dueEcho: { ...type.mono, fontSize: 12, color: c.inkDim, minWidth: 76 },
     taskOffer: { ...offer(c), backgroundColor: 'transparent' },
     // A bar down the leading edge rather than a tinted card: the row still
     // reads as one of the list, and the edge is what your eye catches
@@ -1132,9 +1139,9 @@ const makeStyles = (c: Palette) =>
     // Striking is 武装色's act, so the box that fills carries its
     // colour — crimson under Luffy, the amethyst coating under Zoro.
     boxOn: { backgroundColor: c.crimson, borderColor: c.crimson },
-    tick: { color: c.onAccent, fontSize: 15, fontFamily: font.displayBold },
+    tick: { color: c.onAccent, fontSize: 16, fontFamily: font.displayBold },
     taskBody: { flex: 1, gap: 1 },
-    taskTitle: { ...type.body, fontSize: 16, color: c.ink },
+    taskTitle: { ...type.body, fontSize: 18, color: c.ink },
     // Weight, not size: nothing in this app goes under 11pt and nothing
     // grows to shout. The heavier face is the emphasis.
     taskTitleWarm: { fontFamily: font.bodyMedium },
@@ -1142,14 +1149,13 @@ const makeStyles = (c: Palette) =>
     markHot: { color: c.warn },
     markCool: { color: c.inkDim },
     taskTitleDone: { textDecorationLine: 'line-through', color: c.inkDim },
-    taskMinutes: { ...type.mono, fontSize: 12, color: c.inkFaint },
-    secondary: {
-      justifyContent: 'center',
-      paddingLeft: space.sm,
-      paddingRight: space.md,
-    },
-    secondaryText: { ...type.mono, fontSize: 12, color: c.crimson },
-    removeText: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    taskMinutes: { ...type.mono, fontSize: 13, color: c.inkFaint },
+    actions: { justifyContent: 'center', alignItems: 'flex-end', paddingRight: space.md },
+    // 22 each, two of them, comes to the 44pt floor for the pair — and the
+    // whole row is a tap target anyway, so neither is the only way through.
+    secondary: { minHeight: 22, justifyContent: 'center', paddingLeft: space.sm },
+    secondaryText: { ...type.mono, fontSize: 13, color: c.crimson },
+    removeText: { ...type.mono, fontSize: 13, color: c.inkFaint },
 
     /* ------------------------------------------------------------ capture */
     capture: {
@@ -1160,7 +1166,7 @@ const makeStyles = (c: Palette) =>
     },
     input: {
       ...type.body,
-      fontSize: 16,
+      fontSize: 18,
       color: c.ink,
       backgroundColor: c.surface2,
       borderWidth: 1,
@@ -1184,7 +1190,7 @@ const makeStyles = (c: Palette) =>
     // filling it, a duration by outlining it.
     watchOn: { borderColor: c.crimson, backgroundColor: c.crimson },
     watchTextOn: { color: c.onAccent },
-    chipText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    chipText: { ...type.mono, fontSize: 13, color: c.inkDim },
     chipTextOn: { color: c.crimson },
     addRow: { flexDirection: 'row', gap: space.sm },
     addToday: {
@@ -1194,7 +1200,7 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.md,
       alignItems: 'center',
     },
-    addTodayText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    addTodayText: { ...type.heading, fontSize: 16, color: c.onAccent },
     addLater: {
       flex: 1,
       borderWidth: 1,
@@ -1203,7 +1209,7 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.md,
       alignItems: 'center',
     },
-    addLaterText: { ...type.heading, fontSize: 13, color: c.inkDim },
+    addLaterText: { ...type.heading, fontSize: 14, color: c.inkDim },
     // An empty composer drops the fill instead of dimming it. Forty percent
     // of a cool colour still reads as a button; forty percent of a warm one
     // reads as mud, and this button is warm on both crews. An outline says
@@ -1244,14 +1250,14 @@ const makeStyles = (c: Palette) =>
       padding: space.md,
       gap: space.xs,
     },
-    statLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
+    statLabel: { ...type.label, color: c.inkFaint, fontSize: 12 },
     statValue: {
       fontFamily: font.display,
-      fontSize: 24,
+      fontSize: 26,
       letterSpacing: -1,
       fontVariant: ['tabular-nums'],
     },
-    statEmpty: { ...type.small, fontSize: 14, color: c.inkFaint, lineHeight: 28 },
+    statEmpty: { ...type.small, fontSize: 15, color: c.inkFaint, lineHeight: 28 },
 
     gap: {
       borderWidth: 1,
@@ -1277,10 +1283,10 @@ const makeStyles = (c: Palette) =>
     sessionKind: { ...type.heading, color: c.ink },
     sessionRight: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     sessionDrop: { minHeight: 44, justifyContent: 'center' },
-    sessionDropText: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    sessionDropText: { ...type.mono, fontSize: 12, color: c.inkFaint },
     sessionDay: { ...type.mono, color: c.inkFaint },
-    sessionMeta: { ...type.small, fontSize: 13, color: c.inkDim },
-    sessionReturn: { ...type.small, fontSize: 13, color: c.violet },
+    sessionMeta: { ...type.small, fontSize: 14, color: c.inkDim },
+    sessionReturn: { ...type.small, fontSize: 14, color: c.violet },
 
     logSession: {
       backgroundColor: c.crimson,

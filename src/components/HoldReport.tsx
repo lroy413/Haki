@@ -105,6 +105,6 @@ const makeStyles = (c: Palette) =>
     note: { ...type.small, color: c.inkDim, lineHeight: 19 },
     table: { gap: space.xs },
     line: { flexDirection: 'row', justifyContent: 'space-between', gap: space.md },
-    key: { ...type.mono, fontSize: 12, color: c.inkFaint },
-    value: { ...type.mono, fontSize: 12, color: c.inkDim, flexShrink: 1 },
+    key: { ...type.mono, fontSize: 13, color: c.inkFaint },
+    value: { ...type.mono, fontSize: 13, color: c.inkDim, flexShrink: 1 },
   });

@@ -216,12 +216,12 @@ const makeStyles = (c: Palette) =>
     // Where the day currently is. A ground, never a colour that says a watch
     // is behind or ahead of anything.
     bandHere: { backgroundColor: c.surface2 },
-    bandName: { ...type.label, fontSize: 11, color: c.inkFaint },
+    bandName: { ...type.label, fontSize: 12, color: c.inkFaint },
     bandNameHere: { color: c.ink },
     bandLine: { ...type.small, color: c.inkDim },
-    bandMinutes: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    bandMinutes: { ...type.mono, fontSize: 12, color: c.inkFaint },
     // Lamplight, like every other fixed mark on a chart in this app.
-    bell: { ...type.mono, fontSize: 11, color: c.warn, marginTop: 1 },
+    bell: { ...type.mono, fontSize: 12, color: c.warn, marginTop: 1 },
 
     hold: {
       flexDirection: 'row',
