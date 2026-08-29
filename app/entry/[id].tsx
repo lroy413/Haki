@@ -242,7 +242,7 @@ const makeStyles = (c: Palette) =>
     input: {
       flex: 1,
       ...type.body,
-      fontSize: 17,
+      fontSize: 19,
       lineHeight: 26,
       color: c.ink,
       padding: space.lg,

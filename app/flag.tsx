@@ -255,7 +255,7 @@ const makeStyles = (c: Palette) =>
     value: { minHeight: 44, justifyContent: 'center' },
     // The one place other than the Dream that gets display type this size:
     // these are the words the rest of the app is measured against.
-    valueText: { fontFamily: font.displayBold, fontSize: 21, lineHeight: 27, color: c.ink },
+    valueText: { fontFamily: font.displayBold, fontSize: 23, lineHeight: 27, color: c.ink },
 
     blurb: { ...type.small, color: c.inkDim, lineHeight: 19 },
     room: { ...type.small, color: c.inkDim, lineHeight: 19 },
@@ -284,7 +284,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    filledText: { ...type.heading, fontSize: 16, color: c.onAccent },
     ghost: {
       flex: 1,
       borderWidth: 1,
@@ -295,8 +295,8 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    ghostText: { ...type.heading, fontSize: 15, color: c.inkDim },
-    takeDown: { ...type.heading, fontSize: 15, color: c.inkFaint },
+    ghostText: { ...type.heading, fontSize: 16, color: c.inkDim },
+    takeDown: { ...type.heading, fontSize: 16, color: c.inkFaint },
     disabled: { opacity: 0.4 },
 
     add: {

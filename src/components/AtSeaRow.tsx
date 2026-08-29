@@ -220,17 +220,17 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    tick: { color: c.onAccent, fontSize: 15, fontFamily: font.displayBold },
+    tick: { color: c.onAccent, fontSize: 16, fontFamily: font.displayBold },
     body: { flex: 1, gap: 1 },
-    title: { ...type.body, fontSize: 17, color: c.ink, lineHeight: 22 },
+    title: { ...type.body, fontSize: 19, color: c.ink, lineHeight: 22 },
     titleDone: { color: c.inkFaint, textDecorationLine: 'line-through' },
-    meta: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    meta: { ...type.mono, fontSize: 12, color: c.inkFaint },
 
     moves: { alignItems: 'flex-end' },
     // Two stacked words rather than a row: side by side they wrap the title to
     // two lines on a narrow phone, and the row grows to hold the wrap.
     move: { minHeight: 22, justifyContent: 'center', paddingHorizontal: space.xs },
-    moveText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    moveText: { ...type.mono, fontSize: 13, color: c.inkDim },
 
     form: { gap: space.sm, paddingTop: space.sm },
     prompt: { ...type.small, color: c.inkDim },
@@ -256,7 +256,7 @@ const makeStyles = (c: Palette) =>
     // measures under the app's own contrast floor. An unfilled button is a
     // surface, and it says "not yet" by being one.
     confirmWaiting: { backgroundColor: c.surface2, borderWidth: 1, borderColor: c.line },
-    confirmText: { ...type.mono, fontSize: 12, color: c.onAccent },
+    confirmText: { ...type.mono, fontSize: 13, color: c.onAccent },
     confirmTextWaiting: { color: c.inkFaint },
     pressed: { ...press },
   });

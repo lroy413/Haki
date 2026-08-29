@@ -28,9 +28,9 @@ const makeStyles = (c: Palette) =>
     wrap: { gap: space.xs, paddingVertical: space.xs },
     text: {
       fontFamily: font.bodyItalic,
-      fontSize: 17,
+      fontSize: 19,
       lineHeight: 25,
       color: c.inkDim,
     },
-    who: { ...type.label, fontSize: 11, color: c.inkFaint },
+    who: { ...type.label, fontSize: 12, color: c.inkFaint },
   });

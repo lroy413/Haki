@@ -249,10 +249,10 @@ const makeStyles = (c: Palette) =>
     },
     rowTime: { ...type.mono, color: c.warn, minWidth: 48 },
     rowBody: { flex: 1, gap: 2 },
-    rowTitle: { ...type.heading, fontSize: 16, color: c.ink },
-    rowWatch: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    rowTitle: { ...type.heading, fontSize: 18, color: c.ink },
+    rowWatch: { ...type.mono, fontSize: 12, color: c.inkFaint },
     take: { minHeight: 44, justifyContent: 'center' },
-    takeText: { ...type.mono, fontSize: 11, color: c.inkFaint },
+    takeText: { ...type.mono, fontSize: 12, color: c.inkFaint },
 
     form: { gap: space.xs, marginTop: space.lg },
     fieldLabel: { ...type.label, color: c.inkFaint, marginTop: space.xs },
@@ -276,7 +276,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       marginTop: space.sm,
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    filledText: { ...type.heading, fontSize: 16, color: c.onAccent },
     disabled: { opacity: 0.45 },
     pressed: { ...press },
   });

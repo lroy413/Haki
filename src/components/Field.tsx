@@ -44,7 +44,7 @@ export function Field({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     field: { gap: space.xs },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 12 },
     input: {
       ...type.body,
       color: c.ink,

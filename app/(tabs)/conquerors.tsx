@@ -573,7 +573,7 @@ const makeStyles = (c: Palette) =>
     content: { padding: space.lg, gap: space.md },
 
     bearing: { ...type.body, color: c.ink, lineHeight: 23 },
-    said: { ...type.mono, color: c.violet, fontSize: 12 },
+    said: { ...type.mono, color: c.violet, fontSize: 13 },
 
     dreamCard: {
       ...plate(c),
@@ -599,10 +599,10 @@ const makeStyles = (c: Palette) =>
     dreamBody: { gap: space.xs, minHeight: 44, justifyContent: 'center' },
     // The one place in the app that gets display type at this size. It is the
     // largest thing on the screen because it is the largest thing there is.
-    dreamText: { fontFamily: font.displayBold, fontSize: 25, lineHeight: 31, color: c.ink },
-    dreamMeta: { ...type.mono, color: c.inkFaint, fontSize: 12 },
+    dreamText: { fontFamily: font.displayBold, fontSize: 27, lineHeight: 31, color: c.ink },
+    dreamMeta: { ...type.mono, color: c.inkFaint, fontSize: 13 },
     dreamOffer: { ...type.body, color: c.inkDim, lineHeight: 22 },
-    dreamCta: { ...type.heading, fontSize: 15, color: c.violet },
+    dreamCta: { ...type.heading, fontSize: 16, color: c.violet },
 
     sail: {
       borderWidth: 1,
@@ -618,7 +618,7 @@ const makeStyles = (c: Palette) =>
     sailHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sailLabel: { ...type.label, color: c.inkFaint },
     sailLabelDue: { color: c.violet },
-    sailGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    sailGlyph: { fontFamily: font.display, fontSize: 16, color: c.violet },
     sailLine: { ...type.body, color: c.inkDim, lineHeight: 21 },
 
     flag: {
@@ -630,12 +630,12 @@ const makeStyles = (c: Palette) =>
     },
     flagHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     flagLabel: { ...type.label, color: c.violet },
-    flagGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    flagGlyph: { fontFamily: font.display, fontSize: 16, color: c.violet },
     flagLine: { ...type.body, color: c.ink, lineHeight: 22 },
     flagEmpty: { ...type.body, color: c.inkDim, lineHeight: 22 },
     // Only ever shown when every needle is spinning. Quiet on purpose: it
     // is a fact about the instrument, not a nudge about the week.
-    lost: { ...type.mono, fontSize: 12, color: c.violet, marginTop: space.xs },
+    lost: { ...type.mono, fontSize: 13, color: c.violet, marginTop: space.xs },
 
     // The question rides a violet rail, the same mark the live island wears:
     // this is the flag speaking, not the form.
@@ -660,7 +660,7 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.sm,
     },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11 },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 12 },
     form: { gap: space.sm },
     input: {
       ...type.body,
@@ -685,7 +685,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    filledText: { ...type.heading, fontSize: 16, color: c.onAccent },
     ghost: {
       flex: 1,
       borderWidth: 1,
@@ -696,7 +696,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    ghostText: { ...type.heading, fontSize: 15, color: c.inkDim },
+    ghostText: { ...type.heading, fontSize: 16, color: c.inkDim },
     disabled: { opacity: 0.4 },
 
     add: {
@@ -717,7 +717,7 @@ const makeStyles = (c: Palette) =>
       minHeight: 44,
     },
     crewHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    crewGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    crewGlyph: { fontFamily: font.display, fontSize: 16, color: c.violet },
     crewBody: { ...type.body, color: c.inkDim, lineHeight: 21 },
 
     footnote: { ...type.small, color: c.inkFaint, lineHeight: 18, marginTop: space.sm },

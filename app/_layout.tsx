@@ -54,7 +54,7 @@ function Chrome() {
           headerStyle: { backgroundColor: palette.bg },
           headerShadowVisible: false,
           headerTintColor: palette.ink,
-          headerTitleStyle: { fontFamily: font.displayBold, fontSize: 20 },
+          headerTitleStyle: { fontFamily: font.displayBold, fontSize: 22 },
           contentStyle: { backgroundColor: palette.bg },
         }}
       >

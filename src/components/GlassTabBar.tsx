@@ -229,6 +229,6 @@ const makeStyles = (c: Palette) =>
       opacity: 0.16,
     },
     pressed: { ...press },
-    glyph: { fontFamily: font.displayBold, fontSize: 14, lineHeight: 19 },
-    label: { fontFamily: font.mono, fontSize: 10, letterSpacing: 0.6 },
+    glyph: { fontFamily: font.displayBold, fontSize: 15, lineHeight: 19 },
+    label: { fontFamily: font.mono, fontSize: 11, letterSpacing: 0.6 },
   });

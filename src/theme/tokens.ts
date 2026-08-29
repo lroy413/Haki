@@ -44,26 +44,45 @@ export const font = {
   monoSemi: 'IBMPlexMono_600SemiBold',
 } as const;
 
+/**
+ * The scale, raised once already and raised again.
+ *
+ * The owner's words the second time: *"the words to be a little bigger in the
+ * base form. It's a little hard to read for me, and when the phone brightness
+ * isn't all the way up it's a little difficult to see."*
+ *
+ * Two different problems live in that sentence and both are fixed here. Size
+ * is this block. Brightness is contrast: a pair measuring 4.6:1 passes the
+ * standard at full output and turns to mush at half, because lowering a
+ * screen's brightness compresses the range the eye has to work with — so the
+ * floors in `palettes.ts` moved too.
+ *
+ * The whole scale went up rather than the body alone. Raising one step and
+ * leaving the rest flattens the hierarchy, and a screen where everything is
+ * nearly the same size is harder to read than a small one that is properly
+ * ranked.
+ */
 export const type = {
   /** The wordmark and the one number that matters. */
-  display: { fontFamily: font.display, fontSize: 34, letterSpacing: -1.4 },
-  title: { fontFamily: font.displayBold, fontSize: 22, letterSpacing: -0.5 },
-  heading: { fontFamily: font.displaySemi, fontSize: 17, letterSpacing: -0.2 },
-  body: { fontFamily: font.body, fontSize: 16, lineHeight: 24 },
-  bodyStrong: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 24 },
-  small: { fontFamily: font.body, fontSize: 14, lineHeight: 20 },
+  display: { fontFamily: font.display, fontSize: 36, letterSpacing: -1.4 },
+  title: { fontFamily: font.displayBold, fontSize: 24, letterSpacing: -0.5 },
+  heading: { fontFamily: font.displaySemi, fontSize: 19, letterSpacing: -0.2 },
+  body: { fontFamily: font.body, fontSize: 18, lineHeight: 27 },
+  bodyStrong: { fontFamily: font.bodyMedium, fontSize: 18, lineHeight: 27 },
+  small: { fontFamily: font.body, fontSize: 15, lineHeight: 22 },
   /**
    * Section labels and units. Uppercase mono with wide tracking, and the
-   * floor for readable text in this app — nothing is set smaller. It was 10
-   * and every screen then overrode it *down* to 9; both were a squint.
+   * floor for readable text in this app — nothing is set smaller. It was 10,
+   * then 11, and every screen kept reaching past it downward; both were a
+   * squint and the floor is 12 now.
    */
   label: {
     fontFamily: font.monoSemi,
-    fontSize: 11,
+    fontSize: 12,
     letterSpacing: 1.6,
     textTransform: 'uppercase',
   },
-  mono: { fontFamily: font.mono, fontSize: 12, letterSpacing: 0.2 },
+  mono: { fontFamily: font.mono, fontSize: 13, letterSpacing: 0.2 },
 } as const;
 
 /** Reserve bands, matched to `domain/willReserve.ts` states. */

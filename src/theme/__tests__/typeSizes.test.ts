@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Nothing in this app is set smaller than eleven points.
+ * Nothing in this app is set smaller than twelve points.
  *
  * The owner said the app was hard to read at full brightness. Contrast was
  * half of it; the other half was size. Forty-two separate styles had reached
@@ -16,18 +16,22 @@ import { describe, expect, it } from 'vitest';
  * The scale already has a bottom (`type.label`, and `type.mono` above it). If
  * something needs to recede, the tools are colour and weight and space — not
  * another point off a figure that is already small.
+ *
+ * Raised from eleven to twelve on the owner's second report — *"a little
+ * hard to read for me"* — along with the whole scale above it. The floor
+ * moving is what stops the next forty small overrides creeping back under it.
  */
 
 const ROOT = join(__dirname, '..', '..', '..');
 const SEARCH = ['app', join('src', 'components')];
 
 /** The floor, and the one thing allowed under it. */
-const FLOOR = 11;
+const FLOOR = 12;
 const ALLOWED: Record<string, number> = {
   // Five tabs across the narrowest phone, each a kanji over an English word.
   // "Settings" at eleven truncates; the label is a caption under a glyph that
   // is already doing the naming, and it is drawn at full accent contrast.
-  [join('src', 'components', 'GlassTabBar.tsx')]: 10,
+  [join('src', 'components', 'GlassTabBar.tsx')]: 11,
 };
 
 function walk(dir: string): string[] {

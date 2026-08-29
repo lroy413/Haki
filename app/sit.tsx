@@ -316,7 +316,7 @@ const makeStyles = (c: Palette) =>
       color: c.inkDim,
       fontVariant: ['tabular-nums'],
     },
-    cadence: { ...type.mono, fontSize: 13, color: c.inkFaint, letterSpacing: 2 },
+    cadence: { ...type.mono, fontSize: 14, color: c.inkFaint, letterSpacing: 2 },
     breathLabel: { marginTop: space.lg },
     breathBlurb: { ...type.small, color: c.inkDim, lineHeight: 19 },
 
@@ -342,7 +342,7 @@ const makeStyles = (c: Palette) =>
     quiet: { borderWidth: 1, borderColor: c.line },
     quietText: { ...type.heading, color: c.inkDim },
     pressed: { ...press },
-    footnote: { ...type.mono, color: c.inkFaint, fontSize: 12 },
+    footnote: { ...type.mono, color: c.inkFaint, fontSize: 13 },
 
     list: { padding: space.lg, gap: space.sm },
     reading: {
@@ -359,7 +359,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'baseline',
     },
     readingLabel: { ...type.label, color: c.violet },
-    readingState: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    readingState: { fontFamily: font.displayBold, fontSize: 20, color: c.ink },
     readingBody: { ...type.body, color: c.ink, lineHeight: 22 },
     blurb: {
       ...type.body,
@@ -377,7 +377,7 @@ const makeStyles = (c: Palette) =>
       gap: space.xs,
     },
     cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    cardName: { fontFamily: font.displayBold, fontSize: 18, color: c.ink },
+    cardName: { fontFamily: font.displayBold, fontSize: 20, color: c.ink },
     cardMinutes: { ...type.mono, color: c.inkDim },
     cardBlurb: { ...type.body, color: c.inkDim, lineHeight: 21 },
   });

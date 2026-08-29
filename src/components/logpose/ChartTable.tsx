@@ -448,7 +448,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'flex-end',
     },
     col: { flex: 1, height: '100%', alignItems: 'center', justifyContent: 'flex-end' },
-    plus: { ...type.mono, fontSize: 15, color: c.inkFaint, marginBottom: H - WL + 14 },
+    plus: { ...type.mono, fontSize: 16, color: c.inkFaint, marginBottom: H - WL + 14 },
 
     row: {
       flexDirection: 'row',
@@ -463,15 +463,15 @@ const makeStyles = (c: Palette) =>
     mini: { width: 6, height: 30, justifyContent: 'flex-end' },
     miniStone: { width: 6, borderRadius: 1, backgroundColor: c.stoneRoad },
     rowText: { flex: 1, gap: 2 },
-    rowTitle: { ...type.small, fontSize: 15, color: c.ink },
+    rowTitle: { ...type.small, fontSize: 16, color: c.ink },
     rowMeta: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
     lamp: { width: 6, height: 6, borderRadius: 3, backgroundColor: c.warn },
-    rowSub: { ...type.mono, fontSize: 12, color: c.inkDim, flexShrink: 1 },
+    rowSub: { ...type.mono, fontSize: 13, color: c.inkDim, flexShrink: 1 },
     // `warn`, like every other date in the app. Never crimson: a port you
     // have not made yet is not a breach.
-    port: { ...type.mono, fontSize: 11, color: c.warn, marginTop: 2 },
+    port: { ...type.mono, fontSize: 12, color: c.warn, marginTop: 2 },
     rowOffer: { color: c.inkFaint },
-    astern: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    astern: { ...type.mono, fontSize: 13, color: c.inkFaint },
     chevron: { ...type.body, color: c.inkFaint, lineHeight: 20 },
 
     pressed: { ...press, borderRadius: radius.sm },

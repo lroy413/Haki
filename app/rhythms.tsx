@@ -398,10 +398,10 @@ const makeStyles = (c: Palette) =>
       minHeight: 44,
     },
     rowBody: { flex: 1, gap: 2 },
-    rowTitle: { fontFamily: font.displayBold, fontSize: 17, color: c.ink },
-    rowTitleStopped: { fontFamily: font.displayBold, fontSize: 16, color: c.inkFaint },
-    rowMeta: { ...type.mono, fontSize: 12, color: c.inkDim },
-    rowEdit: { ...type.mono, fontSize: 12, color: c.crimson },
+    rowTitle: { fontFamily: font.displayBold, fontSize: 19, color: c.ink },
+    rowTitleStopped: { fontFamily: font.displayBold, fontSize: 18, color: c.inkFaint },
+    rowMeta: { ...type.mono, fontSize: 13, color: c.inkDim },
+    rowEdit: { ...type.mono, fontSize: 13, color: c.crimson },
 
     card: {
       backgroundColor: c.surface,
@@ -412,7 +412,7 @@ const makeStyles = (c: Palette) =>
       padding: space.lg,
       gap: space.sm,
     },
-    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 11, marginTop: space.xs },
+    fieldLabel: { ...type.label, color: c.inkFaint, fontSize: 12, marginTop: space.xs },
     input: {
       ...type.body,
       color: c.ink,
@@ -437,7 +437,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     kindOn: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
-    kindText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    kindText: { ...type.mono, fontSize: 13, color: c.inkDim },
     kindTextOn: { color: c.crimson },
 
     days: { flexDirection: 'row', gap: space.xs },
@@ -452,7 +452,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     dayOn: { borderColor: c.crimson, backgroundColor: c.crimsonSoft },
-    dayText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    dayText: { ...type.mono, fontSize: 13, color: c.inkDim },
     dayTextOn: { color: c.crimson },
 
     stepper: { flexDirection: 'row', alignItems: 'center', gap: space.md },
@@ -465,7 +465,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    stepText: { fontFamily: font.display, fontSize: 20, color: c.ink },
+    stepText: { fontFamily: font.display, fontSize: 22, color: c.ink },
     stepValue: { ...type.body, color: c.ink, flex: 1, textAlign: 'center' },
 
     chips: { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' },
@@ -483,7 +483,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     chipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
-    chipText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    chipText: { ...type.mono, fontSize: 13, color: c.inkDim },
     chipTextOn: { color: c.cyan },
 
     actions: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
@@ -496,7 +496,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    filledText: { ...type.heading, fontSize: 15, color: c.onAccent },
+    filledText: { ...type.heading, fontSize: 16, color: c.onAccent },
     ghost: {
       flex: 1,
       borderWidth: 1,
@@ -507,10 +507,10 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    ghostText: { ...type.heading, fontSize: 15, color: c.inkDim },
+    ghostText: { ...type.heading, fontSize: 16, color: c.inkDim },
     disabled: { opacity: 0.4 },
     quiet: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
-    quietText: { ...type.mono, fontSize: 12, color: c.inkDim },
+    quietText: { ...type.mono, fontSize: 13, color: c.inkDim },
 
     add: {
       borderWidth: 1,
