@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Pressable, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path } from 'react-native-svg';
 import { useHaki } from '../state/HakiProvider';
+import { Sea, WATERLINE } from './instruments/Sea';
+import { Sunny } from './instruments/Sunny';
+import { seaState } from '../domain/practice';
 import { BANDS, manifest, sunAt, watchAt, watchLine, watchName } from '../domain/watches';
 import { bellAt, bellsInWatch, clockLabel, inOrder, type Bell } from '../domain/bells';
 import { formatMinutes, type Task } from '../domain/tasks';
@@ -12,21 +15,58 @@ import type { Palette } from '../theme/palettes';
 /**
  * The day's shape, at the top of the home screen.
  *
- * A horizon with the sun where it actually is, the day cut into its three
- * watches, and what each one is carrying. It is the answer to "what does today
- * look like" — a question the app could not previously answer without opening
- * the Do tab and reading a list.
+ * One scene: the Sunny on the water, the sun where it actually is above her,
+ * the day cut into its three watches, and what each one is carrying. It is the
+ * answer to "what does today look like" — a question the app could not
+ * previously answer without opening the Do tab and reading a list.
  *
- * **The sun moves and the ship does not**, and the difference is the whole
- * rule. The Sunny above this is at anchor because a ship travelling toward
- * somewhere is a progress bar in fancy dress; the sun is not progress, it is
- * the time, and a day where it is getting late is a fact rather than a
- * verdict. Nothing here fills up, and no watch ever turns a colour because it
- * has too much in it.
+ * **There is one horizon.** The ship used to sail in its own band directly
+ * above this card, on its own sea, over a second horizon drawn as this strip's
+ * baseline — two waterlines forty points apart on the same screen, which is
+ * not a picture of anything. The owner: *"makes no sense to have an ocean with
+ * a ship and then under it the horizon."* So the sea is the baseline now, the
+ * ship is small and sits on it, and the whole thing costs about forty points
+ * less than the two of them did.
  *
- * Plain mode keeps the shape and loses the sky: the bands, the names and the
- * loads are the information, and the horizon is the performance.
+ * **The sun moves and the ship does not**, and the difference survived the
+ * merge because it is the whole rule. The Sunny is at anchor and then under
+ * way — a state, never a position. A ship travelling along the strip toward
+ * evening would be a progress bar in fancy dress, and `domain/hardening.ts`
+ * forbids that for good reasons. What she gained is a direction: she faces the
+ * way the day runs, which is a heading rather than a journey. Nothing here
+ * fills up, and no watch ever turns a colour because it has too much in it.
+ *
+ * Plain mode keeps the ship and loses the sky. The ship is the app's own
+ * picture of the day rather than an effect — it survived the band it used to
+ * live in — but the sun, the arc and the bell marks are a performance, and
+ * plain mode is the switch that stops the app performing.
  */
+/**
+ * The scene's geometry, in the chart SVG's own units — which are pixels,
+ * because the chart stretches (`preserveAspectRatio="none"`) and its viewBox
+ * height is `SKY_H`.
+ *
+ * `HULL_H` is the whole trick. `Sunny` and `Sea` both draw a 200 × 72 box
+ * anchored bottom-centre with `meet`, so on a band far wider than that aspect
+ * the *height* they are given is what sets their scale — and a ship a third of
+ * the card wide is exactly what shrinking her means. Their shared waterline
+ * sits at `WATERLINE` of 72, so with the layer's bottom on the container's the
+ * water lands `HULL_H * (1 - WATERLINE / 72)` up from the foot. `WATER_Y` is
+ * that number, and the chart draws to it.
+ */
+const SKY_H = 84;
+const HULL_H = 30;
+const WATER_Y = SKY_H - HULL_H * (1 - WATERLINE / 72);
+/**
+ * How high the sun climbs above the waterline at noon.
+ *
+ * Tuned against the masts, not chosen: the ship's box starts at
+ * `SKY_H - HULL_H`, the sun crosses her between about a third and two thirds
+ * of the day, and a nine-unit halo has to clear the topmasts through all of
+ * it. The first cut arced to 34 and the afternoon sun sat in her rigging.
+ */
+const ARC = 42;
+
 export function DayStrip({
   tasks,
   bells,
@@ -41,7 +81,7 @@ export function DayStrip({
   /** Up one size, and up two. See the note on the zoom row below. */
   onZoom: (to: 'week' | 'month') => void;
 }) {
-  const { palette, plainMode, t } = useHaki();
+  const { palette, plainMode, hardening, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const now = new Date();
@@ -62,14 +102,33 @@ export function DayStrip({
         </Text>
       </View>
 
-      {/* The sky. One line for the horizon, one mark for the sun, and the
-          watch divisions cut through both — so the day reads as a span of
-          time before it reads as three lists. */}
-      {plainMode ? null : (
-        <View style={styles.sky} accessibilityRole="image" accessibilityLabel="The day so far">
-          <Svg viewBox="0 0 300 46" width="100%" height="100%" preserveAspectRatio="none">
+      {/* The scene. Three layers in one coordinate system: the chart (the
+          sun's arc, the watch divisions, the bells), then the water, then the
+          ship on it. Stacked rather than merged, so redrawing any one of the
+          three never touches the other two — the same seam `SeaBand` used to
+          keep, moved down one card. */}
+      <View
+        style={[styles.sky, plainMode && styles.skyPlain]}
+        accessibilityRole="image"
+        accessibilityLabel={
+          plainMode ? undefined : `The Thousand Sunny, ${seaState(hardening).toLowerCase()}`
+        }
+        // Plain mode keeps the ship — it is the app's own picture of the day,
+        // not an effect — but stops narrating a metaphor nobody asked for.
+        importantForAccessibility={plainMode ? 'no-hide-descendants' : 'yes'}
+      >
+        {plainMode ? null : (
+          <Svg
+            viewBox={`0 0 300 ${SKY_H}`}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="none"
+            style={StyleSheet.absoluteFill}
+          >
+            {/* The sun's path. It ends at the waterline at both ends, because
+                that is where a sun goes. */}
             <Path
-              d="M 6 40 Q 150 2 294 40"
+              d={`M 6 ${WATER_Y} Q 150 ${WATER_Y - ARC * 2} 294 ${WATER_Y}`}
               fill="none"
               stroke={palette.lineSoft}
               strokeWidth={1}
@@ -78,46 +137,76 @@ export function DayStrip({
               <Line
                 key={band.watch}
                 x1={6 + band.from * 288}
-                y1={8}
+                y1={10}
                 x2={6 + band.from * 288}
-                y2={42}
+                y2={WATER_Y}
                 stroke={palette.line}
                 strokeWidth={1}
               />
             ))}
-            <Line x1={0} y1={42} x2={300} y2={42} stroke={palette.line} strokeWidth={1} />
-            {/* The bells, hanging where they actually fall. Drawn under the
-                sun so a bell at noon never eclipses the time. */}
+            {/* No baseline: the sea draws the horizon now, and at level 0 it
+                is the same single flat line this used to stroke. */}
+            {/* The bells, marked on the water where they actually fall — a
+                short tick rather than the hanging stem and lamp this used to
+                draw. That version stood twenty-four units tall through the
+                middle of the strip, which is exactly where the ship now sits:
+                a warn-coloured disc landed on her topmast and read as a second
+                sun in her rigging. A mark on the waterline cannot, and where
+                she crosses one she simply passes in front of it. */}
             {bells.map((b) => {
               const at = bellAt(b.at);
               if (at === null) return null;
               const x = 6 + at * 288;
               return (
-                <G key={b.id}>
-                  <Line x1={x} y1={26} x2={x} y2={42} stroke={palette.warn} strokeWidth={1.5} />
-                  <Circle cx={x} cy={24} r={3.5} fill={palette.warn} />
-                </G>
+                <Line
+                  key={b.id}
+                  x1={x}
+                  y1={WATER_Y - 9}
+                  x2={x}
+                  y2={WATER_Y + 1}
+                  stroke={palette.warn}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                />
               );
             })}
             {sun === null ? null : (
               <G>
                 <Circle
                   cx={6 + sun * 288}
-                  cy={40 - Math.sin(sun * Math.PI) * 30}
+                  cy={WATER_Y - Math.sin(sun * Math.PI) * ARC}
                   r={9}
                   fill={palette.warnSoft}
                 />
                 <Circle
                   cx={6 + sun * 288}
-                  cy={40 - Math.sin(sun * Math.PI) * 30}
+                  cy={WATER_Y - Math.sin(sun * Math.PI) * ARC}
                   r={4.5}
                   fill={palette.warn}
                 />
               </G>
             )}
           </Svg>
+        )}
+
+        {/* Water and ship, bottom-anchored so their shared waterline lands on
+            the chart's. Mirrored as a pair rather than singly: the wake in
+            `Sea.tsx` trails from the stern, so flipping the ship alone would
+            put her wake in front of her. */}
+        <View style={styles.hull}>
+          <View style={StyleSheet.absoluteFill}>
+            <Sea level={hardening} colour={palette.inkFaint} />
+          </View>
+          <View style={StyleSheet.absoluteFill}>
+            <Sunny
+              level={hardening}
+              ink={palette.ink}
+              faint={palette.inkFaint}
+              flag={palette.crimson}
+            />
+          </View>
         </View>
-      )}
+      </View>
 
       {/* The three watches. Each is a door into its own group on the Do tab. */}
       <View style={styles.bands}>
@@ -247,7 +336,25 @@ const makeStyles = (c: Palette) =>
     label: { ...type.label, color: c.inkFaint },
     total: { ...type.mono, color: c.inkDim },
 
-    sky: { height: 46, marginHorizontal: -space.xs },
+    // `overflow` matters: the sea deliberately draws past both ends of its
+    // viewBox so it reaches the edge of any band, and without a clip it would
+    // run out over the card's border and onto the screen.
+    sky: { height: SKY_H, marginHorizontal: -space.xs, overflow: 'hidden' },
+    // Plain mode draws no sky, so it should not reserve one: without this the
+    // ship sat at the foot of fifty points of nothing.
+    skyPlain: { height: HULL_H },
+    hull: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: HULL_H,
+      // She faces the way the day runs. The drawing faces left by contract
+      // (see `Sunny.tsx`), and the sun travels left to right, so a ship
+      // pointing into the morning reads as sailing against the day. This is a
+      // heading, not a journey: she still never moves along the strip.
+      transform: [{ scaleX: -1 }],
+    },
 
     bands: { flexDirection: 'row', gap: space.xs },
     band: {
