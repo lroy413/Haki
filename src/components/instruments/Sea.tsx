@@ -29,16 +29,24 @@ export const SEA_VIEWBOX = '0 0 200 72';
 export const WATERLINE = 58;
 
 /**
- * The sea runs past both ends of the viewBox on purpose.
+ * The sea runs a long way past both ends of the viewBox on purpose.
  *
  * The band is far wider than this drawing's aspect, so `meet` centres a
  * 200-unit scene in it and leaves air either side. Geometry outside the
  * viewBox still paints — it is clipped to the viewport, not the box — so water
- * drawn from -150 to 350 reaches the edge of any screen while the ship stays
+ * drawn well outside it reaches the edge of any screen while the ship stays
  * its own size in the middle of it.
+ *
+ * These were ±250 either side, which was enough while the ship filled a band
+ * of her own. She sails in the day strip now at about a quarter of its width,
+ * and the scale that shrinks her shrinks the water with her: at that scale the
+ * old range covered two thirds of the card and the ocean stopped in mid-air.
+ * The range is the one number that fixes it without giving the sea a second
+ * scale — which would strand the wake, the only part of this file that has to
+ * know where the ship is.
  */
-const FROM = -150;
-const TO = 350;
+const FROM = -450;
+const TO = 650;
 
 type Water = { swell: number; crests: number; wake: number; lines: 1 | 2 | 3 };
 

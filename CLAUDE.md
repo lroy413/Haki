@@ -325,6 +325,21 @@ the fist. Both carry a **REPLACING THIS DRAWING** block at the top naming the
 viewBox, the aspect, the colour props and what the composition has to keep, so
 a proper redraw drops in without touching anything above them.
 
+**A drawing takes its colours and never chooses one** — no literals, no
+palette reads, every hue a prop (`instruments.test.ts` reads all fifteen).
+The trap is not the literal, it is taking the right prop for the wrong job:
+the Observation eyes handed the pupil `palette.ink`, which is the _text_
+colour, so on the three palettes the app spends its day on the pupil was a
+white disc covering half the iris and the catchlight beside it — `palette.bg`
+— was black. An eye drawn for parchment, inverted everywhere else. **An eye
+is an object rather than a mood**, so like the poneglyph its own colours are
+fixed across all four: `onStone` is the app's near-white, `darkest()` its
+near-black, and only the iris (the lens) and the brow (which sits on the
+page, not on the eye) move. And where a line has to read on the ground _and_
+on the eye, it is stroked twice — a wider `ink` edge under a narrower
+near-black one, the same construction the burst and the charge use, because
+one stroke cannot be visible on two grounds.
+
 Keep that seam clean. The Sunny's _water_ lives in `instruments/Sea.tsx`
 because it is a system — swell, wavelength, phase, how much is running — and
 systems do not get thrown away when someone redraws the boat. Same rule for
@@ -785,15 +800,33 @@ like" could only be answered by opening the Do tab and reading a list.
 - **The hold is the ordinary place to be.** A task with no watch is not
   unscheduled or late; placing one is an offer. Nothing counts how many were
   placed.
-- **The sun moves and the ship does not.** The Sunny above the strip is at
-  anchor because a ship travelling somewhere is a progress bar in fancy dress.
-  The sun is not progress — it is the time, and a day getting late is a fact.
-  It is the strip's only variable, and it is a position rather than a quantity.
+- **One horizon.** The Sunny used to sail in a band of her own directly above
+  the strip, on her own sea, over a second waterline the strip drew as its
+  baseline — two oceans forty points apart on one screen. She is inside the
+  strip now, about a quarter of its width, on the water that _is_ the baseline;
+  the sea's own range had to widen (`Sea.tsx`) because the scale that shrinks
+  her shrinks the water with her, and the alternative — a second scale for the
+  sea — would strand the wake, the only part of that file that has to know
+  where the ship is. The merge cost the screen about forty points less than
+  the two of them did.
+- **The sun moves and the ship does not.** The Sunny is at anchor because a
+  ship travelling somewhere is a progress bar in fancy dress. The sun is not
+  progress — it is the time, and a day getting late is a fact. It is the
+  strip's only variable, and it is a position rather than a quantity. What she
+  gained in the merge is a _heading_, not a journey: she faces the way the day
+  runs, which is one `scaleX` on the pair — the wake trails from her stern, so
+  flipping the ship alone would put it in front of her.
+- **Nothing tall stands where she sits.** The bells were a hanging stem and a
+  lamp through the middle of the strip, which is exactly where she now is: a
+  `warn` disc landed on her topmast and read as a second sun in her rigging.
+  They are ticks on the waterline, and she passes in front of them.
 - **The small hours belong to the evening watch.** Someone working at one in
   the morning is in tonight's evening, and the sky above them is dark: the
   voyage's `dayStartHour` decides which _day_ an act lands on, `watchAt`
   decides which band of it, and neither needs the other.
-- Plain mode keeps the bands, the names and the loads, and loses the sky.
+- Plain mode keeps the bands, the names, the loads **and the ship** — she is
+  the app's own picture of the day rather than an effect — and loses the sky.
+  It reserves no height for the sky it is not drawing, either.
 
 ## The Bells
 

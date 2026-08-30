@@ -11,7 +11,6 @@ import { DayPractice } from '../../src/components/DayPractice';
 import { NextStrike } from '../../src/components/NextStrike';
 import { LogLine } from '../../src/components/LogLine';
 import { QuoteLine } from '../../src/components/QuoteLine';
-import { SeaBand } from '../../src/components/SeaBand';
 import { ReserveGauge } from '../../src/components/ReserveGauge';
 import { useStore } from '../../src/db/client';
 import { todayKey } from '../../src/domain/date';
@@ -74,10 +73,6 @@ export default function Home() {
           layout. */}
       <PageHeading title={t.appName} trailing={t.daysAtSea(day)} />
 
-      {/* The day, as a ship. It never moves along anything — see
-          `domain/practice.ts`. */}
-      <SeaBand />
-
       {/* What is bearing down, above everything else on the screen you open.
           Absent when nothing is — a card that always stands here is one you
           learn to scroll past. See `Bearing`. */}
@@ -108,9 +103,11 @@ export default function Home() {
         onPress={() => router.push('/course')}
       />
 
-      {/* What the day looks like: three watches, what each is carrying, and
-          the sun where it actually is. Silent about capacity — see
-          `domain/watches.ts`. */}
+      {/* What the day looks like: the Sunny on the water, the sun where it
+          actually is above her, three watches and what each is carrying. The
+          ship used to sail in a band of its own at the top of this screen,
+          over a second horizon this card drew as its baseline — one ocean too
+          many. Silent about capacity — see `domain/watches.ts`. */}
       <DayStrip
         tasks={[...load.open, ...load.doneToday]}
         bells={bells}
