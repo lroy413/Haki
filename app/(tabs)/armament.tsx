@@ -40,6 +40,7 @@ import type { TrainingSessionRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { underCrew } from '../../src/theme/palettes';
 import { Steel } from '../../src/components/instruments/Steel';
+import { Crackle } from '../../src/components/instruments/Crackle';
 import { returnMessage } from '../../src/domain/training';
 import {
   backlog,
@@ -101,7 +102,7 @@ const MINUTE_CHIPS = [5, 15, 30, 60, 120];
 export default function ArmamentScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, training, load, hardness, refresh, plainMode, palette, hardening, crew } =
+  const { t, training, load, hardness, refresh, plainMode, palette, hardening, charge, crew } =
     useHaki();
   // 武装色 through the crew's eyes: crimson under Luffy, amethyst under Zoro.
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
@@ -353,7 +354,7 @@ export default function ArmamentScreen() {
           style={[
             styles.hardnessCard,
             material && styles.hardnessSteel,
-            lit(lens.crimson, plainMode ? 0 : hardening),
+            lit(lens.crimson, plainMode ? 0 : hardening, charge),
           ]}
         >
           {/* 武装色 coats. The plate is black metal and the light on it comes
@@ -368,6 +369,11 @@ export default function ArmamentScreen() {
               hardness={(hardness.value ?? 0) / 100}
             />
           ) : null}
+          {/* Over the material, never under it — the discharge sits on the
+              coating, not inside it. Past black the palette has nowhere left
+              to go, so the day keeps hardening here instead: the plate's edge
+              lights and the arcs settle onto it. See `domain/hardening.ts`. */}
+          <Crackle charge={charge} tint={lens.crimson} seed={7} />
           <View style={styles.head}>
             <Text style={styles.sectionLabel}>{t.hardnessLabel}</Text>
             <Text style={styles.carrying}>

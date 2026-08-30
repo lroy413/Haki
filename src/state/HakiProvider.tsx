@@ -56,7 +56,14 @@ import type { Bell } from '../domain/bells';
 const VOYAGE_WINDOW = 84;
 import type { Course } from '../domain/course';
 import { reachDays, reachFor, tierFor, type RyuoTier } from '../domain/ryuo';
-import { NO_ACTS, settleLevel, type Acts, type HardeningLevel } from '../domain/hardening';
+import {
+  NO_ACTS,
+  settleCharge,
+  settleLevel,
+  weightOf,
+  type Acts,
+  type HardeningLevel,
+} from '../domain/hardening';
 import { paletteFor, type Palette } from '../theme/palettes';
 import { addDays, daysAtSea, todayKey } from '../domain/date';
 import {
@@ -100,6 +107,13 @@ type HakiState = {
   intensity: number;
   /** How far the day has hardened. Every colour in the app comes from this. */
   hardening: HardeningLevel;
+  /**
+   * 0..1 — how far the day has gone *past* black, where the ground has run
+   * out of dark and the plates take over. Plain mode pins it to 0, because
+   * plain mode also pins `hardening` to the settled dark, which is exactly
+   * the value that would burn brightest. See `domain/hardening.ts`.
+   */
+  charge: number;
   acts: Acts;
   palette: Palette;
   /** How far the emission reaches — see `domain/ryuo.ts`. */
@@ -154,6 +168,15 @@ const EMPTY_LOAD: Load = {
 /** Where the day's high-water mark lives. Derived state, not a user setting. */
 const HARDENING_DAY = 'hardening.day';
 const HARDENING_LEVEL = 'hardening.level';
+/**
+ * The weight behind the mark, appended rather than folded into the level.
+ *
+ * The charge is derived from it, so one recorded number keeps the level and
+ * the charge from ever disagreeing about what the day held. A device that has
+ * not written one yet reads null and simply starts today's high-water mark
+ * from the acts in front of it.
+ */
+const HARDENING_WEIGHT = 'hardening.weight';
 
 /** Rows to days. Both lens figures want the same shape out of the database. */
 function groupByDay<T extends { day: string }>(rows: T[]): Map<string, T[]> {
@@ -194,6 +217,11 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     settleLevel(NO_ACTS, todayKey(), settings.hardening),
   );
   const [acts, setActs] = useState<Acts>(NO_ACTS);
+  // Not seeded from the settings the way the level is. The mark's weight is
+  // read inside `refresh` rather than carried on `Settings`, and a first frame
+  // that opens uncharged and lights a moment later is a plate catching up;
+  // one that opens *pale* and snaps to black is the whole app changing colour.
+  const [charge, setCharge] = useState(0);
   const [ryuoDays, setRyuoDays] = useState(0);
   const [course, setCourse] = useState<Course | null>(null);
   const [armament, setArmament] = useState<{ value: number | null; days: number }>({
@@ -238,6 +266,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       todayUrges,
       markDay,
       markLevel,
+      markWeight,
     ] = await Promise.all([
       getRead(db, today),
       recentSleep(db, 7, today),
@@ -253,6 +282,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       urgesOnDay(db, today),
       readSetting(db, HARDENING_DAY),
       readSetting(db, HARDENING_LEVEL),
+      readSetting(db, HARDENING_WEIGHT),
     ]);
 
     // A newer refresh started while this one was in flight, so this one's
@@ -345,9 +375,25 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     const settled = settleLevel(nextActs, today, recorded);
     setHardening(settled);
 
+    // The charge rides the same mark. It is the day's weight past the point
+    // the ground stops answering, and it holds its high-water for the same
+    // reason the level does — un-ticking a task must not undo an afternoon.
+    const markedWeight = markDay === today && markWeight !== null ? Number(markWeight) : null;
+    const heldWeight =
+      markedWeight !== null && Number.isFinite(markedWeight)
+        ? { day: today, weight: markedWeight }
+        : null;
+    setCharge(settleCharge(nextActs, today, heldWeight));
+
     // Only write when the mark actually moves — every screen focus calls this.
-    if (!recorded || recorded.day !== today || recorded.level !== settled) {
-      await setHardeningMark(db, today, settled);
+    const weight = Math.max(weightOf(nextActs), markedWeight ?? 0);
+    if (
+      !recorded ||
+      recorded.day !== today ||
+      recorded.level !== settled ||
+      markedWeight !== weight
+    ) {
+      await setHardeningMark(db, today, settled, weight);
     }
 
     // Fire-and-forget: a notification failure must never break a screen.
@@ -494,6 +540,9 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       // Plain mode is the mute button for effects, and this is the loudest one
       // in the app. Pinned to the settled dark so a screenshare stays still.
       hardening: level,
+      // Plain mode stops the app performing, and this is a performance. It
+      // cannot be read off `level` there, because plain mode pins that to 3.
+      charge: settings.plainMode ? 0 : charge,
       acts,
       palette,
       crew,
@@ -524,6 +573,7 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       training,
       load,
       hardening,
+      charge,
       acts,
       ryuoDays,
       course,

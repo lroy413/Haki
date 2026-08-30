@@ -107,13 +107,19 @@ export const press: ViewStyle = {
  * because the level it is handed is already pinned to the settled dark
  * there — which is exactly the value that would glow brightest.)
  */
-export function lit(tint: string, level: HardeningLevel): ViewStyle {
+export function lit(tint: string, level: HardeningLevel, charge = 0): ViewStyle {
   if (level === 0) return {};
-  const strength = { 1: 0.22, 2: 0.3, 3: 0.38 }[level];
+  // Past black the level has stopped moving and the charge takes over the
+  // same two numbers, so the ramp reads as one continuous thing rather than
+  // as a stair with a second staircase bolted to the top of it. It only
+  // applies at 3, because that is the only level at which the ground has run
+  // out of dark — see `chargeFor` in `domain/hardening.ts`.
+  const on = level === 3 ? Math.max(0, Math.min(1, charge)) : 0;
+  const strength = { 1: 0.22, 2: 0.3, 3: 0.38 }[level] + on * 0.14;
   return {
     shadowColor: tint,
     shadowOpacity: strength,
-    shadowRadius: 10 + level * 2,
+    shadowRadius: 10 + level * 2 + on * 8,
     // Offset downward rather than centred. A halo of equal weight on all
     // four sides reads as *emission* — the card becomes a lamp, and at the
     // settled dark the Reserve plate was outshouting the number inside it.

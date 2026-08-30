@@ -25,7 +25,7 @@ import type { Palette } from '../theme/palettes';
  * no idea whether you are done and does not ask.
  */
 export function DayEndDoor({ onOpen }: { onOpen: () => void }) {
-  const { palette, plainMode, hardening, t, dayEnd } = useHaki();
+  const { palette, plainMode, hardening, charge, t, dayEnd } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   // Read once per render, like the day strip's sun. The home screen refreshes
@@ -44,7 +44,7 @@ export function DayEndDoor({ onOpen }: { onOpen: () => void }) {
         styles.card,
         // The signature violet's own light, like the Return's — this belongs
         // to the day rather than to any one lens.
-        lit(palette.violet, plainMode ? 0 : hardening),
+        lit(palette.violet, plainMode ? 0 : hardening, charge),
         pressed && styles.pressed,
       ]}
     >

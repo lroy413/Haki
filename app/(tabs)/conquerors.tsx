@@ -56,6 +56,7 @@ import { lostLine, poseLine, type EternalPose } from '../../src/domain/eternal';
 import { Rise } from '../../src/components/Rise';
 import type { Sounding } from '../../src/domain/soundings';
 import { underCrew } from '../../src/theme/palettes';
+import { Crackle } from '../../src/components/instruments/Crackle';
 import type { Palette } from '../../src/theme/palettes';
 
 /**
@@ -89,7 +90,7 @@ import type { Palette } from '../../src/theme/palettes';
 export default function ConquerorsScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { t, palette, plainMode, hardening, crew: flying } = useHaki();
+  const { t, palette, plainMode, hardening, charge, crew: flying } = useHaki();
   const lens = useMemo(() => underCrew(palette, flying), [palette, flying]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
   const pad = useTabInsets();
@@ -289,7 +290,9 @@ export default function ConquerorsScreen() {
 
         {/* The one thing on this screen that is never scaled down gets the
             king's colour thrown into the air around it. */}
-        <View style={[styles.dreamCard, lit(lens.violet, plainMode ? 0 : hardening)]}>
+        <View style={[styles.dreamCard, lit(lens.violet, plainMode ? 0 : hardening, charge)]}>
+          {/* The day's charge — see `domain/hardening.ts`. */}
+          <Crackle charge={charge} tint={lens.violet} seed={11} />
           {plainMode ? null : <Text style={styles.dreamWatermark}>夢</Text>}
           <Text style={styles.dreamLabel}>{t.dreamLabel}</Text>
 

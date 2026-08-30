@@ -27,6 +27,7 @@ import { addDays, todayKey } from '../../src/domain/date';
 import { futureSight, openness, stateMessage, stateName } from '../../src/domain/observation';
 import { Eyes } from '../../src/components/instruments/Eyes';
 import { Water } from '../../src/components/instruments/Water';
+import { Crackle } from '../../src/components/instruments/Crackle';
 import { font, radius, space, type } from '../../src/theme/tokens';
 import { lit, plate, press, row } from '../../src/theme/surfaces';
 import { SectionLabel } from '../../src/components/SectionLabel';
@@ -70,7 +71,7 @@ const SKY_DAYS = 14;
 export default function ObservationScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t, palette, refresh, observation, acts, plainMode, hardening } = useHaki();
+  const { t, palette, refresh, observation, acts, plainMode, hardening, charge } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
   // A lens's material is a performance: plain mode gets none, and paper
@@ -192,7 +193,7 @@ export default function ObservationScreen() {
               style={[
                 styles.reading,
                 material && styles.readingWater,
-                lit(palette.violet, plainMode ? 0 : hardening),
+                lit(palette.violet, plainMode ? 0 : hardening, charge),
               ]}
             >
               {/* 見聞色 is still water: a surface you read things off, with
@@ -207,6 +208,10 @@ export default function ObservationScreen() {
                   openness={openness(observation)}
                 />
               ) : null}
+              {/* Over the water, never under it. The day's charge, past the
+                  point the ground stops answering — see
+                  `domain/hardening.ts`. */}
+              <Crackle charge={charge} tint={palette.violet} seed={3} />
               <View style={styles.readingHead}>
                 <Text style={styles.readingLabel}>{plainMode ? 'Reading' : '見聞色'}</Text>
                 <Text style={styles.readingState}>{stateName(observation.state)}</Text>

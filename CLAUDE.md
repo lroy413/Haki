@@ -394,6 +394,44 @@ nothing to the loudest element in the app. Anything that wants a lens's light
 goes through `lit()` and may scale what it returns; nothing writes its own
 `shadowColor`.
 
+## The ramp does not stop at black
+
+Level 3 is where the palette runs out of dark, and for a long time that was
+where the day stopped mattering: eight weight points is a morning, and
+everything after it landed on a screen that had already finished responding.
+The owner: _"Haki gets stronger and harder the stronger the will and drive.
+The more things I do should continue to harden the app. Maybe the cards start
+to shine more and showing the static haki electricity."_
+
+A fifth palette is not the answer — it would be black on black, and four
+states exist in the first place because a continuous fade passes through a
+mid-grey no ink is readable on. So the ramp continues **into the surfaces**.
+`chargeOf` in `domain/hardening.ts` is the day's weight past `CHARGE_FROM`,
+saturating at `CHARGE_FULL`; `lit()` takes it as a third argument and grows;
+`instruments/Crackle.tsx` lights the plate's edge and settles arcs onto it.
+
+- **Continuous, on purpose, and that is what stops it being a score.** The
+  level has four states because contrast forced it. The charge has none
+  because nothing forces it, and a value with no rungs has nothing to count —
+  you cannot tell 0.6 from 0.7 by looking.
+- **Linear between the two ends.** Every curve with a knee makes some region
+  of the day worth more than another; an ease-out would spend the whole effect
+  on the first act past black and leave the afternoon doing nothing, which is
+  the complaint it was built to answer.
+- **It saturates**, so there is nothing to be had from a sixteenth task — and
+  `CHARGE_FULL` has to stay genuinely reachable, or the top half of the ramp
+  is dead and the app has only moved the point at which it stops answering.
+- **Paper catches nothing, and here that is arithmetic rather than a guard**:
+  too little weight to charge means too little to have hardened. Plain mode
+  still has to be pinned by hand, in the provider, once — it pins `hardening`
+  to the settled dark, which is exactly the value that would burn brightest.
+- **It never goes backwards inside a day.** The mark carries the day's
+  _weight_ now (`hardening.weight`, appended beside the level) so the two can
+  never disagree about what the day held.
+- **Four plates, one per tab** — the hardness readout, the reading, the Dream,
+  the Reserve. Charging every card would be the "if everything is raised,
+  nothing is" bug that `surfaces.ts` exists to fix.
+
 ## Sound
 
 Effects live in `assets/sounds/` and are declared in `src/sound/sounds.ts` —
@@ -1169,7 +1207,7 @@ pillar's own title, so each carries permanent glyphs of its own.
   everything, a bad paint reference dims only what it paints. Ids are hashed
   now. Read the pixels back rather than trusting the render.
 
-## Two lightnings, and they are not interchangeable
+## Three lightnings, and they are not interchangeable
 
 `Lightning.tsx` is a **burst**: hard, mitred, thrown radially off a contact
 point. It is a fist landing and it belongs to the impact frame.
@@ -1177,6 +1215,15 @@ point. It is a fist landing and it belongs to the impact frame.
 thin and faint with a soft halo, forking once or twice. The ambient layer
 spent months rotating the burst around the screen, which reads as a firework
 going off behind the app rather than as a storm over the horizon.
+`instruments/Crackle.tsx` is the **charge**: it neither throws nor falls, it
+**clings** — short high-frequency arcs running _along_ a plate's border and
+kicking a couple of points off it, never across the face and never out into
+the middle. That is the read to keep if it is redrawn. It is also the one
+stroked the opposite way round: the burst puts a dark core inside a hot rim,
+which is right at the width an impact draws at, but under three points the
+same construction inverts and reads as an outlined squiggle — so the crackle
+is a wide near-transparent halo with a thin bright line on it. There is no
+light ground to worry about, because the charge cannot exist below level 3.
 
 The bolt is the concept document's own — `docs/concept.html` has run it
 behind the pages from the start. **The jag is enveloped by a sine**, so the
