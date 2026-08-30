@@ -87,6 +87,61 @@ import type { Palette } from '../../src/theme/palettes';
  * part of where you are going. It stays a record and never a mechanic: a list
  * of names and a way in, nothing that counts, nags or scores.
  */
+/**
+ * A reference, as a row.
+ *
+ * Setting Sail, the Eternal Pose, the Flag and Inherited Will are four facts
+ * that are read far more often than they are changed, and each of them used to
+ * be a card with a label, a glyph and a paragraph in it. Four of those is the
+ * shape this tab's own rework note calls the worst screen in the app for words
+ * per screen — the chart replaced the pillars' cards and then four more grew
+ * back around it.
+ *
+ * A row holds all of it: the glyph, the name, and what is currently true said
+ * once. `due` is the only state any of them has, and it belongs to Setting
+ * Sail alone — an offer that always shouts is a nag, and this one has to
+ * survive being skipped for a month.
+ */
+function Door({
+  styles,
+  glyph,
+  name,
+  line,
+  note,
+  due,
+  onPress,
+}: {
+  styles: ReturnType<typeof makeStyles>;
+  glyph: string | null;
+  name: string;
+  line: string;
+  /** A second line, shown only in the rare state that earns one. */
+  note?: string | null;
+  due?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${name}: ${line}`}
+      style={({ pressed }) => [styles.door, due && styles.doorDue, pressed && styles.pressed]}
+    >
+      <View style={styles.doorHead}>
+        {glyph ? <Text style={styles.doorGlyph}>{glyph}</Text> : null}
+        <Text style={styles.doorName} numberOfLines={1}>
+          {name}
+        </Text>
+        <Text style={styles.doorGo}>›</Text>
+      </View>
+      <Text style={styles.doorLine} numberOfLines={2}>
+        {line}
+      </Text>
+      {note ? <Text style={styles.doorNote}>{note}</Text> : null}
+    </Pressable>
+  );
+}
+
 export default function ConquerorsScreen() {
   const router = useRouter();
   const { db } = useStore();
@@ -265,26 +320,14 @@ export default function ConquerorsScreen() {
             here because it is Conqueror's own act. Always reachable; the card
             only brightens once a week has passed, so skipping one costs
             nothing and nothing nags. */}
-        <Pressable
+        <Door
+          styles={styles}
+          glyph={plainMode ? null : '出航'}
+          name={t.sailTitle}
+          line={sailOfferLine(lastSail, todayKey(), plainMode)}
+          due={isDue(lastSail, todayKey())}
           onPress={() => router.push('/sail')}
-          accessibilityRole="button"
-          accessibilityLabel={t.sailTitle}
-          style={({ pressed }) => [
-            styles.sail,
-            isDue(lastSail, todayKey()) && styles.sailDue,
-            pressed && styles.pressed,
-          ]}
-        >
-          <View style={styles.sailHead}>
-            <Text
-              style={[styles.sailLabel, isDue(lastSail, todayKey()) && styles.sailLabelDue]}
-            >
-              {t.sailTitle}
-            </Text>
-            {plainMode ? null : <Text style={styles.sailGlyph}>出航</Text>}
-          </View>
-          <Text style={styles.sailLine}>{sailOfferLine(lastSail, todayKey(), plainMode)}</Text>
-        </Pressable>
+        />
 
         {/* ------------------------------------------------------- the dream */}
 
@@ -359,55 +402,6 @@ export default function ConquerorsScreen() {
             </Pressable>
           )}
         </View>
-
-        {/* -------------------------------------------- the eternal pose */}
-        {/* Straight under the Dream, because the two are a pair and the pair
-            is the point: the Dream is where you are going, this is what you
-            come back to. Out and back, in that order. */}
-        <Pressable
-          onPress={() => router.push('/eternal')}
-          accessibilityRole="button"
-          accessibilityLabel={
-            eternal.held ? `${t.eternalTitle}: ${eternal.held.text}` : t.eternalTitle
-          }
-          style={({ pressed }) => [styles.flag, pressed && styles.pressed]}
-        >
-          <View style={styles.flagHead}>
-            <Text style={styles.flagLabel}>{t.eternalTitle}</Text>
-            {plainMode ? null : <Text style={styles.flagGlyph}>不変</Text>}
-          </View>
-          {eternal.held ? (
-            <Text style={styles.flagLine}>{eternal.held.text}</Text>
-          ) : (
-            <Text style={styles.flagEmpty}>{poseLine(eternal, todayKey(), plainMode)}</Text>
-          )}
-          {/* The moment this instrument exists for: nothing open under any
-              pillar, and a Log Pose with nothing to point at. */}
-          {allSpinning && lostLine(eternal) ? (
-            <Text style={styles.lost}>{lostLine(eternal)}</Text>
-          ) : null}
-        </Pressable>
-
-        {/* ---------------------------------------------------- the flag */}
-        {/* Under the Dream and above the fronts, which is the order the three
-            of them actually stand in: where you are going, what you sail
-            under, and what it takes to get there. */}
-        <Pressable
-          onPress={() => router.push('/flag')}
-          accessibilityRole="button"
-          accessibilityLabel={t.flagTitle}
-          style={({ pressed }) => [styles.flag, pressed && styles.pressed]}
-        >
-          <View style={styles.flagHead}>
-            <Text style={styles.flagLabel}>{t.flagTitle}</Text>
-            {plainMode ? null : <Text style={styles.flagGlyph}>旗</Text>}
-          </View>
-          {flag.length === 0 ? (
-            <Text style={styles.flagEmpty}>{t.flagEmpty}</Text>
-          ) : (
-            <Text style={styles.flagLine}>{flag.map((v) => v.text).join(' · ')}</Text>
-          )}
-        </Pressable>
 
         {/* -------------------------------------------- the road poneglyphs */}
 
@@ -547,24 +541,50 @@ export default function ConquerorsScreen() {
           </Pressable>
         ) : null}
 
-        {/* ---------------------------------------------------- inherited will */}
+        {/* --------------------------------------------------- what is fixed */}
+        {/* Three references, at the foot, as doors.
+            They were three stacked cards up beside the Dream — a label, a
+            glyph and a paragraph each, `padding: lg`, one of them saying
+            "Nothing raised yet." at body size. Three hundred points of
+            screen above the chart to report that two features had not been
+            used yet, on the tab whose own rework note calls four stacked
+            paragraph cards "the worst screen in the app for words per
+            screen". They are the same three facts; a row is enough to hold
+            one, and the chart earns the room. */}
+        <View style={styles.doors}>
+          <Door
+            styles={styles}
+            glyph={plainMode ? null : '不変'}
+            name={t.eternalTitle}
+            line={eternal.held?.text ?? poseLine(eternal, todayKey(), plainMode)}
+            /* The moment this instrument exists for: nothing open under any
+               pillar, and a Log Pose with nothing to point at. */
+            note={allSpinning ? lostLine(eternal) : null}
+            onPress={() => router.push('/eternal')}
+          />
+          <Door
+            styles={styles}
+            glyph={plainMode ? null : '旗'}
+            name={t.flagTitle}
+            line={flag.length === 0 ? t.flagEmpty : flag.map((v) => v.text).join(' · ')}
+            onPress={() => router.push('/flag')}
+          />
+          <Door
+            styles={styles}
+            glyph={plainMode ? null : '継承'}
+            name={t.carriedTitle}
+            line={crew.length > 0 ? crew.join(' · ') : t.carriedEmpty}
+            onPress={() => router.push('/carried')}
+          />
+        </View>
 
-        <Pressable
-          onPress={() => router.push('/carried')}
-          accessibilityRole="button"
-          accessibilityLabel={t.carriedTitle}
-          style={({ pressed }) => [styles.crew, pressed && styles.pressed]}
-        >
-          <View style={styles.crewHead}>
-            <Text style={styles.sectionLabel}>{t.carriedTitle}</Text>
-            {plainMode ? null : <Text style={styles.crewGlyph}>継承</Text>}
-          </View>
-          <Text style={styles.crewBody}>
-            {crew.length > 0 ? crew.join(' · ') : t.carriedEmpty}
-          </Text>
-        </Pressable>
-
-        <Text style={styles.footnote}>{t.logPoseBlurb}</Text>
+        {/* The model, explained — once, to somebody who has not built it yet.
+            A paragraph describing the shape of the screen, standing under a
+            screen that is already showing the shape, is onboarding copy that
+            never leaves. */}
+        {pose.needles.length === 0 ? (
+          <Text style={styles.footnote}>{t.logPoseBlurb}</Text>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -607,38 +627,32 @@ const makeStyles = (c: Palette) =>
     dreamOffer: { ...type.body, color: c.inkDim, lineHeight: 22 },
     dreamCta: { ...type.heading, fontSize: 16, color: c.violet },
 
-    sail: {
-      borderWidth: 1,
+    doors: {
+      gap: space.sm,
+      borderTopWidth: 1,
+      borderTopColor: c.lineSoft,
+      paddingTop: space.lg,
+      marginTop: space.md,
+    },
+    door: {
+      ...row(c),
       borderColor: c.line,
-      borderRadius: radius.md,
-      padding: space.lg,
-      gap: space.xs,
-      minHeight: 44,
+      paddingVertical: space.md,
+      paddingHorizontal: space.md,
+      gap: 2,
+      minHeight: 56,
     },
     // Brighter only when it has come round. An offer that always shouts is a
     // nag, and this one has to survive being skipped for a month.
-    sailDue: { borderColor: c.violet, backgroundColor: c.violetSoft },
-    sailHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    sailLabel: { ...type.label, color: c.inkFaint },
-    sailLabelDue: { color: c.violet },
-    sailGlyph: { fontFamily: font.display, fontSize: 16, color: c.violet },
-    sailLine: { ...type.body, color: c.inkDim, lineHeight: 21 },
-
-    flag: {
-      ...row(c),
-      borderColor: c.line,
-      padding: space.lg,
-      gap: space.xs,
-      minHeight: 44,
-    },
-    flagHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    flagLabel: { ...type.label, color: c.violet },
-    flagGlyph: { fontFamily: font.display, fontSize: 16, color: c.violet },
-    flagLine: { ...type.body, color: c.ink, lineHeight: 22 },
-    flagEmpty: { ...type.body, color: c.inkDim, lineHeight: 22 },
+    doorDue: { borderColor: c.violet, backgroundColor: c.violetSoft },
+    doorHead: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm },
+    doorGlyph: { fontFamily: font.display, fontSize: 15, color: c.violet },
+    doorName: { ...type.heading, fontSize: 16, color: c.ink, flex: 1 },
+    doorGo: { ...type.mono, fontSize: 15, color: c.violet },
+    doorLine: { ...type.small, color: c.inkDim, lineHeight: 20 },
     // Only ever shown when every needle is spinning. Quiet on purpose: it
     // is a fact about the instrument, not a nudge about the week.
-    lost: { ...type.mono, fontSize: 13, color: c.violet, marginTop: space.xs },
+    doorNote: { ...type.mono, fontSize: 13, color: c.violet, marginTop: space.xs },
 
     // The question rides a violet rail, the same mark the live island wears:
     // this is the flag speaking, not the form.
@@ -710,18 +724,6 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     addText: { ...type.heading, color: c.inkDim },
-
-    crew: {
-      borderTopWidth: 1,
-      borderTopColor: c.lineSoft,
-      paddingTop: space.lg,
-      marginTop: space.lg,
-      gap: space.xs,
-      minHeight: 44,
-    },
-    crewHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    crewGlyph: { fontFamily: font.display, fontSize: 16, color: c.violet },
-    crewBody: { ...type.body, color: c.inkDim, lineHeight: 21 },
 
     footnote: { ...type.small, color: c.inkFaint, lineHeight: 18, marginTop: space.sm },
     pressed: { ...press },

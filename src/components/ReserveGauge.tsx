@@ -111,8 +111,12 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.surface,
       borderWidth: 1,
       borderRadius: radius.lg,
-      padding: space.xl,
-      gap: space.lg,
+      // Was xl/lg, which opened forty points of nothing between a 64-point
+      // figure and the line explaining it, on the screen with the least room
+      // in the app. The number is already the loudest thing here; it does not
+      // also need the most air.
+      padding: space.lg,
+      gap: space.md,
       shadowOffset: { width: 0, height: 0 },
     },
     label: { ...type.label, color: c.inkFaint },

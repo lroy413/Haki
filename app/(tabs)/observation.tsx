@@ -422,7 +422,16 @@ export default function ObservationScreen() {
         <Pressable
           onPress={() => router.push('/entry/new')}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+          // Its own light, from the one glow system. `c.shadow` is a neutral
+          // tuned to lift a *surface-coloured* plate off the ground; under a
+          // bright violet pill on a near-black list it is invisible, so the
+          // button read as pasted onto the entry behind it rather than
+          // floating over it.
+          style={({ pressed }) => [
+            styles.fab,
+            lit(palette.violet, plainMode ? 0 : hardening, charge),
+            pressed && styles.pressed,
+          ]}
         >
           <Text style={styles.fabText}>{t.newEntry}</Text>
         </Pressable>
@@ -569,6 +578,8 @@ const makeStyles = (c: Palette) =>
       minHeight: 44,
       justifyContent: 'center',
       alignItems: 'center',
+      // The glow is applied at the call site, because it takes the day as
+      // well as the palette. On paper it falls back to this.
       shadowColor: c.shadow,
       shadowOpacity: 1,
       shadowRadius: 14,

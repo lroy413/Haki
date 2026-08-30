@@ -194,24 +194,37 @@ export function DayStrip({
       ) : null}
 
       {/* Up a size, and up two.
-          These were two bare mono links floating on the ground below this
-          card — "The week ›   The month ›" — with nothing around them, which
-          read as leftover text rather than as controls. They belong to the
-          thing they zoom out of, so they sit on its foot as a segmented row:
-          the day is where you are, the other two are where you can go. */}
+          Two goes at this now, and both failed the same way. First they were
+          bare mono links floating on the ground under the card — "The week ›
+          The month ›" — with nothing around them, which read as leftover
+          text. Then they were a three-cell segmented row on the card's foot,
+          with "This day" filled as the current position: *"the week and
+          month buttons look weird and insignificant."* Both true. A segment
+          you cannot press is a tab bar with a dead tab in it, and one word in
+          an outlined box is not a place.
+          They are destinations, so they are named as destinations, they carry
+          the chevron every other door in the app carries, and they wear the
+          screen's own light. The day is not one of them: you are standing on
+          it. */}
       <View style={styles.zoom}>
-        <View style={styles.zoomHere}>
-          <Text style={styles.zoomHereText}>{plainMode ? 'Today' : 'This day'}</Text>
-        </View>
         {(['week', 'month'] as const).map((to) => (
           <Pressable
             key={to}
             onPress={() => onZoom(to)}
             accessibilityRole="button"
-            accessibilityLabel={to === 'week' ? 'Chart the week' : 'The month'}
+            accessibilityLabel={to === 'week' ? 'Chart the week' : 'The tide calendar'}
             style={({ pressed }) => [styles.zoomStep, pressed && styles.pressed]}
           >
-            <Text style={styles.zoomStepText}>{to === 'week' ? 'Week' : 'Month'}</Text>
+            <Text style={styles.zoomStepText} numberOfLines={1}>
+              {to === 'week'
+                ? plainMode
+                  ? 'This week'
+                  : 'The week'
+                : plainMode
+                  ? 'This month'
+                  : 'The tide'}
+            </Text>
+            <Text style={styles.zoomGo}>›</Text>
           </Pressable>
         ))}
       </View>
@@ -277,33 +290,29 @@ const makeStyles = (c: Palette) =>
 
     zoom: {
       flexDirection: 'row',
-      gap: space.xs,
+      gap: space.sm,
       borderTopWidth: 1,
       borderTopColor: c.lineSoft,
       paddingTop: space.sm,
       marginTop: space.sm,
     },
-    // Where you are reads as a filled segment; the other two as steps you can
-    // take. Same grammar as the day chips on the bells screen.
-    zoomHere: {
-      flex: 1,
-      minHeight: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: radius.sm,
-      backgroundColor: c.surface2,
-    },
-    zoomHereText: { ...type.mono, fontSize: 13, color: c.ink },
+    // A door, not a tab. 44 because it is one of the things on this screen
+    // most likely to be tapped one-handed.
     zoomStep: {
       flex: 1,
-      minHeight: 40,
+      minHeight: 44,
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: space.sm,
       borderRadius: radius.sm,
       borderWidth: 1,
       borderColor: c.line,
     },
-    zoomStepText: { ...type.mono, fontSize: 13, color: c.inkDim },
+    // Cyan without a prop, like `CourseLine` next to it: this card stands on
+    // the home screen and nowhere else, and cyan is the day's own light.
+    zoomStepText: { ...type.mono, fontSize: 13, color: c.cyan },
+    zoomGo: { ...type.mono, fontSize: 13, color: c.cyan },
     bellTitle: { ...type.body, fontSize: 16, color: c.ink, flexShrink: 1 },
     pressed: { ...press },
   });

@@ -5,6 +5,7 @@ import { useStore } from '../db/client';
 import { logLine } from '../db/repo';
 import { CAPTURE_PLACEHOLDER, isWritable } from '../domain/logbook';
 import { useHaki } from '../state/HakiProvider';
+import { useSingleFlight } from '../state/useSingleFlight';
 import { radius, space, type } from '../theme/tokens';
 import { press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
@@ -32,22 +33,35 @@ export function LogLine({ onLogged, tint }: { onLogged?: () => void; tint: strin
 
   const [line, setLine] = useState('');
   const [saving, setSaving] = useState(false);
+  /**
+   * A ref, because state is exactly what is too slow here.
+   *
+   * `saving` was the whole guard, and two taps landing in one frame both read
+   * it as false out of the same render's closure — and both read the same
+   * `line`, so the second one wrote the entry again. It is the road form's
+   * five pillars at one-line scale. The acknowledgement still goes *inside*
+   * the flight, where it only happens if the write is actually going to.
+   */
+  const committing = useSingleFlight();
 
-  async function capture() {
-    if (!isWritable(line) || saving) return;
-    setSaving(true);
-    try {
-      // Cleared first: the line is already the user's, and a field that sits
-      // full while a write lands reads as a tap that did nothing.
+  function capture() {
+    void committing(async () => {
       const text = line;
-      setLine('');
-      void Haptics.selectionAsync();
-      await logLine(db, text);
-      await refresh();
-      onLogged?.();
-    } finally {
-      setSaving(false);
-    }
+      if (!isWritable(text)) return;
+      setSaving(true);
+      try {
+        // Cleared inside the flight and before the first await: the line is
+        // already the user's, and a field that sits full while a write lands
+        // reads as a tap that did nothing.
+        setLine('');
+        void Haptics.selectionAsync();
+        await logLine(db, text);
+        await refresh();
+        onLogged?.();
+      } finally {
+        setSaving(false);
+      }
+    });
   }
 
   return (
@@ -59,11 +73,11 @@ export function LogLine({ onLogged, tint }: { onLogged?: () => void; tint: strin
         placeholderTextColor={palette.inkFaint}
         style={styles.input}
         returnKeyType="done"
-        onSubmitEditing={() => void capture()}
+        onSubmitEditing={capture}
         accessibilityLabel={CAPTURE_PLACEHOLDER}
       />
       <Pressable
-        onPress={() => void capture()}
+        onPress={capture}
         disabled={!isWritable(line) || saving}
         accessibilityRole="button"
         accessibilityLabel="Log this line"

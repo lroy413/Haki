@@ -91,7 +91,12 @@ export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
                   // Plain mode drops the glyph, so the tile does not need to
                   // reserve a corner for it.
                   item.kanji ? styles.tileGlyph : styles.tilePlain,
-                  item.done && { borderColor: tone.on, backgroundColor: tone.soft },
+                  // Lit, not outlined. A tinted fill *and* a coloured rim is
+                  // the same fact said twice, and on a day where all six are
+                  // done it turned the busiest card on the home screen into
+                  // six ringed boxes in three colours — a paint chart, which
+                  // is the exact thing `toneFor` exists to avoid.
+                  item.done && { backgroundColor: tone.soft, borderColor: tone.soft },
                   pressed && styles.pressed,
                 ]}
               >
@@ -146,9 +151,13 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space.sm,
       paddingHorizontal: space.sm,
     },
-    // Fixed heights, so the two tiles in a row match whatever their labels do.
-    tileGlyph: { minHeight: 92 },
-    tilePlain: { minHeight: 68 },
+    // Fixed heights, so the two tiles in a row match whatever their labels
+    // do. The glyph sits in the corner and the words at the foot, so this
+    // number is the gap between them: 92 opened a void down the middle of
+    // every tile, three rows of it, on the screen with the least room to
+    // spare in the app.
+    tileGlyph: { minHeight: 74 },
+    tilePlain: { minHeight: 62 },
     kanji: {
       position: 'absolute',
       top: space.sm,
