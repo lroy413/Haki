@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -14,7 +15,9 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { play } from '../../src/sound';
 import { Emission } from '../../src/components/Emission';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
+import { usableBottom } from '../../src/theme/viewport';
 import { useSingleFlight } from '../../src/state/useSingleFlight';
 import { fireImpact } from '../../src/impact';
 import { useStore } from '../../src/db/client';
@@ -104,6 +107,7 @@ export default function ArmamentScreen() {
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
   const pad = useTabInsets();
+  const insets = useSafeAreaInsets();
   // A lens's material is a performance: plain mode gets none, and paper
   // catches nothing — a plate on parchment is parchment.
   const material = !plainMode && hardening > 0;
@@ -116,6 +120,8 @@ export default function ArmamentScreen() {
   const [priority, setPriority] = useState(false);
   const [dueBy, setDueBy] = useState<string | null>(null);
   const [dueText, setDueText] = useState('');
+  const [capturing, setCapturing] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const [showBacklog, setShowBacklog] = useState(false);
   const [showTomorrow, setShowTomorrow] = useState(false);
   const [rhythms, setRhythms] = useState<Rhythm[]>([]);
@@ -153,6 +159,8 @@ export default function ArmamentScreen() {
       // The field empties in the same frame as the tap — the emptying is
       // the acknowledgement — and the flight guard holds off a second tap
       // while the write runs down the single sqlite channel.
+      setCapturing(false);
+      setShowMore(false);
       setTitle('');
       setMinutes(DEFAULT_TASK_MINUTES);
       setWatch(null);
@@ -549,174 +557,255 @@ export default function ArmamentScreen() {
           ),
         )}
 
-        {/* ------------------------------------------------------ capture */}
-        <View style={styles.capture}>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder={t.taskPlaceholder}
-            placeholderTextColor={palette.inkFaint}
-            style={styles.input}
-            returnKeyType="done"
-            onSubmitEditing={() => void add(day)}
-            accessibilityLabel={t.taskPlaceholder}
+        {/* A button, and the form behind it.
+
+            The capture card used to stand permanently open with six rows of
+            controls in it — a title field, five duration chips, three watch
+            chips, a flag and four due chips, a date field, and three commit
+            buttons — all of it on screen whether or not you were writing
+            anything down. Most strikes are a sentence and a tap, so the
+            sentence and the tap are what the sheet opens on, and everything
+            that qualifies a task sits behind one more. */}
+        <Pressable
+          onPress={() => setCapturing(true)}
+          accessibilityRole="button"
+          accessibilityLabel={t.newStrike}
+          style={({ pressed }) => [styles.newStrike, pressed && styles.pressed]}
+        >
+          <Text style={styles.newStrikeText}>+ {t.newStrike}</Text>
+        </Pressable>
+
+        <Modal
+          visible={capturing}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setCapturing(false)}
+        >
+          <Pressable
+            style={styles.scrim}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            onPress={() => setCapturing(false)}
           />
-
-          <View style={styles.chips}>
-            {MINUTE_CHIPS.map((m) => (
-              <Pressable
-                key={m}
-                onPress={() => setMinutes(m)}
-                accessibilityRole="button"
-                accessibilityLabel={`${m} minutes`}
-                style={({ pressed }) => [
-                  styles.chip,
-                  minutes === m && styles.chipOn,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={[styles.chipText, minutes === m && styles.chipTextOn]}>
-                  {formatMinutes(m)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* The watch is optional and a second tap clears it: an unplaced
-              task is normal, not incomplete. */}
-          <View style={styles.chips}>
-            {WATCH_ORDER.map((w) => (
-              <Pressable
-                key={w}
-                onPress={() => setWatch(watch === w ? null : w)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: watch === w }}
-                accessibilityLabel={WATCHES[w].label}
-                style={({ pressed }) => [
-                  styles.chip,
-                  watch === w && styles.watchOn,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={[styles.chipText, watch === w && styles.watchTextOn]}>
-                  {WATCHES[w].short}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* The flag and the date. Both optional, both a second tap from
-              gone — a task with neither is the ordinary case and must stay
-              the cheapest thing to write down. */}
-          <View style={styles.chips}>
-            <Pressable
-              onPress={() => setPriority((on) => !on)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: priority }}
-              accessibilityLabel={PRIORITY_LABEL}
-              style={({ pressed }) => [
-                styles.chip,
-                priority && styles.flagOn,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={[styles.chipText, priority && styles.flagTextOn]}>
-                {PRIORITY_LABEL}
-              </Text>
-            </Pressable>
-            {DUE_CHIPS.map((c) => {
-              const at = dueFromChip(c.days, day);
-              const on = dueBy === at;
-              return (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.sheetDock}
+          >
+            <View style={styles.sheet}>
+              <View style={styles.sheetHead}>
+                <Text style={styles.sheetTitle}>{t.newStrike}</Text>
                 <Pressable
-                  key={c.label}
-                  onPress={() => {
-                    setDueBy(on ? null : at);
-                    setDueText('');
-                  }}
+                  onPress={() => setCapturing(false)}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: on }}
-                  accessibilityLabel={`Due ${plainMode ? c.plain : c.label}`}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    on && styles.flagOn,
-                    pressed && styles.pressed,
-                  ]}
+                  accessibilityLabel="Cancel"
+                  style={({ pressed }) => [styles.sheetClose, pressed && styles.pressed]}
                 >
-                  <Text style={[styles.chipText, on && styles.flagTextOn]}>
-                    {plainMode ? c.plain : c.label}
+                  <Text style={styles.sheetCloseText}>Cancel</Text>
+                </Pressable>
+              </View>
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                style={styles.sheetBody}
+                // The sheet floats over the tab bar rather than above it, so
+                // it takes the raw home-indicator inset rather than the tab
+                // clearance — `useTabInsets` would leave a band of nothing.
+                contentContainerStyle={{
+                  paddingBottom: usableBottom(insets.bottom) + space.lg,
+                  gap: space.sm,
+                }}
+              >
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder={t.taskPlaceholder}
+                  placeholderTextColor={palette.inkFaint}
+                  style={styles.input}
+                  returnKeyType="done"
+                  onSubmitEditing={() => void add(day)}
+                  accessibilityLabel={t.taskPlaceholder}
+                />
+
+                <View style={styles.chips}>
+                  {MINUTE_CHIPS.map((m) => (
+                    <Pressable
+                      key={m}
+                      onPress={() => setMinutes(m)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${m} minutes`}
+                      style={({ pressed }) => [
+                        styles.chip,
+                        minutes === m && styles.chipOn,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={[styles.chipText, minutes === m && styles.chipTextOn]}>
+                        {formatMinutes(m)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                {/* One more tap for anything that qualifies the strike. The
+              ordinary task has no watch, no flag and no date, and it must
+              stay the cheapest thing in the app to write down. */}
+                <Pressable
+                  onPress={() => setShowMore((v) => !v)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: showMore }}
+                  accessibilityLabel={t.strikeDetails}
+                  style={({ pressed }) => [styles.moreRow, pressed && styles.pressed]}
+                >
+                  <Text style={styles.moreText}>
+                    {showMore ? '−' : '+'} {t.strikeDetails}
                   </Text>
                 </Pressable>
-              );
-            })}
-          </View>
 
-          {/* Anything the chips do not cover. Reads 15, 9/15, sep 15 — and
+                {showMore ? (
+                  <>
+                    {/* The watch is optional and a second tap clears it: an unplaced
+              task is normal, not incomplete. */}
+                    <View style={styles.chips}>
+                      {WATCH_ORDER.map((w) => (
+                        <Pressable
+                          key={w}
+                          onPress={() => setWatch(watch === w ? null : w)}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: watch === w }}
+                          accessibilityLabel={WATCHES[w].label}
+                          style={({ pressed }) => [
+                            styles.chip,
+                            watch === w && styles.watchOn,
+                            pressed && styles.pressed,
+                          ]}
+                        >
+                          <Text style={[styles.chipText, watch === w && styles.watchTextOn]}>
+                            {WATCHES[w].short}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+
+                    {/* The flag and the date. Both optional, both a second tap from
+              gone — a task with neither is the ordinary case and must stay
+              the cheapest thing to write down. */}
+                    <View style={styles.chips}>
+                      <Pressable
+                        onPress={() => setPriority((on) => !on)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: priority }}
+                        accessibilityLabel={PRIORITY_LABEL}
+                        style={({ pressed }) => [
+                          styles.chip,
+                          priority && styles.flagOn,
+                          pressed && styles.pressed,
+                        ]}
+                      >
+                        <Text style={[styles.chipText, priority && styles.flagTextOn]}>
+                          {PRIORITY_LABEL}
+                        </Text>
+                      </Pressable>
+                      {DUE_CHIPS.map((c) => {
+                        const at = dueFromChip(c.days, day);
+                        const on = dueBy === at;
+                        return (
+                          <Pressable
+                            key={c.label}
+                            onPress={() => {
+                              setDueBy(on ? null : at);
+                              setDueText('');
+                            }}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: on }}
+                            accessibilityLabel={`Due ${plainMode ? c.plain : c.label}`}
+                            style={({ pressed }) => [
+                              styles.chip,
+                              on && styles.flagOn,
+                              pressed && styles.pressed,
+                            ]}
+                          >
+                            <Text style={[styles.chipText, on && styles.flagTextOn]}>
+                              {plainMode ? c.plain : c.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+
+                    {/* Anything the chips do not cover. Reads 15, 9/15, sep 15 — and
               refuses rather than guessing, because a date the app got wrong
               is worse than one it declined: you would not check it. */}
-          <View style={styles.dueRow}>
-            <TextInput
-              value={dueText}
-              onChangeText={(text) => {
-                setDueText(text);
-                setDueBy(null);
-              }}
-              placeholder={plainMode ? 'Or a date — 15, 9/15, sep 15' : 'Or a date to make'}
-              placeholderTextColor={palette.inkFaint}
-              style={styles.dueInput}
-              returnKeyType="done"
-              accessibilityLabel="Due date"
-            />
-            <Text style={styles.dueEcho}>
-              {dueBy !== null
-                ? (dueLine(dueBy, day) ?? '')
-                : dueText.trim().length === 0
-                  ? ''
-                  : (dueLine(parseDay(dueText, day), day) ?? 'Not a date')}
-            </Text>
-          </View>
+                    <View style={styles.dueRow}>
+                      <TextInput
+                        value={dueText}
+                        onChangeText={(text) => {
+                          setDueText(text);
+                          setDueBy(null);
+                        }}
+                        placeholder={
+                          plainMode ? 'Or a date — 15, 9/15, sep 15' : 'Or a date to make'
+                        }
+                        placeholderTextColor={palette.inkFaint}
+                        style={styles.dueInput}
+                        returnKeyType="done"
+                        accessibilityLabel="Due date"
+                      />
+                      <Text style={styles.dueEcho}>
+                        {dueBy !== null
+                          ? (dueLine(dueBy, day) ?? '')
+                          : dueText.trim().length === 0
+                            ? ''
+                            : (dueLine(parseDay(dueText, day), day) ?? 'Not a date')}
+                      </Text>
+                    </View>
+                  </>
+                ) : null}
 
-          <View style={styles.addRow}>
-            <Pressable
-              onPress={() => void add(day)}
-              disabled={!title.trim()}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.addToday,
-                !title.trim() && styles.addDisabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={[styles.addTodayText, !title.trim() && styles.addDisabledText]}>
-                {t.addToToday}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => void add(tomorrow)}
-              disabled={!title.trim()}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.addLater,
-                !title.trim() && styles.addDisabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.addLaterText}>{t.addToTomorrow}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => void add(null)}
-              disabled={!title.trim()}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.addLater,
-                !title.trim() && styles.addDisabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.addLaterText}>{t.addToLater}</Text>
-            </Pressable>
-          </View>
-        </View>
+                <View style={styles.addRow}>
+                  <Pressable
+                    onPress={() => void add(day)}
+                    disabled={!title.trim()}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.addToday,
+                      !title.trim() && styles.addDisabled,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text
+                      style={[styles.addTodayText, !title.trim() && styles.addDisabledText]}
+                    >
+                      {t.addToToday}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => void add(tomorrow)}
+                    disabled={!title.trim()}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.addLater,
+                      !title.trim() && styles.addDisabled,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text style={styles.addLaterText}>{t.addToTomorrow}</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => void add(null)}
+                    disabled={!title.trim()}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.addLater,
+                      !title.trim() && styles.addDisabled,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text style={styles.addLaterText}>{t.addToLater}</Text>
+                  </Pressable>
+                </View>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
 
         {/* ------------------------------------------------------ backlog */}
         {waiting.length > 0 ? (
@@ -780,74 +869,68 @@ export default function ArmamentScreen() {
           : null}
 
         {/* ----------------------------------------------------- training */}
-        {/* The gym, under its own name. One half of the figure at the top of
-            this screen; the list above is the other. */}
+        {/* The gym, under its own name, in about a fifth of the room it used
+            to take. It was two stat cards, a gap card, and four session cards
+            each carrying a heading, a day, a Remove and two more lines — a
+            third of this screen to say "I trained on Tuesday". It tracks one
+            thing and it now looks like it tracks one thing.
+
+            The two figures are one line. A gap colours the second of them
+            rather than opening a card to explain itself. */}
         <SectionLabel label={t.trainingSection} style={styles.trainingLabel} />
 
-        <View style={styles.stats}>
-          <Stat
-            label={t.trainingThisWeek}
-            value={
-              training.sessionsThisWeek === 0
-                ? null
-                : `${training.sessionsThisWeek}/${training.weeklyTarget}`
-            }
-            empty={t.trainingPlanned(training.weeklyTarget)}
-            tone={palette.ink}
-          />
-          <Stat
-            label={t.trainingSinceLast}
-            value={since === null ? null : String(since)}
-            empty={t.trainingNever}
-            tone={training.inGap ? palette.warn : palette.ink}
-          />
+        <View style={styles.trainRow}>
+          <Text style={styles.trainWeek}>
+            {training.sessionsThisWeek === 0
+              ? t.trainingPlanned(training.weeklyTarget)
+              : `${training.sessionsThisWeek}/${training.weeklyTarget} this week`}
+          </Text>
+          <Text
+            style={[styles.trainSince, training.inGap && { color: palette.warn }]}
+            numberOfLines={1}
+          >
+            {since === null
+              ? t.trainingNever
+              : since === 0
+                ? t.trainingToday
+                : `${since} days since`}
+          </Text>
         </View>
 
-        {training.inGap && since !== null ? (
-          <View style={styles.gap}>
-            <Text style={styles.gapLabel}>In a gap</Text>
-            <Text style={styles.gapBody}>
-              {since} days since the last session. Logging one now lands as a Return.
-            </Text>
-          </View>
-        ) : null}
-
-        {sessions.slice(0, 4).map((item) => (
-          <View key={item.id} style={styles.session}>
-            <View style={styles.sessionHead}>
-              <Text style={styles.sessionKind}>{item.kind}</Text>
-              <View style={styles.sessionRight}>
-                <Text style={styles.sessionDay}>{shortDay(item.day)}</Text>
-                {/* A session logged twice by a slipped thumb is not a record
-                    of anything, and there was no way to take one back. This
-                    removes the row and nothing else — the day it happened on
-                    keeps every other mark it earned. */}
-                <Pressable
-                  onPress={() => void dropSession(item.id, item.kind)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Remove the ${item.kind} session from ${shortDay(item.day)}`}
-                  hitSlop={10}
-                  style={({ pressed }) => [styles.sessionDrop, pressed && styles.pressed]}
-                >
-                  <Text style={styles.sessionDropText}>Remove</Text>
-                </Pressable>
-              </View>
-            </View>
-            <Text style={styles.sessionMeta}>
-              {[
-                item.minutes ? `${item.minutes} min` : null,
-                item.intensity ? `intensity ${item.intensity}/5` : null,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </Text>
-            {/* The Return keeps the signature violet under both crews: it is
-                not a lens's light, and the lens palette would turn it jade. */}
-            {item.closedGap > 0 ? (
-              <Text style={[styles.sessionReturn, { color: palette.violet }]}>
-                {returnMessage(item.closedGap)}
+        {sessions.slice(0, 3).map((item) => (
+          <View key={item.id} style={styles.sessionRow}>
+            <View style={styles.sessionBody}>
+              <Text style={styles.sessionKind} numberOfLines={1}>
+                {item.kind}
               </Text>
-            ) : null}
+              <Text style={styles.sessionMeta} numberOfLines={1}>
+                {[
+                  shortDay(item.day),
+                  item.minutes ? `${item.minutes} min` : null,
+                  item.intensity ? `${item.intensity}/5` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Text>
+              {/* The Return keeps the signature violet under both crews: it is
+                  not a lens's light, and the lens palette would turn it jade. */}
+              {item.closedGap > 0 ? (
+                <Text style={[styles.sessionReturn, { color: palette.violet }]}>
+                  {returnMessage(item.closedGap)}
+                </Text>
+              ) : null}
+            </View>
+            {/* A session logged twice by a slipped thumb is not a record of
+                anything. This removes the row and nothing else — the day it
+                happened on keeps every other mark it earned. */}
+            <Pressable
+              onPress={() => void dropSession(item.id, item.kind)}
+              accessibilityRole="button"
+              accessibilityLabel={`Remove the ${item.kind} session from ${shortDay(item.day)}`}
+              style={({ pressed }) => [styles.sessionDrop, pressed && styles.pressed]}
+            >
+              <Text style={styles.sessionDropText}>✕</Text>
+            </Pressable>
           </View>
         ))}
 
@@ -857,6 +940,7 @@ export default function ArmamentScreen() {
           style={({ pressed }) => [styles.logSession, pressed && styles.pressed]}
         >
           <Text style={styles.logSessionText}>{t.trainingLog}</Text>
+          <Text style={styles.logSessionGo}>+</Text>
         </Pressable>
 
         {/* 断ち — the things you are trying not to do. Under 武装色 because
@@ -1042,34 +1126,6 @@ function TaskRow({
   );
 }
 
-function Stat({
-  label,
-  value,
-  tone,
-  empty = 'Not yet',
-}: {
-  label: string;
-  value: string | null;
-  tone: string;
-  empty?: string;
-}) {
-  const { palette, crew } = useHaki();
-  const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
-  const styles = useMemo(() => makeStyles(lens), [lens]);
-  return (
-    <View style={styles.stat}>
-      <Text style={styles.statLabel} numberOfLines={1}>
-        {label}
-      </Text>
-      {value === null ? (
-        <Text style={styles.statEmpty}>{empty}</Text>
-      ) : (
-        <Text style={[styles.statValue, { color: tone }]}>{value}</Text>
-      )}
-    </View>
-  );
-}
-
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
@@ -1178,6 +1234,62 @@ const makeStyles = (c: Palette) =>
     removeText: { ...type.mono, fontSize: 13, color: c.inkFaint },
 
     /* ------------------------------------------------------------ capture */
+    // The lens's own plate, not a slab of the lens's own colour. On the three
+    // hardened palettes `crimson` is a *text* colour — light, so it can be
+    // read on a dark ground — and filling a full-width button with it puts a
+    // near-white highlighter block in the middle of the screen, louder than
+    // the hardness readout above it. Tinted ground, lens border, lens text:
+    // the primary act on the screen, said once rather than shouted.
+    newStrike: {
+      minHeight: 52,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+      backgroundColor: c.crimsonSoft,
+      borderWidth: 1,
+      borderColor: c.crimson,
+      marginTop: space.sm,
+    },
+    newStrikeText: { ...type.heading, fontSize: 17, color: c.crimson },
+
+    // The darkest the palette holds, at an alpha — `darkest()` rather than
+    // `ink`, which is the *text* colour and is near-white on three of the four.
+    scrim: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      backgroundColor: darkest(c),
+      // Heavier than it looks like it needs: darkening a near-black ground
+      // barely reads, and a scrim that does not separate the sheet from the
+      // list is a sheet that looks pasted on.
+      opacity: 0.72,
+    },
+    sheetDock: { flex: 1, justifyContent: 'flex-end' },
+    sheet: {
+      backgroundColor: c.bg,
+      borderTopLeftRadius: radius.lg,
+      borderTopRightRadius: radius.lg,
+      borderTopWidth: 1,
+      borderColor: c.line,
+      paddingTop: space.md,
+      maxHeight: '86%',
+    },
+    sheetHead: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: space.lg,
+      paddingBottom: space.sm,
+    },
+    sheetTitle: { ...type.heading, color: c.ink },
+    sheetClose: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.xs },
+    sheetCloseText: { ...type.mono, fontSize: 13, color: c.inkDim },
+    sheetBody: { paddingHorizontal: space.lg },
+    moreRow: { minHeight: 44, justifyContent: 'center' },
+    moreText: { ...type.mono, fontSize: 13, color: c.crimson },
+
     capture: {
       ...row(c),
       gap: space.sm,
@@ -1262,60 +1374,53 @@ const makeStyles = (c: Palette) =>
     },
 
     /* ----------------------------------------------------------- training */
-    trainingLabel: { marginTop: space.xl, marginBottom: space.xs },
-    stats: { flexDirection: 'row', gap: space.sm },
-    stat: {
-      ...row(c),
-      flex: 1,
-      padding: space.md,
-      gap: space.xs,
-    },
-    statLabel: { ...type.label, color: c.inkFaint, fontSize: 12 },
-    statValue: {
-      fontFamily: font.display,
-      fontSize: 26,
-      letterSpacing: -1,
-      fontVariant: ['tabular-nums'],
-    },
-    statEmpty: { ...type.small, fontSize: 15, color: c.inkFaint, lineHeight: 28 },
+    trainingLabel: { marginTop: space.lg, marginBottom: space.xs },
 
-    gap: {
-      borderWidth: 1,
-      borderColor: c.warn,
-      backgroundColor: c.warnSoft,
-      borderRadius: radius.md,
-      padding: space.lg,
-      gap: space.xs,
-    },
-    gapLabel: { ...type.label, color: c.warn },
-    gapBody: { ...type.body, color: c.ink, lineHeight: 21 },
-
-    session: {
-      ...row(c),
-      padding: space.md,
-      gap: 2,
-    },
-    sessionHead: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'baseline',
-    },
     sessionKind: { ...type.heading, color: c.ink },
-    sessionRight: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     sessionDrop: { minHeight: 44, justifyContent: 'center' },
     sessionDropText: { ...type.mono, fontSize: 12, color: c.inkFaint },
-    sessionDay: { ...type.mono, color: c.inkFaint },
     sessionMeta: { ...type.small, fontSize: 14, color: c.inkDim },
     sessionReturn: { ...type.small, fontSize: 14, color: c.violet },
 
-    logSession: {
-      backgroundColor: c.crimson,
-      borderRadius: radius.md,
-      paddingVertical: space.lg,
-      alignItems: 'center',
-      marginTop: space.sm,
+    trainRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      gap: space.md,
+      paddingVertical: space.xs,
     },
-    logSessionText: { ...type.heading, color: c.onAccent },
+    trainWeek: { ...type.body, color: c.ink },
+    trainSince: { ...type.mono, fontSize: 13, color: c.inkFaint },
+
+    sessionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.sm,
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      backgroundColor: c.surface,
+      paddingLeft: space.md,
+      paddingRight: space.xs,
+      paddingVertical: space.sm,
+      minHeight: 44,
+    },
+    sessionBody: { flex: 1, gap: 1 },
+
+    logSession: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      backgroundColor: c.surface,
+      paddingHorizontal: space.md,
+      paddingVertical: space.md,
+      minHeight: 44,
+    },
+    logSessionText: { ...type.heading, fontSize: 18, color: c.ink },
+    logSessionGo: { ...type.heading, fontSize: 16, color: c.crimson },
 
     breakDoor: {
       flexDirection: 'row',
