@@ -379,14 +379,20 @@ The tab bar is the legend: each tab burns its own lens colour when focused
 (cyan, violet, crimson, violet, plain ink for settings), and each screen's mark
 in its top corner wears the same one. **One screen, one light.**
 
-That rule breaks in exactly one way, so there is a test for it
-(`oneLight.test.ts`): a control written on one screen and reused on another
-carries its birthplace's colour with it. The Do tab spent months crimson with
+That rule breaks in two ways, so there is a test for each
+(`oneLight.test.ts`). The first: a control written on one screen and reused on
+another carries its birthplace's colour with it. The Do tab spent months crimson with
 teal chips, a teal checkbox and a teal primary button, while the crimson watch
 chips sat directly under them — the file disagreed with itself, which is the
 tell that nobody chose it. **A shared control takes `tint` from the screen
 that mounts it, and the prop has no default**: a control that cannot be
 mounted without naming its light cannot drift.
+
+The second: a screen paints one of its own parts in a colour that means
+something. The Daily Read's four dials were violet, violet, cyan and crimson —
+and the crimson one sat under a label reading _"low is better"_, so a good
+answer lit up in the colour this app reserves for **something has gone
+wrong**. Four dials are four facets of one reading, not four lenses.
 
 **And there is one glow, not several.** `lit()` is it. The Reserve gauge used
 to roll its own — a 24-point radius at 0.55 — so retuning the constant did
@@ -1353,6 +1359,17 @@ stones on a sea; `PillarRow` beside it carries the names.
   (`instruments/LogPose.tsx`).
 - **Plain mode gets the plain list**, unchanged — the same law the settings
   archipelago holds, and `plainList.test.ts` reads both screens to keep it.
+
+**And the cards grow back.** Four stacked paragraph cards were the reason for
+the chart, and four more had appeared around it — Setting Sail, the Eternal
+Pose, the Flag and Inherited Will, a label and a glyph and a paragraph each,
+three hundred points of screen above the picture to report that two features
+had not been used yet. A reference is a **door**: glyph, name, chevron, and
+what is currently true said once. Setting Sail keeps a due state because it is
+the only one of the four that has one; the rest group at the foot under a rule.
+The paragraph explaining the model shows only to somebody who has not built
+one — copy describing the shape of a screen that is already showing that shape
+is onboarding that never leaves.
 
 Tapping a stone or a row opens `app/pillar.tsx`, and **that screen is where
 the acts live now**: it mounts the same `NeedleCard` the plain list does, so

@@ -64,6 +64,24 @@ describe('one screen, one light', () => {
     expect(SHARED).not.toContain(join('src', 'components', 'GlassTabBar.tsx'));
   });
 
+  it('keeps the Daily Read in one colour', () => {
+    // 見聞色's own instrument. Its four dials are four facets of one reading,
+    // not four lenses — they were violet, violet, cyan and crimson, and the
+    // crimson one sat under a label reading "low is better", so a good answer
+    // lit up in the colour this app reserves for something having gone wrong.
+    const src = String(readFileSync(join(ROOT, 'app', 'read.tsx'), 'utf8'));
+    const offenders: string[] = [];
+    src.split('\n').forEach((line, i) => {
+      const code = line.replace(/^\s*(?:\*|\/\/).*$/, '');
+      if (/\b(?:c|palette|lens)\.(?:cyan|crimson|jade|amethyst)(?:Soft)?\b/.test(code)) {
+        offenders.push(`line ${i + 1}`);
+      }
+    });
+    expect(offenders, `the Daily Read reaches past violet at ${offenders.join(', ')}`).toEqual(
+      [],
+    );
+  });
+
   it('keeps the Do tab in one colour', () => {
     // The specific regression. 武装色's own controls — the box that fills on
     // a strike, the duration chips, the defer links, the primary button —
