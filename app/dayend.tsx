@@ -17,6 +17,7 @@ import { useStore } from '../src/db/client';
 import {
   allTasks,
   commitTask,
+  eveningsBefore,
   getDayEnd,
   moveTask,
   movesMadeOn,
@@ -46,7 +47,7 @@ import { courseFor } from '../src/domain/course';
 import { MAX_REASON } from '../src/domain/atSea';
 import { pressingFirst } from '../src/domain/pressing';
 import { formatMinutes, isDone, type Task } from '../src/domain/tasks';
-import { addDays, todayKey } from '../src/domain/date';
+import { addDays, shortDay, todayKey } from '../src/domain/date';
 import { usableBottom } from '../src/theme/viewport';
 import { radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
@@ -73,7 +74,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function DayEndScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { palette, plainMode, acts, refresh } = useHaki();
+  const { palette, plainMode, acts, refresh, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const insets = useSafeAreaInsets();
   const committing = useSingleFlight();
@@ -87,13 +88,15 @@ export default function DayEndScreen() {
   const [line, setLine] = useState('');
   const [words, setWords] = useState<Map<number, string>>(new Map());
   const [loaded, setLoaded] = useState(false);
+  const [evenings, setEvenings] = useState<{ day: string; line: string }[]>([]);
 
   const load = useCallback(async () => {
-    const [tasks, moves, courses, saved] = await Promise.all([
+    const [tasks, moves, courses, saved, past] = await Promise.all([
       allTasks(db),
       movesMadeOn(db, day),
       upcomingCourses(db, day),
       getDayEnd(db, day),
+      eveningsBefore(db, day),
     ]);
     // Pressing first here too. The evening pass is where the leftovers get
     // decided about, and the flagged and dated ones are the ones the decision
@@ -109,6 +112,7 @@ export default function DayEndScreen() {
     // Only seed the field once. Re-seeding on a reload would overwrite what
     // the finger is in the middle of typing.
     setLine((current) => (current.length > 0 ? current : (saved?.line ?? '')));
+    setEvenings(past);
     setLoaded(true);
   }, [db, day]);
 
@@ -358,6 +362,26 @@ export default function DayEndScreen() {
           <Text style={styles.saveText}>{plainMode ? 'Save' : 'Close the day'}</Text>
         </Pressable>
         <Text style={styles.closing}>{closingLine(plainMode)}</Text>
+
+        {/* The evenings behind you.
+            They used to be on the home screen — the most recent one printed
+            in full, three lines of it, on the screen you open in a cafe. They
+            are collected here instead, which is somewhere you come on purpose
+            and where the rest of the day's reading already is. Listed and
+            never counted: no streak of evenings kept, no run, no figure. */}
+        {evenings.length > 0 ? (
+          <Rise delay={200}>
+            <View style={styles.group}>
+              <SectionLabel label={t.eveningsLabel} trailing={plainMode ? undefined : '航跡'} />
+              {evenings.map((e) => (
+                <View key={e.day} style={styles.evening}>
+                  <Text style={styles.eveningWhen}>{shortDay(e.day, day)}</Text>
+                  <Text style={styles.eveningLine}>{e.line}</Text>
+                </View>
+              ))}
+            </View>
+          </Rise>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -459,6 +483,18 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
     },
     saveText: { ...type.heading, color: c.onAccent },
+    evening: {
+      borderWidth: 1,
+      borderColor: c.line,
+      borderRadius: radius.md,
+      backgroundColor: c.surface,
+      paddingHorizontal: space.md,
+      paddingVertical: space.md,
+      gap: 2,
+    },
+    eveningWhen: { ...type.mono, fontSize: 13, color: c.inkFaint },
+    eveningLine: { ...type.body, color: c.ink, lineHeight: 25 },
+
     closing: { ...type.small, color: c.inkFaint, textAlign: 'center' },
     pressed: { ...press },
   });

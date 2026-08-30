@@ -32,11 +32,14 @@ export function DayStrip({
   bells,
   onOpen,
   onBells,
+  onZoom,
 }: {
   tasks: Task[];
   bells: Bell[];
   onOpen: (watch: string) => void;
   onBells: () => void;
+  /** Up one size, and up two. See the note on the zoom row below. */
+  onZoom: (to: 'week' | 'month') => void;
 }) {
   const { palette, plainMode, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
@@ -159,10 +162,21 @@ export function DayStrip({
         accessibilityLabel={plainMode ? 'Appointments' : 'The bells'}
         style={({ pressed }) => [styles.hold, pressed && styles.pressed]}
       >
+        {/* The next bell by name, not just by time. This row used to read
+            "THE BELLS  15:00" and nothing else, so a bell you had just made
+            was a number in 12pt mono with no way to tell it from any other
+            bell — "I made a Bell and I don't know where it went". */}
         <Text style={styles.holdLabel}>{plainMode ? 'Appointments' : 'The bells'}</Text>
-        <Text style={styles.holdCount}>
-          {bells.length > 0 ? clockLabel(inOrder(bells)[0].at) : '+'}
-        </Text>
+        {bells.length > 0 ? (
+          <View style={styles.bellNext}>
+            <Text style={styles.bellTitle} numberOfLines={1}>
+              {inOrder(bells)[0].title}
+            </Text>
+            <Text style={styles.holdCount}>{clockLabel(inOrder(bells)[0].at)}</Text>
+          </View>
+        ) : (
+          <Text style={styles.holdCount}>+</Text>
+        )}
       </Pressable>
 
       {/* The hold. Not a backlog and not a failure to plan — the ordinary
@@ -178,6 +192,29 @@ export function DayStrip({
           <Text style={styles.holdCount}>{day.hold.length}</Text>
         </Pressable>
       ) : null}
+
+      {/* Up a size, and up two.
+          These were two bare mono links floating on the ground below this
+          card — "The week ›   The month ›" — with nothing around them, which
+          read as leftover text rather than as controls. They belong to the
+          thing they zoom out of, so they sit on its foot as a segmented row:
+          the day is where you are, the other two are where you can go. */}
+      <View style={styles.zoom}>
+        <View style={styles.zoomHere}>
+          <Text style={styles.zoomHereText}>{plainMode ? 'Today' : 'This day'}</Text>
+        </View>
+        {(['week', 'month'] as const).map((to) => (
+          <Pressable
+            key={to}
+            onPress={() => onZoom(to)}
+            accessibilityRole="button"
+            accessibilityLabel={to === 'week' ? 'Chart the week' : 'The month'}
+            style={({ pressed }) => [styles.zoomStep, pressed && styles.pressed]}
+          >
+            <Text style={styles.zoomStepText}>{to === 'week' ? 'Week' : 'Month'}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
@@ -227,6 +264,7 @@ const makeStyles = (c: Palette) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      gap: space.md,
       borderTopWidth: 1,
       borderTopColor: c.lineSoft,
       paddingTop: space.sm,
@@ -235,5 +273,37 @@ const makeStyles = (c: Palette) =>
     },
     holdLabel: { ...type.label, color: c.inkFaint },
     holdCount: { ...type.mono, color: c.inkDim },
+    bellNext: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexShrink: 1 },
+
+    zoom: {
+      flexDirection: 'row',
+      gap: space.xs,
+      borderTopWidth: 1,
+      borderTopColor: c.lineSoft,
+      paddingTop: space.sm,
+      marginTop: space.sm,
+    },
+    // Where you are reads as a filled segment; the other two as steps you can
+    // take. Same grammar as the day chips on the bells screen.
+    zoomHere: {
+      flex: 1,
+      minHeight: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.sm,
+      backgroundColor: c.surface2,
+    },
+    zoomHereText: { ...type.mono, fontSize: 13, color: c.ink },
+    zoomStep: {
+      flex: 1,
+      minHeight: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.sm,
+      borderWidth: 1,
+      borderColor: c.line,
+    },
+    zoomStepText: { ...type.mono, fontSize: 13, color: c.inkDim },
+    bellTitle: { ...type.body, fontSize: 16, color: c.ink, flexShrink: 1 },
     pressed: { ...press },
   });

@@ -77,11 +77,16 @@ export default function BellsScreen() {
   async function hang() {
     if (!ready || at === null) return;
     const draft = { title, at };
-    // The screen answers the finger: the fields clear in this frame and the
-    // row lands behind them.
-    setTitle('');
-    setWhen('');
     await committing(async () => {
+      // The acknowledgement goes INSIDE the flight, and that placement is the
+      // whole fix: it used to sit outside, so a hang that arrived while any
+      // other write was still running had its fields cleared by this screen
+      // and then dropped by the guard. The form looked like it had saved and
+      // the bell was never written — "I made a bell and I don't know where it
+      // went". Inside, a dropped call leaves the text where you typed it, and
+      // a second tap works.
+      setTitle('');
+      setWhen('');
       await addBell(db, draft.title, day, draft.at);
       await load();
       await refresh();
@@ -89,9 +94,9 @@ export default function BellsScreen() {
   }
 
   async function take(id: number) {
-    // Optimistic: the row leaves the list on the tap, not on the write.
-    setRows((prev) => prev.filter((r) => r.id !== id));
     await committing(async () => {
+      // Optimistic: the row leaves the list on the tap, not on the write.
+      setRows((prev) => prev.filter((r) => r.id !== id));
       await removeBell(db, id);
       await load();
       await refresh();

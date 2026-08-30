@@ -118,9 +118,12 @@ export default function SeaPrismScreen() {
    * stale state and both write the same thing.
    */
   function toggle(stone: Stone, next: boolean) {
-    setWish((w) => ({ ...w, [stone.id]: next }));
-    void Haptics.selectionAsync();
     void flight(async () => {
+      // Inside the flight, not above it. The guard drops a call that arrives
+      // while one is running, so a chip lit on the line above would stay lit
+      // over a write that never happened.
+      setWish((w) => ({ ...w, [stone.id]: next }));
+      void Haptics.selectionAsync();
       await setHit(db, stone.createdAt, next, today);
       await load();
       // The Reserve reads the day's drains, so the gauge behind this screen is

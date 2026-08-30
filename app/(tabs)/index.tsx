@@ -116,33 +116,8 @@ export default function Home() {
         bells={bells}
         onOpen={() => router.push('/armament')}
         onBells={() => router.push('/bells')}
+        onZoom={(to) => router.push(to === 'week' ? '/week' : '/tide')}
       />
-
-      {/* One size up from the strip above it, and then one more: the day, the
-          week, the month. Lines rather than cards, because the shape of a week
-          or a month is a thing you go and look at rather than something the
-          home screen should carry — and side by side rather than stacked, so
-          the whole ladder costs one row instead of two. */}
-      <View style={styles.zoom}>
-        <Pressable
-          onPress={() => router.push('/week')}
-          accessibilityRole="button"
-          accessibilityLabel={t.weekTitle}
-          style={({ pressed }) => [styles.weekDoor, pressed && styles.ctaPressed]}
-        >
-          <Text style={styles.weekDoorText}>{t.weekDoor}</Text>
-          <Text style={styles.weekChevron}>›</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => router.push('/tide')}
-          accessibilityRole="button"
-          accessibilityLabel={t.tideTitle}
-          style={({ pressed }) => [styles.weekDoor, pressed && styles.ctaPressed]}
-        >
-          <Text style={styles.weekDoorText}>{t.tideDoor}</Text>
-          <Text style={styles.weekChevron}>›</Text>
-        </Pressable>
-      </View>
 
       {/* The evening pass. Only present during the evening watch — see
           `DayEndDoor`. Directly under the strip, because the strip is the
@@ -261,20 +236,6 @@ const makeStyles = (c: Palette) =>
 
     ctaPressed: { ...press },
 
-    zoom: { flexDirection: 'row' },
-    // The chevron sits against its own label rather than at the far edge:
-    // spread across each half they line up between the two words and read as
-    // separators instead of as two links.
-    weekDoor: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.sm,
-      minHeight: 44,
-      paddingHorizontal: space.md,
-    },
-    weekDoorText: { ...type.mono, fontSize: 13, color: c.inkDim },
-    weekChevron: { ...type.heading, color: c.inkFaint },
     strip: {
       ...row(c),
       flexDirection: 'row',

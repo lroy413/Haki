@@ -192,6 +192,8 @@ export type Strings = {
   noteUntitled: string;
   dayEndDoor: string;
   dayEndBlurb: string;
+  dayEndWritten: string;
+  eveningsLabel: string;
   dayStripLabel: string;
   nextStrikeLabel: string;
   nextStrikeEmpty: string;
@@ -443,6 +445,8 @@ const haki: Strings = {
   noteUntitled: 'Untitled page',
   dayEndDoor: 'Close the day',
   dayEndBlurb: 'Read it back, decide what is left, say how it went.',
+  dayEndWritten: 'Written. Tap to read it back or change it.',
+  eveningsLabel: 'Evenings astern',
   dayStripLabel: 'The watches',
   nextStrikeLabel: 'Next strike',
   nextStrikeEmpty: 'Nothing pulled in for today. Tap to add one.',
@@ -577,6 +581,8 @@ const plain: Strings = {
   noteUntitled: 'Untitled note',
   dayEndDoor: 'Review the day',
   dayEndBlurb: 'What happened, what is left, how it went.',
+  dayEndWritten: 'Written. Tap to read or change it.',
+  eveningsLabel: 'Earlier evenings',
   dayStripLabel: 'Today',
   nextStrikeLabel: 'Next up',
   strikeIt: 'Add a task',

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
 import { underCrew } from '../theme/palettes';
-import { dayMessage, practice, type Practice, type PracticeKey } from '../domain/practice';
+import { practice, type Practice, type PracticeKey } from '../domain/practice';
 import { levelName } from '../domain/hardening';
 import { font, radius, space, type } from '../theme/tokens';
 import { plate, press } from '../theme/surfaces';
@@ -71,8 +71,11 @@ export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
         {plainMode ? null : <Text style={styles.level}>{levelName(hardening)}</Text>}
       </View>
 
-      {plainMode ? null : <Text style={styles.message}>{dayMessage(hardening)}</Text>}
-
+      {/* No sentence about the level here. The app going darker IS the
+          message — a paragraph restating it is the wordiest thing on the
+          busiest screen, and it is the closest this app ever came to printing
+          hardening as a score. `dayMessage` still exists for the one screen
+          that explains the mechanic. */}
       {pairs(items).map((row, i) => (
         <View key={i} style={styles.row}>
           {row.map((item) => {

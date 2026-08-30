@@ -119,9 +119,11 @@ export default function BreakListScreen() {
       outcome,
       createdAt: Date.now(),
     };
-    setUrges((rows) => [pending, ...rows]);
-    void Haptics.selectionAsync();
     void flight(async () => {
+      // Inside the flight — a row shown above it would survive a dropped
+      // write and read as an urge that was never logged.
+      setUrges((rows) => [pending, ...rows]);
+      void Haptics.selectionAsync();
       await logUrge(db, item.createdAt, outcome, today);
       await load();
       // The Reserve counts today's urges, so the gauge behind this is stale
@@ -132,9 +134,9 @@ export default function BreakListScreen() {
 
   /** How one that was ridden out ended. The only thing about an urge that changes. */
   function settle(id: number, outcome: Outcome) {
-    setUrges((rows) => rows.map((u) => (u.id === id ? { ...u, outcome } : u)));
-    void Haptics.selectionAsync();
     void flight(async () => {
+      setUrges((rows) => rows.map((u) => (u.id === id ? { ...u, outcome } : u)));
+      void Haptics.selectionAsync();
       await settleUrge(db, id, outcome);
       await load();
       await refresh();
@@ -143,8 +145,8 @@ export default function BreakListScreen() {
 
   /** A mis-tap must be as cheap as the tap was. */
   function unlog(id: number) {
-    setUrges((rows) => rows.filter((u) => u.id !== id));
     void flight(async () => {
+      setUrges((rows) => rows.filter((u) => u.id !== id));
       await unlogUrge(db, id);
       await load();
       await refresh();
@@ -164,10 +166,10 @@ export default function BreakListScreen() {
   }
 
   function retire(item: Break) {
-    setBreaks((rows) =>
-      rows.map((b) => (b.id === item.id ? { ...b, retiredAt: Date.now() } : b)),
-    );
     void flight(async () => {
+      setBreaks((rows) =>
+        rows.map((b) => (b.id === item.id ? { ...b, retiredAt: Date.now() } : b)),
+      );
       await retireBreak(db, item.id);
       await load();
     });
