@@ -36,7 +36,7 @@ import { recentWeather, type Sky } from '../../src/domain/weather';
 import { foundLine, isSearching, matches } from '../../src/domain/search';
 import { SearchField, Excerpt } from '../../src/components/SearchField';
 import { SkyRun } from '../../src/components/SkyRun';
-import type { Palette } from '../../src/theme/palettes';
+import { darkest, type Palette } from '../../src/theme/palettes';
 
 /** How much the floating button takes on top of the bar's own clearance. */
 const FAB_ROOM = 72;
@@ -179,6 +179,11 @@ export default function ObservationScreen() {
                 <Eyes
                   ink={palette.ink}
                   iris={palette.violet}
+                  // Fixed on every palette, like the poneglyph's own colours:
+                  // an eye is an object, not a mood. `onStone` is the app's
+                  // near-white; `darkest` is its near-black.
+                  sclera={palette.onStone}
+                  lash={darkest(palette)}
                   ground={palette.bg}
                   openness={openness(observation)}
                   lit={futureSight(observation)}

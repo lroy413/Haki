@@ -325,6 +325,21 @@ the fist. Both carry a **REPLACING THIS DRAWING** block at the top naming the
 viewBox, the aspect, the colour props and what the composition has to keep, so
 a proper redraw drops in without touching anything above them.
 
+**A drawing takes its colours and never chooses one** — no literals, no
+palette reads, every hue a prop (`instruments.test.ts` reads all fifteen).
+The trap is not the literal, it is taking the right prop for the wrong job:
+the Observation eyes handed the pupil `palette.ink`, which is the _text_
+colour, so on the three palettes the app spends its day on the pupil was a
+white disc covering half the iris and the catchlight beside it — `palette.bg`
+— was black. An eye drawn for parchment, inverted everywhere else. **An eye
+is an object rather than a mood**, so like the poneglyph its own colours are
+fixed across all four: `onStone` is the app's near-white, `darkest()` its
+near-black, and only the iris (the lens) and the brow (which sits on the
+page, not on the eye) move. And where a line has to read on the ground _and_
+on the eye, it is stroked twice — a wider `ink` edge under a narrower
+near-black one, the same construction the burst and the charge use, because
+one stroke cannot be visible on two grounds.
+
 Keep that seam clean. The Sunny's _water_ lives in `instruments/Sea.tsx`
 because it is a system — swell, wavelength, phase, how much is running — and
 systems do not get thrown away when someone redraws the boat. Same rule for
