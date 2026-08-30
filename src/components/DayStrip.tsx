@@ -32,11 +32,14 @@ export function DayStrip({
   bells,
   onOpen,
   onBells,
+  onZoom,
 }: {
   tasks: Task[];
   bells: Bell[];
   onOpen: (watch: string) => void;
   onBells: () => void;
+  /** Up one size, and up two. See the note on the zoom row below. */
+  onZoom: (to: 'week' | 'month') => void;
 }) {
   const { palette, plainMode, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
@@ -159,10 +162,21 @@ export function DayStrip({
         accessibilityLabel={plainMode ? 'Appointments' : 'The bells'}
         style={({ pressed }) => [styles.hold, pressed && styles.pressed]}
       >
+        {/* The next bell by name, not just by time. This row used to read
+            "THE BELLS  15:00" and nothing else, so a bell you had just made
+            was a number in 12pt mono with no way to tell it from any other
+            bell — "I made a Bell and I don't know where it went". */}
         <Text style={styles.holdLabel}>{plainMode ? 'Appointments' : 'The bells'}</Text>
-        <Text style={styles.holdCount}>
-          {bells.length > 0 ? clockLabel(inOrder(bells)[0].at) : '+'}
-        </Text>
+        {bells.length > 0 ? (
+          <View style={styles.bellNext}>
+            <Text style={styles.bellTitle} numberOfLines={1}>
+              {inOrder(bells)[0].title}
+            </Text>
+            <Text style={styles.holdCount}>{clockLabel(inOrder(bells)[0].at)}</Text>
+          </View>
+        ) : (
+          <Text style={styles.holdCount}>+</Text>
+        )}
       </Pressable>
 
       {/* The hold. Not a backlog and not a failure to plan — the ordinary
@@ -178,6 +192,42 @@ export function DayStrip({
           <Text style={styles.holdCount}>{day.hold.length}</Text>
         </Pressable>
       ) : null}
+
+      {/* Up a size, and up two.
+          Two goes at this now, and both failed the same way. First they were
+          bare mono links floating on the ground under the card — "The week ›
+          The month ›" — with nothing around them, which read as leftover
+          text. Then they were a three-cell segmented row on the card's foot,
+          with "This day" filled as the current position: *"the week and
+          month buttons look weird and insignificant."* Both true. A segment
+          you cannot press is a tab bar with a dead tab in it, and one word in
+          an outlined box is not a place.
+          They are destinations, so they are named as destinations, they carry
+          the chevron every other door in the app carries, and they wear the
+          screen's own light. The day is not one of them: you are standing on
+          it. */}
+      <View style={styles.zoom}>
+        {(['week', 'month'] as const).map((to) => (
+          <Pressable
+            key={to}
+            onPress={() => onZoom(to)}
+            accessibilityRole="button"
+            accessibilityLabel={to === 'week' ? 'Chart the week' : 'The tide calendar'}
+            style={({ pressed }) => [styles.zoomStep, pressed && styles.pressed]}
+          >
+            <Text style={styles.zoomStepText} numberOfLines={1}>
+              {to === 'week'
+                ? plainMode
+                  ? 'This week'
+                  : 'The week'
+                : plainMode
+                  ? 'This month'
+                  : 'The tide'}
+            </Text>
+            <Text style={styles.zoomGo}>›</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
@@ -227,6 +277,7 @@ const makeStyles = (c: Palette) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      gap: space.md,
       borderTopWidth: 1,
       borderTopColor: c.lineSoft,
       paddingTop: space.sm,
@@ -235,5 +286,33 @@ const makeStyles = (c: Palette) =>
     },
     holdLabel: { ...type.label, color: c.inkFaint },
     holdCount: { ...type.mono, color: c.inkDim },
+    bellNext: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexShrink: 1 },
+
+    zoom: {
+      flexDirection: 'row',
+      gap: space.sm,
+      borderTopWidth: 1,
+      borderTopColor: c.lineSoft,
+      paddingTop: space.sm,
+      marginTop: space.sm,
+    },
+    // A door, not a tab. 44 because it is one of the things on this screen
+    // most likely to be tapped one-handed.
+    zoomStep: {
+      flex: 1,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: space.sm,
+      borderRadius: radius.sm,
+      borderWidth: 1,
+      borderColor: c.line,
+    },
+    // Cyan without a prop, like `CourseLine` next to it: this card stands on
+    // the home screen and nowhere else, and cyan is the day's own light.
+    zoomStepText: { ...type.mono, fontSize: 13, color: c.cyan },
+    zoomGo: { ...type.mono, fontSize: 13, color: c.cyan },
+    bellTitle: { ...type.body, fontSize: 16, color: c.ink, flexShrink: 1 },
     pressed: { ...press },
   });

@@ -110,14 +110,20 @@ export default function DailyReadScreen() {
           label={t.dials.clarity}
           value={clarity}
           onChange={mark(setClarity)}
-          accent={palette.cyan}
+          accent={palette.violet}
         />
+        {/* Violet, like the other three. This dial was crimson, and crimson
+            in this app means *something has gone wrong* — so a tension of 2
+            on a screen that says "low is better" lit up as a warning about a
+            good answer. The four dials are four facets of one reading, not
+            four lenses: 見聞色 is the light the Daily Read belongs to, and
+            one screen gets one light. */}
         <Dial
           label={t.dials.tension}
           value={tension}
           onChange={mark(setTension)}
           inverted
-          accent={palette.crimson}
+          accent={palette.violet}
         />
 
         {/* The one word after the dials. Optional every single day: a read
@@ -206,9 +212,9 @@ const makeStyles = (c: Palette) =>
       paddingHorizontal: space.md,
       paddingVertical: space.sm,
     },
-    weatherChipOn: { borderColor: c.cyan, backgroundColor: c.cyanSoft },
+    weatherChipOn: { borderColor: c.violet, backgroundColor: c.violetSoft },
     weatherWord: { ...type.small, color: c.inkDim },
-    weatherWordOn: { color: c.cyan },
+    weatherWordOn: { color: c.violet },
 
     sleep: { gap: space.sm },
     sleepLabel: { ...type.heading, color: c.ink },

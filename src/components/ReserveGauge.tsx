@@ -1,4 +1,5 @@
 import { lit } from '../theme/surfaces';
+import { Crackle } from './instruments/Crackle';
 import { spendNote } from '../domain/willReserve';
 import { useHaki } from '../state/HakiProvider';
 import { useMemo } from 'react';
@@ -33,12 +34,12 @@ const STATE_WORD: Record<Reserve['state'], string> = {
  * number stay exactly as legible at 5 as they are at 95.
  */
 export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props) {
-  const { palette, hardening, plainMode } = useHaki();
+  const { palette, hardening, charge, plainMode } = useHaki();
 
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const tone = reserveColor(palette)[reserve.state];
   const filled = reserve.value ?? 0;
-  const glow = lit(tone, plainMode ? 0 : hardening);
+  const glow = lit(tone, plainMode ? 0 : hardening, charge);
   const spent = spendNote(reserve.spend, plainMode);
 
   return (
@@ -58,6 +59,13 @@ export function ReserveGauge({ reserve, intensity, label, unknownLabel }: Props)
         },
       ]}
     >
+      {/* Past black the ground has run out of dark and the plates take the
+          rest of the day — see `domain/hardening.ts`. Modulated by the same
+          intensity the glow is: a Reserve running low is exactly when this
+          app is supposed to visibly run out of Haki alongside you, and a
+          plate crackling over an empty tank would say the opposite. */}
+      <Crackle charge={charge * intensity} tint={tone} seed={5} />
+
       <Text style={styles.label}>{label}</Text>
 
       {reserve.value === null ? (
@@ -103,8 +111,12 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.surface,
       borderWidth: 1,
       borderRadius: radius.lg,
-      padding: space.xl,
-      gap: space.lg,
+      // Was xl/lg, which opened forty points of nothing between a 64-point
+      // figure and the line explaining it, on the screen with the least room
+      // in the app. The number is already the loudest thing here; it does not
+      // also need the most air.
+      padding: space.lg,
+      gap: space.md,
       shadowOffset: { width: 0, height: 0 },
     },
     label: { ...type.label, color: c.inkFaint },

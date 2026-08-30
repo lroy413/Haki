@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte } from 'drizzle-orm';
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import type { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { addDays, todayKey, type DayKey } from '../domain/date';
@@ -1557,6 +1557,33 @@ export async function earliestAct(db: Db): Promise<DayKey | null> {
   ]);
   const found = days.filter((d): d is string => d !== null && d.length > 0).sort();
   return (found[0] as DayKey) ?? null;
+}
+
+/**
+ * The evenings behind you, newest first.
+ *
+ * Day's End writes one line a day and the home screen used to print the most
+ * recent one in full — the most private paragraph in the app, on the screen
+ * you open in a cafe. It is collected here instead: somewhere you go on
+ * purpose to read them back.
+ *
+ * Blank lines are skipped. An emptied field deletes the row rather than
+ * storing a blank, so one arriving here is a row from an older build.
+ */
+export async function eveningsBefore(
+  db: Db,
+  before: DayKey,
+  limit = 30,
+): Promise<{ day: DayKey; line: string }[]> {
+  const rows = await db
+    .select()
+    .from(dayEnd)
+    .where(lt(dayEnd.day, before))
+    .orderBy(desc(dayEnd.day))
+    .limit(limit);
+  return rows.flatMap((r) =>
+    r.line.trim().length > 0 ? [{ day: r.day as DayKey, line: r.line }] : [],
+  );
 }
 
 /* ---------------------------------------------------------------- sea prism */

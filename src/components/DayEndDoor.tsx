@@ -15,12 +15,17 @@ import type { Palette } from '../theme/palettes';
  * furniture. It appears when the evening watch starts and goes when the day
  * turns over.
  *
- * Once the line is written it stays, showing what was said. Coming back to
- * revise an evening at eleven is the same evening; the door has no idea
- * whether you are done and does not ask.
+ * **It does not print what you wrote.** The first cut showed three lines of
+ * the evening's note here, which put the most private paragraph in the app on
+ * the screen you open in a cafe — and made the busiest screen busier with
+ * words you had already read. The note is kept and read back on Day's End
+ * itself, under `Astern`, which is somewhere you go on purpose.
+ *
+ * Coming back to revise an evening at eleven is the same evening; the door has
+ * no idea whether you are done and does not ask.
  */
 export function DayEndDoor({ onOpen }: { onOpen: () => void }) {
-  const { palette, plainMode, hardening, t, dayEnd } = useHaki();
+  const { palette, plainMode, hardening, charge, t, dayEnd } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   // Read once per render, like the day strip's sun. The home screen refreshes
@@ -39,7 +44,7 @@ export function DayEndDoor({ onOpen }: { onOpen: () => void }) {
         styles.card,
         // The signature violet's own light, like the Return's — this belongs
         // to the day rather than to any one lens.
-        lit(palette.violet, plainMode ? 0 : hardening),
+        lit(palette.violet, plainMode ? 0 : hardening, charge),
         pressed && styles.pressed,
       ]}
     >
@@ -47,8 +52,8 @@ export function DayEndDoor({ onOpen }: { onOpen: () => void }) {
         <Text style={[styles.label, { color: palette.violet }]}>{t.dayEndTitle}</Text>
         <Text style={styles.chevron}>›</Text>
       </View>
-      <Text style={written ? styles.said : styles.blurb} numberOfLines={written ? 3 : 2}>
-        {written ? dayEnd : t.dayEndBlurb}
+      <Text style={styles.blurb} numberOfLines={2}>
+        {written ? t.dayEndWritten : t.dayEndBlurb}
       </Text>
     </Pressable>
   );
@@ -68,6 +73,5 @@ const makeStyles = (c: Palette) =>
     label: { ...type.label },
     chevron: { ...type.heading, color: c.inkFaint },
     blurb: { ...type.body, color: c.inkDim, lineHeight: 22 },
-    said: { ...type.body, color: c.ink, lineHeight: 24 },
     pressed: { ...press },
   });

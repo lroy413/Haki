@@ -48,6 +48,7 @@ const KEYS = {
   dayStart: 'voyage.dayStartHour',
   hardeningDay: 'hardening.day',
   hardeningLevel: 'hardening.level',
+  hardeningWeight: 'hardening.weight',
 } as const;
 
 export async function loadSettings(db: Db): Promise<Settings> {
@@ -123,13 +124,23 @@ export async function setDayStartHour(db: Db, hour: number): Promise<number> {
   return clamped;
 }
 
+/**
+ * The day's high-water mark.
+ *
+ * `weight` was appended rather than folded into the level: the charge is
+ * derived from it (see `domain/hardening.ts`), and one recorded number keeps
+ * the two from ever disagreeing about what the day held. A device that has
+ * never written one simply starts today's mark from the acts in front of it.
+ */
 export async function setHardeningMark(
   db: Db,
   day: DayKey,
   level: HardeningLevel,
+  weight: number,
 ): Promise<void> {
   await writeSetting(db, KEYS.hardeningDay, day);
   await writeSetting(db, KEYS.hardeningLevel, String(level));
+  await writeSetting(db, KEYS.hardeningWeight, String(Math.max(0, Math.round(weight))));
 }
 
 function parseKeystone(raw: string | null): KeystoneConfig {

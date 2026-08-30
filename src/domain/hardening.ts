@@ -159,3 +159,97 @@ export function settleLevel(
 export function levelName(level: HardeningLevel): string {
   return (['Unhardened', 'Hardened', 'Set', 'Black'] as const)[level];
 }
+
+/* ========================================================================== *
+ * The charge — what happens once the ground has run out of dark.
+ * ========================================================================== */
+
+/**
+ * Past level 3 the palette had nowhere left to go.
+ *
+ * Eight weight points is a morning: the read, a heading, a sit and two struck
+ * tasks. Everything after that landed on a screen that had already finished
+ * responding — a day with fifteen things in it looked exactly like a day with
+ * eight, which is the app quietly saying that the second half of your day did
+ * not count. The owner's words: *"Haki gets stronger and harder the stronger
+ * the will and drive. The more things I do should continue to harden the
+ * app."*
+ *
+ * The ground cannot answer that, and the reason is the one at the top of this
+ * file: four palettes exist because a continuous fade passes through a mid-grey
+ * no ink is readable on. A fifth palette darker than `Black` would be black on
+ * black. So the ramp continues somewhere else — **into the surfaces**. The
+ * plates take the charge: their edges light, and the discharge that advanced
+ * Armament throws starts to cling to them.
+ *
+ * Four rules, and they are the same four the rest of the ramp lives under:
+ *
+ * 1. **It is never a score, and it is continuous so it cannot become one.**
+ *    The level has four states because contrast forced it; the charge has none
+ *    because nothing forces it, and a value with no rungs has nothing to count.
+ *    You cannot tell 0.6 from 0.7 by looking, which is the point — the same
+ *    licence `lit()` operates under, one size up.
+ * 2. **It saturates.** At `CHARGE_FULL` it stops, so there is nothing to be
+ *    gained from a sixteenth task. Decoration that kept growing would be a
+ *    score wearing a costume, and this app does not have one of those.
+ * 3. **It never goes backwards inside a day**, exactly like the level —
+ *    un-ticking a task by mistake must not visibly undo an afternoon.
+ * 4. **Paper catches nothing and plain mode gets none of it.** The first falls
+ *    out of the arithmetic: the charge cannot exist below level 3, so an
+ *    unhardened screen is structurally incapable of shining. The second has to
+ *    be passed in, because plain mode pins the level to the settled dark —
+ *    which is precisely the value that would burn brightest.
+ */
+
+/** Where the ground stops answering and the surfaces take over. */
+export const CHARGE_FROM = THRESHOLDS[3];
+
+/**
+ * Where the charge saturates.
+ *
+ * Ten points past black, which is about a full day again: the morning that got
+ * you there, plus a training session, an hour in gear and half a dozen struck
+ * tasks. Reachable on a good day and not on an ordinary one, which is the
+ * right frequency for the loudest thing the interface does — and it has to be
+ * genuinely reachable, or the top half of the ramp is dead and the app has
+ * simply moved the point at which it stops answering.
+ */
+export const CHARGE_FULL = 18;
+
+/**
+ * How charged the day is, 0..1.
+ *
+ * Linear on purpose. Every curve with a knee in it makes some region of the
+ * day worth more than another — an ease-out would spend most of the effect on
+ * the first act past black and leave the rest of the afternoon doing nothing,
+ * which is the complaint this was built to answer. Flat is the only shape
+ * under which no act is worth more than any other, and that is the same
+ * fairness Hardness holds one size up when it counts days that had *any*
+ * rather than how much.
+ */
+export function chargeFor(weight: number): number {
+  if (weight <= CHARGE_FROM) return 0;
+  return Math.min(1, (weight - CHARGE_FROM) / (CHARGE_FULL - CHARGE_FROM));
+}
+
+export function chargeOf(acts: Acts): number {
+  return chargeFor(weightOf(acts));
+}
+
+/**
+ * The charge to actually show.
+ *
+ * Same high-water rule as `settleLevel`, and for the same reason — but read
+ * off the recorded *weight* rather than a recorded charge, so the two can
+ * never disagree about what the day held. A mark from an older day is ignored:
+ * waking to an uncharged screen is the whole point of waking to a pale one.
+ */
+export function settleCharge(
+  acts: Acts,
+  today: DayKey,
+  recorded: { day: DayKey; weight: number } | null,
+): number {
+  const weight = weightOf(acts);
+  if (!recorded || recorded.day !== today) return chargeFor(weight);
+  return chargeFor(Math.max(weight, recorded.weight));
+}
