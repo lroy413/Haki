@@ -136,6 +136,28 @@ type HakiState = {
   day: number;
   t: Strings;
   plainMode: boolean;
+  /**
+   * Show a written value now, before the database has been asked about it.
+   *
+   * The screens that write through a door — the Daily Read and the Course —
+   * close the door in the same frame as the tap and let the row land behind
+   * it. That is right, and it left the *result* of the write waiting on a
+   * round trip: the home screen refreshes when it regains focus, which
+   * happens before the write is even issued, and the correct picture only
+   * arrives on the refresh that follows the write.
+   *
+   * The owner: _"I'd hit today and it would take me to the main screen but
+   * the course didn't show up... same with my daily read, I had to close and
+   * reopen and then it was there."_
+   *
+   * So the write says what it wrote. This is the app's own rule — anything
+   * that toggles holds its own optimistic state and drops it when the stored
+   * value agrees — applied to the two doors that never had it. It cannot
+   * disagree with the database for longer than one refresh, and if the write
+   * fails the refresh puts the old value straight back.
+   */
+  showCourse: (next: Course | null) => void;
+  showRead: (next: (DailyRead & { weather: string | null }) | null) => void;
   refresh: () => Promise<void>;
 };
 
@@ -445,6 +467,20 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     settings.dayStartHour,
   ]);
 
+  /**
+   * What a write just wrote, shown before the database is asked.
+   *
+   * Deliberately not a cache and not a queue: one value, replaced by the next
+   * refresh whatever it says. If the write failed, the refresh puts the old
+   * value back — which is the correct outcome and the reason this cannot lie
+   * for longer than a moment.
+   */
+  const showCourse = useCallback((next: Course | null) => setCourse(next), []);
+  const showRead = useCallback(
+    (next: (DailyRead & { weather: string | null }) | null) => setRead(next),
+    [],
+  );
+
   useEffect(() => {
     void refresh();
   }, [refresh]);
@@ -559,6 +595,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       bells,
       bearing,
       dayEnd,
+      showCourse,
+      showRead,
       day: daysAtSea(settings.setSailAt, todayKey()),
       t: strings(settings.plainMode),
       plainMode: settings.plainMode,
@@ -583,6 +621,8 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
       settings.setSailAt,
       crew,
       palette,
+      showCourse,
+      showRead,
       refresh,
     ],
   );

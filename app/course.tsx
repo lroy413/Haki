@@ -35,7 +35,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function CourseScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { refresh, palette, t } = useHaki();
+  const { refresh, showCourse, palette, t } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const today = todayKey();
@@ -66,6 +66,12 @@ export default function CourseScreen() {
       // The screen answers the finger: the haptic lands and the sheet
       // closes in this frame; the row lands behind the closed door.
       void Haptics.selectionAsync();
+      // Say what was written before the door closes. The home screen
+      // refreshes when it regains focus — which happens *here*, before the
+      // row below has even been issued — so without this the right picture
+      // waits on the refresh two lines down winning a race it should never
+      // have been in. See `showCourse` in HakiProvider.
+      if (day === today) showCourse(normaliseHeading(value) ? { day, heading: value } : null);
       router.back();
       await setCourse(db, day, value);
       await refresh();
