@@ -552,6 +552,39 @@ cannot simply be cranked until nothing survives.
 - **Quiet is the ordinary answer**, and the copy says so rather than treating
   an empty result as a failure of the app or of the life.
 
+## A door that writes behind itself says what it wrote
+
+The Daily Read and the Course both close in the same frame as the tap and let
+the row land behind the closed door. That is the answers-the-finger rule and it
+is right. What was missing is the other half: the **result** of the write was
+left waiting on a round trip.
+
+The home screen refreshes when it regains focus, and it regains focus _at
+`router.back()`_ — before the write below it has even been issued. So the
+correct picture only ever arrived on the refresh that runs after the write, and
+the screen was relying on that refresh winning a race it should never have been
+in. The owner: _"I'd hit today and it would take me to the main screen but the
+course didn't show up... same with my daily read, I had to close and reopen and
+then it was there."_
+
+- **`showCourse` and `showRead` on the provider are the fix**, and they are the
+  app's own law — anything that toggles holds its own optimistic state and
+  drops it when the stored value agrees — applied to the two doors that never
+  had it.
+- **Said before the door closes, never after the write.** After `router.back()`
+  it would still beat the round trip; after the write it would be back behind
+  the same race. `showsTheWrite.test.ts` reads both screens for the ordering,
+  because that ordering _is_ the fix and a later edit could quietly undo it.
+- **Optimistic is a head start, never a replacement.** The write still happens
+  and the refresh still follows it. If the write failed, the refresh puts the
+  old value straight back — which is why this can never lie for longer than a
+  moment.
+- **A plain setter, not a cache and not a queue.** One value, replaced by the
+  next refresh whatever it says.
+- The `refreshes` counter is still correct and still necessary — this does not
+  replace it. It stops a slow read overwriting a fast one; this stops the
+  screen having to wait for either.
+
 ## The reload waits for the words
 
 The app threw a journal entry away. That is the worst thing it can do, and it

@@ -31,7 +31,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function DailyReadScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { read, t, refresh, palette } = useHaki();
+  const { read, t, refresh, showRead, palette } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const [energy, setEnergy] = useState<number | null>(read?.energy ?? null);
@@ -77,6 +77,10 @@ export default function DailyReadScreen() {
       // The screen answers the finger: sound and dismissal happen in this
       // frame, and the rows land behind the closed door.
       play('observationRead');
+      // Say what was written before the door closes — the home screen
+      // refreshes on focus, which happens here, before the row below is
+      // issued. See `showRead` in HakiProvider.
+      showRead({ energy, mood, clarity, tension, weather: weather ?? null });
       router.back();
 
       await saveRead(db, { energy, mood, clarity, tension }, todayKey(), weather);
