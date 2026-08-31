@@ -552,6 +552,48 @@ cannot simply be cranked until nothing survives.
 - **Quiet is the ordinary answer**, and the copy says so rather than treating
   an empty result as a failure of the app or of the life.
 
+## The reload waits for the words
+
+The app threw a journal entry away. That is the worst thing it can do, and it
+is worse than a crash, because a crash is visible and this looked like the
+entry had simply never been there.
+
+The shell asks the service worker for an update on every return to the
+foreground and reloads when a new worker takes over — right, and necessary: a
+standalone app on iOS is resumed for days without ever navigating, so without
+that reload a shipped fix sits undelivered indefinitely. What was wrong is
+that `window.location.reload()` was **unconditional**. The editor autosaves
+800ms after the last keystroke, and a deploy is the one event guaranteed to
+change the controller, so shipping was itself the hazard.
+
+- **A screen holding unsaved words says so, and the shell asks before it
+  throws the page away.** `state/writing.ts` publishes `__HAKI_WRITING__` on
+  `window` — the same seam `__HAKI_SHELL__` and `__HAKI_BUILD__` cross,
+  because the shell is parsed before the bundle and cannot import anything.
+  It is a **set keyed by who is holding**, not a boolean: a note releasing
+  must not clear the hold a half-written entry still has.
+- **Held from the keystroke, released after the write lands.** Marking it
+  clean when the write is _scheduled_ reopens the exact window this closes.
+- **Held is not dropped.** The shell re-checks every second and reloads the
+  moment the words are down; an update that quietly never arrives is the bug
+  the reload exists to prevent.
+- **Every editor flushes when the app goes away.** `AppState` covers the phone
+  being locked and the tab being hidden through one path, and the unmount does
+  it too — so the hold clears within a moment rather than at the end of a
+  debounce, and leaving without pressing Done cannot strand it.
+- **`__HAKI_WRITING__` is never a "busy" flag.** The one question it answers
+  is whether throwing this page away right now would lose words.
+
+**And the build asserts on the shell it just wrote.** The whole injected script
+lives inside a template literal, so one stray backtick in a comment ends it and
+everything after that point silently stops being injected — which is exactly
+what happened to the first cut of this fix. It was written, built, and driven
+in a browser, and none of that noticed, because the runtime check was reading
+the flag from the _bundle_ rather than from the shell. `MUST_CARRY` in
+`tools/pwa-head.mjs` now fails the build when the produced HTML is missing any
+of the four markers the shell has to carry. Assert on the output, not the
+source: a template literal that breaks can still parse.
+
 ## The hold, and asking the browser to keep it
 
 The app's whole promise is that everything lives on this device and the export

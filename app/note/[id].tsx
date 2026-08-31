@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AppState,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +13,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '../../src/db/client';
 import { createNote, deleteNote, getNote, updateNote } from '../../src/db/repo';
 import { useSingleFlight } from '../../src/state/useSingleFlight';
+import { holdWords } from '../../src/state/writing';
 import { useHaki } from '../../src/state/HakiProvider';
 import { WritingBar } from '../../src/components/WritingBar';
 import type { Edit, Selection } from '../../src/domain/markdown';
@@ -20,6 +22,8 @@ import { press } from '../../src/theme/surfaces';
 import type { Palette } from '../../src/theme/palettes';
 
 const AUTOSAVE_MS = 800;
+/** Who is holding words, for `state/writing.ts`. */
+const HOLD = 'note';
 
 /**
  * One loose page.
@@ -90,9 +94,17 @@ export default function NoteScreen() {
     };
   }, [db, id, router]);
 
+  /** The pending patch, written now rather than in 800ms. See `writing.ts`. */
+  const flush = useRef<() => Promise<void>>(async () => {});
+
   useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next !== 'active') void flush.current();
+    });
     return () => {
+      sub.remove();
       if (timer.current) clearTimeout(timer.current);
+      void flush.current();
     };
   }, []);
 
@@ -118,16 +130,32 @@ export default function NoteScreen() {
    * exactly never. Accumulating into a ref and flushing the whole thing is
    * the fix, and it is why this is not just `setTimeout(..., patch)`.
    */
+  const store = useCallback(async () => {
+    const next = pending.current;
+    pending.current = {};
+    if (Object.keys(next).length === 0) {
+      holdWords(HOLD, false);
+      return;
+    }
+    const rid = await ensureRow();
+    if (rid == null) return;
+    await updateNote(db, rid, next);
+    holdWords(HOLD, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [db]);
+
   function save(patch: { title?: string; body?: string }) {
     pending.current = { ...pending.current, ...patch };
+    // Held from the keystroke, not from the write.
+    holdWords(HOLD, true);
     if (timer.current) clearTimeout(timer.current);
+    flush.current = async () => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+      await store();
+    };
     timer.current = setTimeout(() => {
-      void (async () => {
-        const next = pending.current;
-        pending.current = {};
-        const rid = await ensureRow();
-        if (rid != null) await updateNote(db, rid, next);
-      })();
+      void store();
     }, AUTOSAVE_MS);
   }
 
@@ -146,6 +174,7 @@ export default function NoteScreen() {
   function remove() {
     const currentId = rowId.current;
     if (timer.current) clearTimeout(timer.current);
+    holdWords(HOLD, false);
     if (currentId == null) {
       router.back();
       return;

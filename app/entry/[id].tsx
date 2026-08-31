@@ -1,7 +1,9 @@
 import { useHaki } from '../../src/state/HakiProvider';
 import { useSingleFlight } from '../../src/state/useSingleFlight';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { holdWords } from '../../src/state/writing';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AppState,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +22,8 @@ import { press } from '../../src/theme/surfaces';
 import type { Palette } from '../../src/theme/palettes';
 
 const AUTOSAVE_MS = 800;
+/** Who is holding words, for `state/writing.ts`. */
+const HOLD = 'entry';
 
 /**
  * The entry editor. Plain Markdown in a text field — nothing proprietary,
@@ -89,9 +93,28 @@ export default function EntryScreen() {
     };
   }, [db, id, router]);
 
+  /**
+   * The pending write, run now rather than in 800ms.
+   *
+   * Everything that can end this page without going through Done comes
+   * through here first: the app being backgrounded, and the shell reloading
+   * for a new service worker. That reload used to fire mid-sentence and it
+   * cost a real entry — see `state/writing.ts`.
+   */
+  const flush = useRef<() => Promise<void>>(async () => {});
+
   useEffect(() => {
+    // react-native-web maps this onto visibilitychange, so one path covers
+    // the phone being locked and the tab being hidden.
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next !== 'active') void flush.current();
+    });
     return () => {
+      sub.remove();
       if (timer.current) clearTimeout(timer.current);
+      // Leaving with words still in the timer would strand the hold and stop
+      // the shell reloading for good, so the last act is to write them.
+      void flush.current();
     };
   }, []);
 
@@ -114,14 +137,32 @@ export default function EntryScreen() {
     }
   }
 
+  /** Write whatever the field is holding, and let go of it. */
+  const store = useCallback(
+    async (text: string) => {
+      const rid = await ensureRow();
+      if (rid == null) return;
+      await updateEntry(db, rid, text);
+      holdWords(HOLD, false);
+    },
+    // `ensureRow` is stable enough for this — it only reads refs and `db`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [db],
+  );
+
   function onChange(next: string) {
     setBody(next);
+    // Held from the keystroke, not from the write: the whole point is the
+    // gap between the two.
+    holdWords(HOLD, true);
     if (timer.current) clearTimeout(timer.current);
+    flush.current = async () => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+      await store(next);
+    };
     timer.current = setTimeout(() => {
-      void (async () => {
-        const rid = await ensureRow();
-        if (rid != null) await updateEntry(db, rid, next);
-      })();
+      void store(next);
     }, AUTOSAVE_MS);
   }
 
@@ -138,6 +179,7 @@ export default function EntryScreen() {
     if (timer.current) clearTimeout(timer.current);
 
     // Nothing was ever written — just leave.
+    holdWords(HOLD, false);
     if (currentId == null) {
       router.back();
       return;
@@ -165,6 +207,7 @@ export default function EntryScreen() {
 
       // An entry you opened and left blank is not worth a row.
       if (rowId.current == null && !body.trim()) {
+        holdWords(HOLD, false);
         router.back();
         return;
       }
@@ -172,6 +215,7 @@ export default function EntryScreen() {
       const rid = await ensureRow();
       if (rid == null) return; // error is on screen; do not lose the text
       await updateEntry(db, rid, body);
+      holdWords(HOLD, false);
       router.back();
     });
   }

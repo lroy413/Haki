@@ -469,11 +469,39 @@ const head = (build) => `${MARKER}
             });
 
           if (navigator.serviceWorker.controller) {
+            /* The reload waits for the words.
+
+               This fired unconditionally once, and it cost the owner a journal
+               entry: the editor autosaves 800ms after the last keystroke, and
+               a deploy is the one thing guaranteed to change the controller.
+               So the page is only thrown away when throwing it away is free.
+               __HAKI_WRITING__ is published by src/state/writing.ts; if the
+               bundle has not parsed yet there is nothing on screen to lose. */
             var reloading = false;
-            navigator.serviceWorker.addEventListener('controllerchange', function () {
-              if (reloading) return;
+            var waiting = false;
+            var unsaved = function () {
+              try {
+                return !!(window.__HAKI_WRITING__ && window.__HAKI_WRITING__());
+              } catch (e) {
+                return false;
+              }
+            };
+            var go = function () {
+              if (reloading || unsaved()) return false;
               reloading = true;
               window.location.reload();
+              return true;
+            };
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+              if (waiting) return;
+              waiting = true;
+              if (go()) return;
+              /* Held. Every screen that holds words also flushes them when the
+                 app goes to the background, so this clears within a debounce
+                 of the writing stopping. */
+              var t = setInterval(function () {
+                if (go()) clearInterval(t);
+              }, 1000);
             });
           }
         });
@@ -527,6 +555,38 @@ if (reset !== -1 && reset > html.indexOf(MARKER)) {
   console.error(
     "pwa-head: Expo's reset now comes after the shell, so `#root { height: 100% }` wins " +
       'and the app is measuring the viewport again. Move the injection below it.',
+  );
+  process.exit(1);
+}
+
+/*
+ * What the shell must actually carry.
+ *
+ * The whole script above lives inside a template literal, so **one stray
+ * backtick in a comment ends it** — and everything after that point silently
+ * stops being injected. That is not hypothetical: the guard that stops a
+ * service-worker takeover reloading the page mid-sentence was written, built,
+ * and driven in a browser, and none of it noticed that the guard had never
+ * reached the page at all. The runtime test passed because the flag it was
+ * reading comes from the bundle, not from here.
+ *
+ * So the build asserts on the string it is about to write. Losing a fix
+ * silently is worse than failing loudly, and this one is load-bearing enough
+ * to have cost a journal entry.
+ */
+const MUST_CARRY = [
+  ['the update check', 'controllerchange'],
+  ['the unsaved-writing guard', '__HAKI_WRITING__'],
+  ['the build stamp', '__HAKI_BUILD__'],
+  ['the shell report', '__HAKI_SHELL__'],
+];
+const missing = MUST_CARRY.filter(([, mark]) => !html.includes(mark));
+if (missing.length > 0) {
+  console.error(
+    'pwa-head: the injected shell is missing ' +
+      missing.map(([name, mark]) => `${name} (${mark})`).join(', ') +
+      '. A stray backtick in the script above ends its template literal and ' +
+      'drops everything after it.',
   );
   process.exit(1);
 }
