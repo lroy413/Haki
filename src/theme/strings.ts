@@ -163,6 +163,10 @@ export type Strings = {
   searchLog: string;
   searchNotes: string;
   weatherLabel: string;
+  weatherDayTitle: string;
+  weatherName: string;
+  weatherRun: string;
+  weatherAdd: string;
   sailCta: string;
   sailWeekLabel: string;
   sailNeedlesLabel: string;
@@ -419,6 +423,10 @@ const haki: Strings = {
   searchLog: 'Find a line',
   searchNotes: 'Find a page',
   weatherLabel: 'Inner weather',
+  weatherDayTitle: 'The glass',
+  weatherName: 'Name it',
+  weatherRun: 'The day so far',
+  weatherAdd: 'Log the reading',
   sailCta: 'Set sail',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'The needles',
@@ -651,6 +659,10 @@ const plain: Strings = {
   searchLog: 'Search entries',
   searchNotes: 'Search notes',
   weatherLabel: 'Your weather',
+  weatherDayTitle: 'The day',
+  weatherName: 'How is it now',
+  weatherRun: 'Today so far',
+  weatherAdd: 'Save it',
   sailCta: 'Start the review',
   sailWeekLabel: 'The week behind',
   sailNeedlesLabel: 'Your goals',

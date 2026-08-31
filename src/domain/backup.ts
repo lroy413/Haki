@@ -145,6 +145,20 @@ export type SeaPrismHitBackup = {
   createdAt: number;
 };
 
+/**
+ * A reading of the weather taken after the morning's.
+ *
+ * Keyed by day and nothing else, so it round-trips untouched — there is no
+ * parent row to lose. A table outside the export is a data-loss trap when the
+ * app's whole promise is that the export is the only way anything moves.
+ */
+export type WeatherReadingBackup = {
+  day: string;
+  word: string;
+  note: string;
+  createdAt: number;
+};
+
 /** A thing you are trying not to do. */
 export type BreakBackup = {
   name: string;
@@ -288,6 +302,7 @@ export type BackupTables = {
   note: NoteBackup[];
   seaPrism: SeaPrismBackup[];
   seaPrismHit: SeaPrismHitBackup[];
+  weatherReading: WeatherReadingBackup[];
   breakItem: BreakBackup[];
   urge: UrgeBackup[];
   sounding: SoundingBackup[];
@@ -333,6 +348,7 @@ export const EMPTY_TABLES: BackupTables = {
   note: [],
   seaPrism: [],
   seaPrismHit: [],
+  weatherReading: [],
   breakItem: [],
   urge: [],
   sounding: [],
@@ -464,6 +480,7 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
   // than throwing away somebody's row.
   seaPrism: (r) => str(r.kind) && str(r.name) && num(r.createdAt) && nullableNum(r.retiredAt),
   seaPrismHit: (r) => num(r.stoneKey) && str(r.day) && num(r.createdAt),
+  weatherReading: (r) => str(r.day) && str(r.word) && str(r.note) && num(r.createdAt),
   breakItem: (r) => str(r.name) && num(r.createdAt) && nullableNum(r.retiredAt),
   urge: (r) => num(r.breakKey) && str(r.day) && str(r.outcome) && num(r.createdAt),
   // The line is never empty — an emptied field deletes the row rather than
@@ -628,6 +645,7 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   seaPrism: (r) => `${r.kind} ${r.name}`,
   // One tap per stone per moment.
   seaPrismHit: (r) => `${r.stoneKey} ${r.createdAt}`,
+  weatherReading: (r) => `${r.day} ${r.createdAt}`,
   // A break is its name, however many devices the file has been through.
   breakItem: (r) => String(r.name),
   // One urge per break per moment.

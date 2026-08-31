@@ -126,7 +126,12 @@ describe('inner weather', () => {
 
   it('says nothing at all until a word has been given', () => {
     expect(skyLine(recentWeather([], days))).toBeNull();
-    // And what stands in is an offer rather than an absence.
-    expect(skyEmptyLine()).toMatch(/shows up here/);
+    // And what stands in is an offer rather than an absence — it names a
+    // way in rather than reporting that there is nothing.
+    for (const plain of [false, true]) {
+      const offer = skyEmptyLine(plain);
+      expect(offer, offer).toMatch(/\b(name|add)\b/i);
+      expect(offer, offer).not.toMatch(/\bno\b|\bnone\b|\bnothing\b|\d/i);
+    }
   });
 });

@@ -11,7 +11,13 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { PageHeading, useTabInsets } from '../../src/components/PageHeading';
 import { useStore } from '../../src/db/client';
-import { listEntries, allEntries, asternToday, weatherBetween } from '../../src/db/repo';
+import {
+  listEntries,
+  allEntries,
+  asternToday,
+  weatherBetween,
+  shiftsBetween,
+} from '../../src/db/repo';
 import type { EntryRow } from '../../src/db/schema';
 import { useHaki } from '../../src/state/HakiProvider';
 import { daysAtSea, shortDay } from '../../src/domain/date';
@@ -36,6 +42,7 @@ import { recentWeather, type Sky } from '../../src/domain/weather';
 import { foundLine, isSearching, matches } from '../../src/domain/search';
 import { SearchField, Excerpt } from '../../src/components/SearchField';
 import { SkyRun } from '../../src/components/SkyRun';
+import { Volume } from '../../src/components/Volume';
 import { darkest, type Palette } from '../../src/theme/palettes';
 
 /** How much the floating button takes on top of the bar's own clearance. */
@@ -68,6 +75,9 @@ const SKY_DAYS = 14;
  * line, typed where you already are, folded into today's entry. See
  * `domain/logbook.ts`.
  */
+/** One item: the volume. Hoisted, or every render remounts the book. */
+const VOLUME = [0];
+
 export default function ObservationScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
@@ -132,8 +142,11 @@ export default function ObservationScreen() {
         const days = Array.from({ length: SKY_DAYS }, (_, i) =>
           addDays(today, -(SKY_DAYS - 1 - i)),
         );
-        const reads = await weatherBetween(db, days[0], today);
-        if (!cancelled) setSky(recentWeather(reads, days));
+        const [reads, shifts] = await Promise.all([
+          weatherBetween(db, days[0], today),
+          shiftsBetween(db, days[0], today),
+        ]);
+        if (!cancelled) setSky(recentWeather(reads, days, shifts));
       })();
       return () => {
         cancelled = true;
@@ -147,8 +160,10 @@ export default function ObservationScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <FlatList
-        data={shown}
-        keyExtractor={(item) => String(item.id)}
+        // One item, and it is the whole archive: the entries are pages of a
+        // book now rather than rows of a list. See `components/Volume.tsx`.
+        data={VOLUME}
+        keyExtractor={() => 'volume'}
         // The heading scrolls with the list rather than sitting in a band
         // above it, and the bottom padding clears the floating bar *and* the
         // button stacked on top of it.
@@ -387,35 +402,24 @@ export default function ObservationScreen() {
             />
           </View>
         }
-        ListEmptyComponent={searching ? null : <Text style={styles.empty}>{t.logEmpty}</Text>}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => router.push(`/entry/${item.id}`)}
-            accessibilityRole="button"
-            accessibilityLabel={`Open the entry from ${item.day}`}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-          >
-            <Text style={styles.rowDay}>
-              {/* An entry written before the voyage's start day has no day
-                  number — counting back from set sail gave "Day -4 at sea",
-                  which is arithmetic showing through. It keeps its date. */}
-              {daysAtSea(settings.setSailAt, item.day) >= 1
-                ? `${t.daysAtSea(daysAtSea(settings.setSailAt, item.day))} · ${shortDay(item.day)}`
-                : shortDay(item.day)}
-            </Text>
-            {searching ? (
-              <Excerpt
-                text={item.body}
-                query={query}
-                tint={palette.violet}
-                fallback={item.body.trim() || 'Empty entry'}
-              />
-            ) : (
-              <Text style={styles.rowBody} numberOfLines={2}>
-                {item.body.trim() || 'Empty entry'}
-              </Text>
-            )}
-          </Pressable>
+        renderItem={() => (
+          <Volume
+            pages={shown.map((e) => ({
+              id: e.id,
+              // An entry written before the voyage's start day has no day
+              // number — counting back from set sail gave "Day -4 at sea",
+              // which is arithmetic showing through. It keeps its date.
+              head:
+                daysAtSea(settings.setSailAt, e.day) >= 1
+                  ? `${t.daysAtSea(daysAtSea(settings.setSailAt, e.day))} · ${shortDay(e.day)}`
+                  : shortDay(e.day),
+              body: e.body,
+            }))}
+            tint={palette.violet}
+            query={searching ? query : ''}
+            onOpen={(id) => router.push(`/entry/${id}`)}
+            emptyLine={searching ? '' : t.logEmpty}
+          />
         )}
       />
 

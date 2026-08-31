@@ -521,6 +521,32 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS urge_break ON urge (break_key);
     `,
   },
+  {
+    version: 19,
+    up: `
+      -- The weather shifts, and the app could only hear the morning.
+      --
+      -- The word was asked for once, on waking, and there was nowhere to say
+      -- that it changed at two in the afternoon or what was going on when it
+      -- did. The owner's reason for wanting it is the whole design brief:
+      -- learning to notice your own state and what moves it.
+      --
+      -- The morning's word stays on daily_read, because that is the row it is
+      -- given in and it is already in every backup ever exported. These are
+      -- the shifts. No severity column and no count anywhere — a tally of how
+      -- often your weather moved is a steadiness score, and the vocabulary was
+      -- chosen for having no scale in it at all.
+      CREATE TABLE IF NOT EXISTS weather_reading (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        day TEXT NOT NULL,
+        word TEXT NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS weather_reading_day_idx ON weather_reading (day);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

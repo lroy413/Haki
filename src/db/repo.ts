@@ -23,6 +23,7 @@ import { normaliseValue, type Value } from '../domain/flag';
 import type { EternalPose } from '../domain/eternal';
 import { normaliseUnit, type Sounding } from '../domain/soundings';
 import { asternOn, type Astern } from '../domain/astern';
+import { MAX_NOTE } from '../domain/weather';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
 import type { DayRecord } from '../domain/foresight';
@@ -59,6 +60,7 @@ import {
   seaPrismHit,
   urge,
   trainingSession,
+  weatherReading,
   type CarriedRow,
   type EntryRow,
   type SailingRow,
@@ -1709,6 +1711,77 @@ export async function weatherBetween(
     .where(and(gte(dailyRead.day, from), lte(dailyRead.day, to)))
     .orderBy(asc(dailyRead.day));
   return rows.map((r) => ({ day: r.day, weather: r.weather }));
+}
+
+/** Every shift logged in the window, oldest first. See `domain/weather.ts`. */
+export async function shiftsBetween(
+  db: Db,
+  from: DayKey,
+  to: DayKey,
+): Promise<{ day: string; word: string; note: string; at: number }[]> {
+  const rows = await db
+    .select()
+    .from(weatherReading)
+    .where(and(gte(weatherReading.day, from), lte(weatherReading.day, to)))
+    .orderBy(asc(weatherReading.createdAt));
+  return rows.map((r) => ({ day: r.day, word: r.word, note: r.note, at: r.createdAt }));
+}
+
+/** One day, whole: the morning's word and every shift after it. */
+export async function weatherDay(
+  db: Db,
+  day: DayKey,
+): Promise<{
+  morning: { word: string | null; at: number } | null;
+  shifts: { id: number; word: string; note: string; at: number }[];
+}> {
+  const [read] = await db
+    .select({ weather: dailyRead.weather, at: dailyRead.createdAt })
+    .from(dailyRead)
+    .where(eq(dailyRead.day, day));
+  const rows = await db
+    .select()
+    .from(weatherReading)
+    .where(eq(weatherReading.day, day))
+    .orderBy(asc(weatherReading.createdAt));
+  return {
+    morning: read ? { word: read.weather, at: read.at } : null,
+    shifts: rows.map((r) => ({ id: r.id, word: r.word, note: r.note, at: r.createdAt })),
+  };
+}
+
+/**
+ * Name the weather again.
+ *
+ * Always an insert. A shift is a moment, not a state to be corrected — naming
+ * it Fog at two and Bright at six is two true readings, and overwriting the
+ * first would delete an afternoon that really happened.
+ */
+export async function logShift(
+  db: Db,
+  word: string,
+  note: string,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  await db.insert(weatherReading).values({
+    day,
+    word,
+    note: note.trim().slice(0, MAX_NOTE),
+    createdAt: now(),
+  });
+}
+
+/** The line, changed. The word and the moment are what happened; this is not. */
+export async function reword(db: Db, id: number, note: string): Promise<void> {
+  await db
+    .update(weatherReading)
+    .set({ note: note.trim().slice(0, MAX_NOTE) })
+    .where(eq(weatherReading.id, id));
+}
+
+/** A mis-tap must be as cheap as the tap was. */
+export async function unlogShift(db: Db, id: number): Promise<void> {
+  await db.delete(weatherReading).where(eq(weatherReading.id, id));
 }
 
 /* -------------------------------------------------------------- break list */
