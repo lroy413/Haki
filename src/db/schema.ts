@@ -34,6 +34,33 @@ export const sleepLog = sqliteTable(
   (t) => [uniqueIndex('sleep_log_day_idx').on(t.day)],
 );
 
+/**
+ * A reading of the weather, taken after the morning's.
+ *
+ * The morning's own word lives on `daily_read` because that is the row it is
+ * given in; these are the shifts. Keyed by day and stamped with the moment, so
+ * the watch it belongs to is arithmetic (`watchAt`) rather than a second
+ * column that could disagree with the first.
+ *
+ * `note` is what was happening, and it is optional like everything here. There
+ * is deliberately no severity, no intensity and no count anywhere: see
+ * `domain/weather.ts` for why a tally of how often your weather moved would be
+ * a steadiness score wearing a nautical hat.
+ */
+export const weatherReading = sqliteTable(
+  'weather_reading',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    day: text('day').notNull(),
+    word: text('word').notNull(),
+    note: text('note').notNull().default(''),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('weather_reading_day_idx').on(t.day)],
+);
+
+export type WeatherReadingRow = typeof weatherReading.$inferSelect;
+
 /** The Log. Markdown in, Markdown out — never a proprietary blob. */
 export const entry = sqliteTable('entry', {
   id: integer('id').primaryKey({ autoIncrement: true }),

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { firstLine, insertRule, plainLine, toggleMark, togglePrefix } from '../markdown';
+import {
+  activeMarks,
+  activePrefixes,
+  firstLine,
+  insertRule,
+  plainLine,
+  toggleMark,
+  togglePrefix,
+} from '../markdown';
 
 /**
  * Write the selection as visible guillemets, so a failure reads at a glance.
@@ -130,6 +138,118 @@ describe('prefixing lines', () => {
     const { text, selection } = at('keep\n«change»\nkeep');
     const out = togglePrefix(text, selection, 'bullet').text;
     expect(out).toBe('keep\n- change\nkeep');
+  });
+});
+
+describe('one block type at a time', () => {
+  /**
+   * Heading, bullet, checkbox and quote are four answers to the same question
+   * — what kind of line is this — so pressing one on a line that already has
+   * another has to convert it. The first cut just looked for its own two
+   * characters, so Bullet on `- [ ] bread` found the `- `, took it off, and
+   * left `[ ] bread`: the syntax showing through, from a button that was only
+   * trying to help.
+   */
+  it('converts a checkbox to a bullet rather than shaving two characters off it', () => {
+    const { text, selection } = at('«- [ ] bread»');
+    expect(togglePrefix(text, selection, 'bullet').text).toBe('- bread');
+  });
+
+  it('converts a bullet to a checkbox rather than stacking one on it', () => {
+    const { text, selection } = at('«- bread»');
+    expect(togglePrefix(text, selection, 'task').text).toBe('- [ ] bread');
+  });
+
+  it('converts a heading to a quote and back', () => {
+    const heading = at('«## Monday»');
+    const quoted = togglePrefix(heading.text, heading.selection, 'quote');
+    expect(quoted.text).toBe('> Monday');
+    expect(togglePrefix(quoted.text, quoted.selection, 'heading').text).toBe('## Monday');
+  });
+
+  it('takes a heading off whatever level it was typed at', () => {
+    // The button writes `## `, but `# Monday` is a heading by anybody's
+    // reading and pressing H on it should take it off, not make it `## # `.
+    expect(togglePrefix('# Monday', { start: 8, end: 8 }, 'heading').text).toBe('Monday');
+  });
+
+  it('leaves a caret in the line it was in, never in front of it', () => {
+    // The caret sat inside the marker that just came off, which is a place
+    // that no longer exists. It belongs at the front of what is left.
+    const out = togglePrefix('- [ ] bread', { start: 3, end: 3 }, 'task');
+    expect(out.text).toBe('bread');
+    expect(out.selection).toEqual({ start: 0, end: 0 });
+  });
+});
+
+describe('what the bar shows back', () => {
+  /**
+   * The half of a toolbar that teaches it. Everything here is read by the
+   * buttons to decide whether they are lit, and every answer has to be one a
+   * press would actually act on — a key that says it is on and then turns
+   * itself on again is worse than a key that says nothing.
+   */
+  it('is nothing at all on ordinary text', () => {
+    const { text, selection } = at('plain «words» here');
+    expect(activeMarks(text, selection)).toEqual([]);
+    expect(activePrefixes(text, selection)).toEqual([]);
+  });
+
+  it('sees the markers inside the selection, and just outside it', () => {
+    const inside = at('hello «**world**»');
+    expect(activeMarks(inside.text, inside.selection)).toEqual(['bold']);
+
+    const outside = at('hello **«world»**');
+    expect(activeMarks(outside.text, outside.selection)).toEqual(['bold']);
+  });
+
+  it('sees a caret simply put down in the middle of a bold word', () => {
+    // The common case by a mile: you tap into a word to fix a typo. The
+    // selection is empty and neither of the two wrapped cases applies.
+    const { text, selection } = at('a **wor«»ld** b');
+    expect(activeMarks(text, selection)).toEqual(['bold']);
+  });
+
+  it('does not see a run the caret is merely near', () => {
+    const before = at('a «»**world** b');
+    expect(activeMarks(before.text, before.selection)).toEqual([]);
+
+    const after = at('a **world**«» b');
+    expect(activeMarks(after.text, after.selection)).toEqual([]);
+  });
+
+  it('does not read a marked run across a line break', () => {
+    // `**` on one line and `**` on the next is not a bold run, it is two
+    // unfinished ones — and a selection spanning them is inside neither.
+    const { text, selection } = at('**one«\ntwo**»');
+    expect(activeMarks(text, selection)).toEqual([]);
+  });
+
+  it('reports two marks when the text is wearing two', () => {
+    const { text, selection } = at('**_«both»_**');
+    expect(activeMarks(text, selection).sort()).toEqual(['bold', 'italic']);
+  });
+
+  it('lights one prefix per line, never a checkbox and a bullet at once', () => {
+    // `- [ ] bread` starts with `- `, so the naive read lights Bullet as well
+    // and the bar reports two block types on one line.
+    const { text, selection } = at('«- [ ] bread»');
+    expect(activePrefixes(text, selection)).toEqual(['task']);
+  });
+
+  it('agrees with removal about what counts as prefixed', () => {
+    // Two of three bulleted is not a bulleted selection — it is a selection
+    // you are about to bullet, and the button must not claim otherwise.
+    const mixed = at('«- one\ntwo\n- three»');
+    expect(activePrefixes(mixed.text, mixed.selection)).toEqual([]);
+
+    const all = at('«- one\n- two»');
+    expect(activePrefixes(all.text, all.selection)).toEqual(['bullet']);
+  });
+
+  it('still sees a checkbox that has been ticked', () => {
+    const { text, selection } = at('«- [x] one»');
+    expect(activePrefixes(text, selection)).toEqual(['task']);
   });
 });
 

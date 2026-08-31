@@ -671,6 +671,65 @@ written later.
   a second press toggles it off.
 - Removal happens only when **every** selected line already carries the prefix;
   two of three bulleted means the finger wanted the third bulleted too.
+- **A line is one kind of thing at a time.** Heading, bullet, checkbox and
+  quote are four answers to the same question, so applying one _replaces_
+  whatever the line had. The first cut looked only for its own two characters,
+  so Bullet on `- [ ] bread` found the `- `, took it off and left `[ ] bread` —
+  the syntax leaking through a button that was trying to help. `PREFIX_PATTERNS`
+  is what a line counts as carrying (a `# ` is a heading, a ticked box is still
+  a box, and a bullet is a bullet **only when it is not a checkbox**) and
+  `ANY_BLOCK` is what comes off before the new one goes on.
+- **The bar says whether each format is on**, and that is the half that teaches
+  it. `activeMarks` and `activePrefixes` read what the caret is sitting in —
+  including the common case the two wrapped forms miss, a caret simply put down
+  in the middle of a bold word. They share `carries()` with `togglePrefix` on
+  purpose: a key that says it is on and then turns itself on again is worse
+  than a key that says nothing.
+- **The lit key is the only colour on the bar.** The resting marks are `ink`,
+  not the lens — eight keys all burning the screen's light said nothing eight
+  times over and left no colour in reserve for the one thing the bar needed to
+  say. Lit is the lens on `tintSoft` **with a rim in `tint`**: on the second
+  palette the soft fill and the bar sit at 1.05:1 and differ only in hue, so
+  the fill alone cannot carry it. Every key wears that border in the bar's own
+  colour when resting, or lighting one would move it.
+
+### The marks are drawn, never typed
+
+The bar shipped with five characters standing in for icons, and the owner's
+verdict is the whole reason `WritingIcons.tsx` exists: _"This is not a toolbar
+I understand."_ Bold and italic were fine. The rest were a backtick, a `•`, a
+`☐`, a `▌` and an em-dash — and `▌` rendered as a solid teal block
+indistinguishable from a missing glyph, while the backtick was a speck in the
+corner of an otherwise empty button.
+
+**This is `domain/moon.ts`'s law one screen over**, and it had already been
+learned twice: ◐ came out as a clipped sliver and an em-dash as a filled bar. A
+character is set at a font's size, on a font's baseline, in whatever face
+happens to have it; a drawing is the shape you drew.
+
+- **A letter or a drawing, and nothing else.** B, I and H stay as type because
+  they are letters in every editor anybody has used and a Latin capital is the
+  one glyph no loaded face is missing. `writingBar.test.ts` holds both halves:
+  every letter key is `/^[A-Z]$/`, and the bar's code carries no character
+  above ASCII at all.
+- **Draw the shape the button makes, not the mark it writes.** A lone `•` is a
+  full stop; the button makes a _list_, so the drawing is a list. The checkbox
+  is one box at half the icon's width, because the first redraw drew the whole
+  checklist and at twenty points the two boxes touched and read as a figure 8
+  with an equals sign beside it.
+- **Three horizontal lines is an equals sign.** The rule was drawn with two
+  faint paragraph stubs above and below to say "between things"; the top one
+  was lost against paper and the bottom read as the second bar of an `=`. One
+  line, centred, full width, at a rule's weight — which is what every editor
+  draws, and the shape this button cannot be mistaken in.
+- **A quotation mark, not a blockquote bar.** The bar down the left edge is
+  what a blockquote _renders_ as and it was still the wrong drawing: with
+  nothing beside it, it is a bar — and drawing the quoted lines too would have
+  made a third icon in the same grammar as the bullets and the checkbox, which
+  at twenty points is one icon in three costumes.
+- Read the pixels at true size, then zoom. Every one of the three faults above
+  was invisible in the source, invisible to the typecheck, and obvious in a
+  crop of the rendered bar.
 
 ## Priority, and a date you have to make
 
@@ -948,12 +1007,80 @@ the answer, and the whole feature is that you can look along it.
 - **It scrolls to today on mount.** The run reads left-to-right in time, so the
   informative end is the right-hand one; opening on a fortnight ago is a screen
   of empty columns that reads as a broken chart.
+- **The weather shifts, and a day is a run of readings.** The owner: _"Currently
+  I set the weather when I wake up but then what happens if it shifts
+  throughout the day? I'm trying to learn to be better aware of my emotions and
+  what triggers them."_ The morning's word still lives on `daily_read` because
+  that is the row it is given in and it is already in every backup ever
+  exported; the shifts live in `weather_reading` (v19), keyed by day and
+  stamped, so the watch is arithmetic (`watchAt`) rather than a second column
+  that can disagree. `app/weather/[day].tsx` is the day, reached by tapping any
+  column of the run.
+- **Nothing counts the readings, and that is the whole hazard here.** A tally of
+  how often the day moved answers "how steady was I" with a figure, and a run
+  of low numbers becomes a thing to keep low — which would make the feature
+  punish the exact noticing it was built for. A column shows what the day
+  _came to_ and wears a **leaf** when it got there by more than one reading: a
+  mark that says "there is more inside" and refuses to say how much.
+- **The settled word is the last one, never an average and never the worst.**
+  There is nothing to average — `WEATHER_WORDS` has no numbers behind it — and
+  taking the roughest would make every day with one bad hour a bad day.
+- **The note says what was happening, never why.** `NOTE_PLACEHOLDER` ends "if
+  you know", because the honest answer often is that you do not, and an app
+  that insists on a cause teaches you to invent one. Same line `foresight.ts`
+  holds against its own statistics, and there are tests forbidding "because",
+  "trigger" and their neighbours on the screen.
+- **A reading is a moment, so naming again never overwrites** — Fog at two and
+  Bright at six are two true readings. The _note_ can be written whenever it
+  comes to you, because working out what was going on is the slow part.
+- **The empty run is a door.** A run with nothing in it draws no columns, and a
+  column is the only way into a day — so on a fresh install the one thing you
+  could not do was name the weather at four in the afternoon. The offer line
+  itself opens today.
 - **Foresight still does not read it, and that is the standing decision.** A
   categorical word is not a dial. Using it as a _grouping_ would fit the
   existing Welch machinery, but it multiplies the hypotheses that `MIN_T` was
   calibrated against — and `foresightNoise.test.ts` is explicit that a change
   moving the noise rate is the wrong change. If it is ever done, it is done by
   re-running that simulation first, not by adding a call site.
+
+### The Logbook is bound
+
+The archive was a column of cards — the same rectangle the rest of the app is
+made of, stacked eight deep — and the owner's verdict was _"Not sure I like
+this. I'm trying to make things more visually interesting. Can we make the old
+entries look like an actual journal that I can flip through the pages?"_ So it
+is a book: `components/Volume.tsx`, one entry to a page, swiped rather than
+scrolled. **Right is astern**, because the newest page is the one lying open.
+
+- **The page is made of the palette, not of paper.** A cream leaf is right at
+  level 0 and a lit rectangle at eleven at night, in an app whose identity is
+  that it hardens. The book-ness is the furniture — the sewn gutter, the
+  stitching, the ruling, the fore-edge — so it reads as paper in the morning
+  and as a dark bound journal after dark. The poneglyph is the one object
+  allowed fixed colours, because it is eight hundred years old; a logbook is a
+  thing you are holding.
+- **No page numbers and no leaf count.** "4 / 112" is a tally of how much you
+  have written, which is a streak in a different costume. The fore-edge draws
+  a fixed three leaves — a book's edge, never a measure of the block — and the
+  line under the volume says which way is _home_, never where you are. It said
+  the open page's date for one round, which is the tab-labels-drawn-twice bug
+  one line lower: the head already carries it.
+- **The ruling has to land under the writing.** The first cut put the first
+  rule fifteen points high and it struck through the first sentence.
+  `FIRST_RULE` is the block's own top offset plus one line height, and the
+  screenshot is the only thing that showed it.
+- **A sewn gutter is a shadow, not a border.** One hard line reads as a card
+  edge; it is drawn as rules of falling opacity running out from the spine —
+  opacity rather than a second colour, the same way every instrument keeps to
+  the colours it is handed.
+- **Plain mode keeps the pages and loses the paper.** The ruling and the
+  stitching are ornament, so they go; the pages are how you reach an entry, so
+  they stay. The page is shorter there, because an unruled leaf at the full
+  height is not a page — it is a large empty card.
+- Searching filters which pages are in the volume, and a search with no
+  matches gives a blank leaf rather than a second copy of the field's own
+  "nothing with that in it" — the one-of-them-speaks-at-a-time rule.
 
 **And the focus ring is the app's now.** Every text field on the web wore
 Chromium's two-pixel gold outline, in a palette with no gold in it, drawn over
