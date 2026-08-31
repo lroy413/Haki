@@ -230,7 +230,13 @@ export default function NoteScreen() {
 
       {/* Cyan: notes hang off the Observation tab, and one screen carries one
           light. See the one-light rule. */}
-      <WritingBar tint={palette.cyan} value={body} selection={selection} onEdit={apply} />
+      <WritingBar
+        tint={palette.cyan}
+        tintSoft={palette.cyanSoft}
+        value={body}
+        selection={selection}
+        onEdit={apply}
+      />
     </KeyboardAvoidingView>
   );
 }

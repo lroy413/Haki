@@ -231,7 +231,13 @@ export default function EntryScreen() {
 
       {/* Cyan: the journal lives under 見聞色, and one screen carries one
           light. Below the Done button so the bar sits against the keyboard. */}
-      <WritingBar tint={palette.cyan} value={body} selection={selection} onEdit={apply} />
+      <WritingBar
+        tint={palette.cyan}
+        tintSoft={palette.cyanSoft}
+        value={body}
+        selection={selection}
+        onEdit={apply}
+      />
     </KeyboardAvoidingView>
   );
 }

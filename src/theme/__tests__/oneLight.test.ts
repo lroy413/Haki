@@ -36,6 +36,7 @@ const SHARED = [
   join('src', 'components', 'PageHeading.tsx'),
   join('src', 'components', 'Rise.tsx'),
   join('src', 'components', 'Toggle.tsx'),
+  join('src', 'components', 'WritingBar.tsx'),
 ];
 
 /** The lens colours. A shared control may not reach for any of them. */

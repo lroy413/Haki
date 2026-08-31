@@ -671,6 +671,65 @@ written later.
   a second press toggles it off.
 - Removal happens only when **every** selected line already carries the prefix;
   two of three bulleted means the finger wanted the third bulleted too.
+- **A line is one kind of thing at a time.** Heading, bullet, checkbox and
+  quote are four answers to the same question, so applying one _replaces_
+  whatever the line had. The first cut looked only for its own two characters,
+  so Bullet on `- [ ] bread` found the `- `, took it off and left `[ ] bread` —
+  the syntax leaking through a button that was trying to help. `PREFIX_PATTERNS`
+  is what a line counts as carrying (a `# ` is a heading, a ticked box is still
+  a box, and a bullet is a bullet **only when it is not a checkbox**) and
+  `ANY_BLOCK` is what comes off before the new one goes on.
+- **The bar says whether each format is on**, and that is the half that teaches
+  it. `activeMarks` and `activePrefixes` read what the caret is sitting in —
+  including the common case the two wrapped forms miss, a caret simply put down
+  in the middle of a bold word. They share `carries()` with `togglePrefix` on
+  purpose: a key that says it is on and then turns itself on again is worse
+  than a key that says nothing.
+- **The lit key is the only colour on the bar.** The resting marks are `ink`,
+  not the lens — eight keys all burning the screen's light said nothing eight
+  times over and left no colour in reserve for the one thing the bar needed to
+  say. Lit is the lens on `tintSoft` **with a rim in `tint`**: on the second
+  palette the soft fill and the bar sit at 1.05:1 and differ only in hue, so
+  the fill alone cannot carry it. Every key wears that border in the bar's own
+  colour when resting, or lighting one would move it.
+
+### The marks are drawn, never typed
+
+The bar shipped with five characters standing in for icons, and the owner's
+verdict is the whole reason `WritingIcons.tsx` exists: _"This is not a toolbar
+I understand."_ Bold and italic were fine. The rest were a backtick, a `•`, a
+`☐`, a `▌` and an em-dash — and `▌` rendered as a solid teal block
+indistinguishable from a missing glyph, while the backtick was a speck in the
+corner of an otherwise empty button.
+
+**This is `domain/moon.ts`'s law one screen over**, and it had already been
+learned twice: ◐ came out as a clipped sliver and an em-dash as a filled bar. A
+character is set at a font's size, on a font's baseline, in whatever face
+happens to have it; a drawing is the shape you drew.
+
+- **A letter or a drawing, and nothing else.** B, I and H stay as type because
+  they are letters in every editor anybody has used and a Latin capital is the
+  one glyph no loaded face is missing. `writingBar.test.ts` holds both halves:
+  every letter key is `/^[A-Z]$/`, and the bar's code carries no character
+  above ASCII at all.
+- **Draw the shape the button makes, not the mark it writes.** A lone `•` is a
+  full stop; the button makes a _list_, so the drawing is a list. The checkbox
+  is one box at half the icon's width, because the first redraw drew the whole
+  checklist and at twenty points the two boxes touched and read as a figure 8
+  with an equals sign beside it.
+- **Three horizontal lines is an equals sign.** The rule was drawn with two
+  faint paragraph stubs above and below to say "between things"; the top one
+  was lost against paper and the bottom read as the second bar of an `=`. One
+  line, centred, full width, at a rule's weight — which is what every editor
+  draws, and the shape this button cannot be mistaken in.
+- **A quotation mark, not a blockquote bar.** The bar down the left edge is
+  what a blockquote _renders_ as and it was still the wrong drawing: with
+  nothing beside it, it is a bar — and drawing the quoted lines too would have
+  made a third icon in the same grammar as the bullets and the checkbox, which
+  at twenty points is one icon in three costumes.
+- Read the pixels at true size, then zoom. Every one of the three faults above
+  was invisible in the source, invisible to the typecheck, and obvious in a
+  crop of the rendered bar.
 
 ## Priority, and a date you have to make
 

@@ -38,28 +38,47 @@ const PREFIXES: Record<LinePrefix, string> = {
   task: '- [ ] ',
 };
 
-/** What the buttons say. Short — the bar sits above a keyboard. */
-export const MARK_LABELS: Record<Mark, string> = {
-  bold: 'B',
-  italic: 'I',
-  code: '`',
+/**
+ * What a line already carries, read rather than assumed.
+ *
+ * `PREFIXES` says what the button *writes*; these say what counts as already
+ * written, and the two are deliberately not the same string. A heading typed
+ * as `# ` is a heading. A checkbox is a checkbox ticked or not, or the button
+ * stops recognising its own work the moment you use it. And a bullet is a
+ * bullet **only when it is not a checkbox** — `- [ ] bread` starts with `- `,
+ * so a naive read lights up Bullet and Checklist at once and reports two
+ * block types on one line.
+ */
+const PREFIX_PATTERNS: Record<LinePrefix, RegExp> = {
+  heading: /^#{1,6} /,
+  bullet: /^[-*+] (?!\[[ xX]\] )/,
+  quote: /^> /,
+  task: /^[-*+] \[[ xX]\] /,
 };
 
 /**
- * Glyphs, chosen for legibility at 17pt rather than for cleverness.
+ * Every block marker, so one can be taken off before another goes on.
  *
- * `❝` was the first pick for quote and renders as a small raised mark that
- * reads as a stray speck on the bar. A solid left bar is what a blockquote
- * looks like in every editor, and it survives being small.
+ * **A line has one block type at a time.** Heading, bullet, checkbox and
+ * quote are four answers to the same question — what kind of line is this —
+ * so pressing one on a line that already has another *converts* it rather
+ * than stacking. Without this, Bullet on `- [ ] bread` stripped the two
+ * characters it recognised and left `[ ] bread`: the syntax showing through,
+ * from a button that was only trying to help.
  */
-export const PREFIX_LABELS: Record<LinePrefix, string> = {
-  heading: 'H',
-  bullet: '•',
-  quote: '▌',
-  task: '☐',
-};
+const ANY_BLOCK = /^(?:#{1,6} |[-*+] \[[ xX]\] |[-*+] |> )+/;
 
-/** What a screen reader says, since the labels above are glyphs. */
+/** The line with every block marker taken off it. */
+function bare(line: string): string {
+  return line.replace(ANY_BLOCK, '');
+}
+
+/** Whether this line already carries this kind of block. */
+function carries(line: string, kind: LinePrefix): boolean {
+  return PREFIX_PATTERNS[kind].test(line);
+}
+
+/** What a screen reader says, since the bar itself is drawings. */
 export const MARK_NAMES: Record<Mark, string> = {
   bold: 'Bold',
   italic: 'Italic',
@@ -159,40 +178,35 @@ function lineSpan(text: string, selection: Selection): { from: number; to: numbe
  * Off only when **every** line already has it. A selection where two lines out
  * of three are bulleted wants the third bulleted too — that is what the finger
  * meant, and removing all three instead is the reading no editor uses.
+ *
+ * Putting one on **replaces** whatever block the line already had, because a
+ * line is one kind of thing at a time. Pressing Checklist on a bullet gives a
+ * checkbox, not `- - [ ] `; pressing Bullet on a checkbox gives a bullet, not
+ * the `[ ] bread` the first cut left behind.
  */
 export function togglePrefix(text: string, selection: Selection, kind: LinePrefix): Edit {
   const prefix = PREFIXES[kind];
   const { from, to } = lineSpan(text, selection);
   const lines = text.slice(from, to).split('\n');
 
-  // A task box counts as prefixed whether it is ticked or not, or checking one
-  // off would make the button stop recognising its own work.
-  const has = (line: string) =>
-    kind === 'task' ? /^- \[[ xX]\] /.test(line) : line.startsWith(prefix);
-
-  const allHave = lines.every(has);
-  const next = lines.map((line) => {
-    if (allHave) {
-      const width =
-        kind === 'task' ? (/^- \[[ xX]\] /.exec(line)?.[0].length ?? 0) : prefix.length;
-      return line.slice(width);
-    }
-    return has(line) ? line : prefix + line;
-  });
+  const allHave = lines.every((line) => carries(line, kind));
+  const next = lines.map((line) => (allHave ? bare(line) : prefix + bare(line)));
 
   const body = next.join('\n');
   const grew = body.length - (to - from);
   const { start, end } = ordered(text, selection);
   const out = text.slice(0, from) + body + text.slice(to);
 
-  // A caret stays a caret, nudged by whatever happened to its own line — it
+  // A caret stays a caret, nudged by whatever happened to *its own* line — it
   // was a place in the text and it should still be one. A range keeps
   // covering the same lines, so pressing the button again undoes it.
   if (start === end) {
-    const lineFrom = text.lastIndexOf('\n', start - 1) + 1;
-    const carried = widthOn(text, lineFrom, kind);
-    const shift = allHave ? -carried : carried > 0 ? 0 : PREFIXES[kind].length;
-    const at = clamp(start + shift, from, from + body.length);
+    const i = text.slice(from, start).split('\n').length - 1;
+    const lineFrom = from + next.slice(0, i).reduce((n, l) => n + l.length + 1, 0);
+    const shift = next[i].length - lines[i].length;
+    // Never below the line's own new start: a caret sitting inside the marker
+    // that just came off has nowhere to be but the front of what is left.
+    const at = clamp(start + shift, lineFrom, from + body.length);
     return { text: out, selection: { start: at, end: at } };
   }
 
@@ -202,16 +216,96 @@ export function togglePrefix(text: string, selection: Selection, kind: LinePrefi
   };
 }
 
-function lineIndexEnd(text: string, at: number): number {
-  const next = text.indexOf('\n', at);
-  return next === -1 ? text.length : next;
+/**
+ * Which block the lines under the selection already are.
+ *
+ * The bar shows this back, so the answer has to be the same one `togglePrefix`
+ * would act on — hence `carries`, shared, rather than a second reading that
+ * could drift from it. A prefix counts only when **every** line has it, for
+ * exactly the reason removal does: two of three bulleted is not a bulleted
+ * selection, it is a selection you are about to bullet.
+ */
+export function activePrefixes(text: string, selection: Selection): LinePrefix[] {
+  const { from, to } = lineSpan(text, selection);
+  const lines = text.slice(from, to).split('\n');
+  return (Object.keys(PREFIXES) as LinePrefix[]).filter((kind) =>
+    lines.every((line) => carries(line, kind)),
+  );
 }
 
-/** How much prefix this line actually carries, which a task box varies. */
-function widthOn(text: string, lineFrom: number, kind: LinePrefix): number {
-  const line = text.slice(lineFrom, lineIndexEnd(text, lineFrom));
-  if (kind === 'task') return /^- \[[ xX]\] /.exec(line)?.[0].length ?? 0;
-  return line.startsWith(PREFIXES[kind]) ? PREFIXES[kind].length : 0;
+/**
+ * The marker pairs on one line: first to second, third to fourth.
+ *
+ * Naive on purpose. `snake_case` reads as an italic pair and there is no
+ * cheap way to know it is not one — but the cost of being wrong is a button
+ * that looks lit for a moment, not a mangled document, and every alternative
+ * costs a parser.
+ */
+function pairsOn(line: string, marker: string): Array<{ open: number; close: number }> {
+  const out: Array<{ open: number; close: number }> = [];
+  let i = 0;
+  let open = -1;
+  while (i <= line.length - marker.length) {
+    if (line.startsWith(marker, i)) {
+      if (open === -1) open = i;
+      else {
+        out.push({ open, close: i });
+        open = -1;
+      }
+      i += marker.length;
+    } else i += 1;
+  }
+  return out;
+}
+
+/** Whether the selection sits wholly inside a marked run on its own line. */
+function inside(text: string, start: number, end: number, marker: string): boolean {
+  const from = text.lastIndexOf('\n', start - 1) + 1;
+  const next = text.indexOf('\n', start);
+  const to = next === -1 ? text.length : next;
+  // A selection running past the end of the line is not inside anything: a
+  // marked run does not cross a line break.
+  if (end > to) return false;
+  return pairsOn(text.slice(from, to), marker).some(
+    (p) => start - from >= p.open + marker.length && end - from <= p.close,
+  );
+}
+
+/**
+ * Which marks the selection is already wearing.
+ *
+ * This is the half of a toolbar that teaches it. A row of buttons that look
+ * identical whatever the caret is sitting in can only be learned by pressing
+ * them and reading the syntax that comes out; a row where Bold is lit when you
+ * tap into bold text has explained itself. It also answers the other half of
+ * the question the icons cannot — pressing a lit button takes the format off.
+ *
+ * The three cases are `toggleMark`'s own, and that is not a coincidence:
+ * anything this reports as on is something a press would turn off.
+ */
+export function activeMarks(text: string, selection: Selection): Mark[] {
+  const { start, end } = tightened(text, ordered(text, selection));
+  const inner = text.slice(start, end);
+  return (Object.keys(MARKERS) as Mark[]).filter((mark) => {
+    const marker = MARKERS[mark];
+    // The markers are inside the selection: «**world**»
+    if (
+      inner.length >= marker.length * 2 &&
+      inner.startsWith(marker) &&
+      inner.endsWith(marker)
+    ) {
+      return true;
+    }
+    // The markers sit just outside it: **«world»**
+    if (
+      text.slice(Math.max(0, start - marker.length), start) === marker &&
+      text.slice(end, end + marker.length) === marker
+    ) {
+      return true;
+    }
+    // Or the caret has simply been put down in the middle of a bold word.
+    return inside(text, start, end, marker);
+  });
 }
 
 /**
