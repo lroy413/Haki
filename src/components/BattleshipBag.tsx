@@ -64,7 +64,7 @@ export function BattleshipBag({
           faint={palette.inkFaint}
           tint={plainMode ? palette.inkFaint : tint}
           ground={palette.surface}
-          water={palette.surface2}
+          deck={palette.surface2}
         />
       </View>
 

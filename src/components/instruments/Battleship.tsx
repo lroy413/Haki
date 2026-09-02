@@ -1,4 +1,4 @@
-import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, G, Line, Path, Rect } from 'react-native-svg';
 
 /**
  * The Battleship Bag.
@@ -6,129 +6,90 @@ import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
  * ---------------------------------------------------------------------------
  * REPLACING THIS DRAWING
  *
- *   - viewBox `0 0 ${W} ${H}` (240 × 100), `preserveAspectRatio="xMidYMax
- *     meet"`. The hull sits on `WATERLINE` (y = 86); below it is sea, and
- *     every dent bites into plating that shows above it — the first cut put
- *     the water at 76 and drowned six of the seven craters.
- *   - She faces **left**: bow on the left, stern on the right, like the
- *     Sunny, so the two ships on this app's screens agree about which way is
- *     forward.
- *   - Five colour props and nothing else: `ink` for the ship, `faint` for
- *     plating and shading, `tint` for the lens light that catches on the
- *     fresh metal of a dent, `ground` to paint a crater as absence, and
- *     `water` for the sea. No literals, no palette reads. There is a test.
- *   - `hits` is 0..7, one per day trained this week (`hitsThisWeek`). Keep
- *     the seven `DENTS` in order — hit N always lands in the same place, so a
- *     hull with three hits looks the same on Wednesday as it did on Tuesday
- *     plus one, and the week reads as a record rather than a random one.
+ *   - viewBox `0 0 ${W} ${H}` (240 × 130), `preserveAspectRatio="xMidYMax
+ *     slice"` — it fills the dock's width and crops sky off the top, because
+ *     the hull runs off the frame anyway and a letterboxed hull with the
+ *     card's ground showing either side of it is a ship in a box, not a wall
+ *     you are standing under. The scrapyard floor is `FLOOR` (y = 108); the
+ *     hull rises out of the top-left and its belly curves down to meet it.
+ *   - Five colour props and nothing else: `ink` for the hull and the figure,
+ *     `faint` for plating and rivets, `tint` for the lens light catching on
+ *     the torn edge of a dent, `ground` to paint a crater as the sky showing
+ *     through, and `deck` for the wreckage underfoot. No literals, no
+ *     palette reads. There is a test.
+ *   - `hits` is 0..7. Keep the seven `DENTS` in order — hit N always lands in
+ *     the same place, so a hull with three hits looks the same on Wednesday
+ *     as it did on Tuesday plus one, and the week reads as a record.
+ *   - Keep the figure. It is what says the scale.
  * ---------------------------------------------------------------------------
  *
- * Garp's battleship bags, from the manga: warships he punched until their
- * armoured hulls caved in, with no Haki and no Devil Fruit — _"a strength you
- * have to earn."_ The owner's picture for the gym is that hull, and the rule
- * that makes it honest is in `domain/training.ts`: **a day is one hit**, it
- * cannot go past seven, and on Monday there is a fresh ship.
+ * The frame this is drawn from: young Aokiji and Garp in a navy scrapyard,
+ * dwarfed by the underside of a beached battleship, punching its hull. **It
+ * is not the whole ship — it is the bottom of one**, a wall of riveted plate
+ * curving up out of the frame, seen from where a person stands. The first
+ * cut drew a warship in profile at sea, turrets and funnel and all, and the
+ * owner sent the frame: _"It isn't the whole ship but just the bottom part."_
+ * So this is the bottom part: the belly of the hull, the strakes running
+ * along it, the keel, the wreckage it rests on, and one small figure at its
+ * foot with a fist up — which is the only thing in the picture that says
+ * how big it is.
  *
- * Two things this drawing must never become:
- *
- * A progress bar. The ship does not move, fill, or count. A hull with four
- * dents is a picture of four days, the same way the Sunny's canvas is a
- * picture of a day being used — you can see roughly how the week went and
- * you cannot read a score off it.
- *
- * A picture of failure. A hull with *no* dents on a Thursday is a warship at
- * anchor, whole, waiting — not an empty bar. The damage is the good news
- * here, which is the joke of the whole image and the reason it works.
+ * The rule that makes it honest is in `domain/training.ts`: a day is one
+ * hit, it cannot go past seven, and on Monday there is a fresh hull. Two
+ * things the drawing must never become: a progress bar (it does not fill or
+ * count — a hull with four dents is a picture of four days you can see
+ * roughly and cannot read exactly) and a picture of failure (an unmarked
+ * hull on a Thursday is a wall of armour waiting for you, not an empty bar —
+ * the damage is the good news, which is the joke of the whole image).
  */
 
 export const W = 240;
-export const H = 100;
-export const WATERLINE = 86;
-
-/** Where the deck runs and how deep the hull goes. */
-const DECK = 56;
-const KEEL = 90;
-/** Bow on the left, stern on the right. */
-const BOW = 14;
-const STERN = 226;
+export const H = 130;
+export const FLOOR = 108;
 
 /**
- * The seven dents, in the order they land. Each is a bite out of the hull's
- * lower plating: an x along the keel, a width, and a depth. Spread from
- * midships outward so a half-week reads as a beaten centre and a full week
- * as a hull gone all the way along.
+ * The hull's belly, as it hangs over the yard: from off the top-left edge,
+ * bulging out and down to rest on the floor at the right. Everything else on
+ * the hull — strakes, keel, dents — follows this curve.
  */
-const DENTS: { x: number; w: number; d: number }[] = [
-  { x: 120, w: 26, d: 11 },
-  { x: 78, w: 22, d: 9 },
-  { x: 162, w: 24, d: 10 },
-  { x: 48, w: 18, d: 8 },
-  { x: 196, w: 20, d: 9 },
-  { x: 100, w: 16, d: 13 },
-  { x: 140, w: 18, d: 12 },
+const BELLY = `M -8 -6 C 30 12, 110 22, 160 48 C 192 66, 206 86, 208 ${FLOOR}`;
+/** The plate wall's fill: the belly curve closed against the top-left corner. */
+const HULL = `${BELLY} L -8 ${FLOOR} Z`;
+
+/**
+ * The seven dents, in the order they land — x along the hull, y on the plate,
+ * and the size of the bite. Spread from the middle of the face outward, so a
+ * half-week reads as a beaten centre and a full week as plate gone all the
+ * way along it.
+ */
+const DENTS: { x: number; y: number; r: number }[] = [
+  { x: 96, y: 62, r: 11 },
+  { x: 54, y: 50, r: 9 },
+  { x: 134, y: 74, r: 10 },
+  { x: 24, y: 78, r: 8 },
+  { x: 166, y: 88, r: 9 },
+  { x: 76, y: 84, r: 10 },
+  { x: 116, y: 94, r: 9 },
 ];
 
-/** The hull's outline with the first `hits` dents bitten out of its bottom. */
-function hullPath(hits: number): string {
-  const dents = DENTS.slice(0, hits).sort((a, b) => a.x - b.x);
-  // Start at the stern's deck corner, run the deck to the bow, drop the raked
-  // bow to the keel, then come back along the keel biting out each dent.
-  let d = `M ${STERN} ${DECK} L ${BOW + 10} ${DECK} L ${BOW} ${DECK + 6}`;
-  d += ` C ${BOW - 2} ${DECK + 18}, ${BOW + 6} ${KEEL - 4}, ${BOW + 22} ${KEEL}`;
-  let x = BOW + 22;
-  for (const dent of dents) {
-    const left = dent.x - dent.w / 2;
-    const right = dent.x + dent.w / 2;
-    d += ` L ${left} ${KEEL}`;
-    // A crater: a jagged bite with a couple of teeth on the way up and down,
-    // so it reads as caved-in plate rather than as a smooth scallop.
-    const t1 = left + dent.w * 0.3;
-    const t2 = left + dent.w * 0.55;
-    const t3 = left + dent.w * 0.8;
-    d += ` L ${t1} ${KEEL - dent.d * 0.7} L ${t2} ${KEEL - dent.d} L ${t3} ${KEEL - dent.d * 0.6} L ${right} ${KEEL}`;
-    x = right;
-  }
-  d += ` L ${STERN - 10} ${KEEL} C ${STERN - 2} ${KEEL - 4}, ${STERN + 2} ${DECK + 14}, ${STERN} ${DECK} Z`;
-  void x;
-  return d;
+/**
+ * A crater's outline: a jagged ring of `r` around the point, with a crack or
+ * two radiating from it. Deterministic per dent — the jag pattern is a fixed
+ * table rather than a random one, so the same day's hit is the same shape.
+ */
+const JAG = [1, 0.72, 0.95, 0.68, 1, 0.78, 0.9, 0.7, 0.98, 0.74, 0.88, 0.66];
+
+function craterPath(x: number, y: number, r: number): string {
+  const pts = JAG.map((k, i) => {
+    const a = (i / JAG.length) * Math.PI * 2;
+    return `${(x + Math.cos(a) * r * k).toFixed(1)} ${(y + Math.sin(a) * r * k * 0.82).toFixed(1)}`;
+  });
+  return `M ${pts.join(' L ')} Z`;
 }
 
-/** A turret: a low drum with a barrel pointing forward. */
-function Turret({
-  x,
-  ink,
-  faint,
-  scale = 1,
-}: {
-  x: number;
-  ink: string;
-  faint: string;
-  scale?: number;
-}) {
-  const w = 22 * scale;
-  const h = 9 * scale;
-  const y = DECK - h;
-  return (
-    <G>
-      <Rect x={x - w / 2} y={y} width={w} height={h} rx={3} fill={ink} />
-      <Rect x={x - w / 2 + 3} y={y + 2} width={w - 6} height={2} fill={faint} opacity={0.5} />
-      {/* Two barrels, forward. */}
-      <Rect
-        x={x - w / 2 - 20 * scale}
-        y={y + h * 0.35}
-        width={20 * scale}
-        height={2.2}
-        fill={ink}
-      />
-      <Rect
-        x={x - w / 2 - 17 * scale}
-        y={y + h * 0.65}
-        width={17 * scale}
-        height={2.2}
-        fill={ink}
-      />
-    </G>
-  );
+/** A strake: a plating seam that follows the belly, offset down into the hull. */
+function strake(offset: number): string {
+  return `M -8 ${-6 + offset} C 30 ${12 + offset}, 110 ${22 + offset}, 160 ${48 + offset} C 192 ${66 + offset}, 206 ${86 + offset}, 208 ${FLOOR + offset}`;
 }
 
 export function Battleship({
@@ -137,139 +98,179 @@ export function Battleship({
   faint,
   tint,
   ground,
-  water,
+  deck,
 }: {
   /** 0..7 from `hitsThisWeek`. */
   hits: number;
   ink: string;
   faint: string;
-  /** The lens light, catching on the fresh metal of a dent. */
+  /** The lens light, catching on the torn edge of a dent. */
   tint: string;
-  /** The exact colour behind the ship — a crater is painted as absence. */
+  /** The exact colour behind the hull — a crater is the sky showing through. */
   ground: string;
-  water: string;
+  /** The wreckage underfoot. */
+  deck: string;
 }) {
   const n = Math.max(0, Math.min(DENTS.length, Math.round(hits)));
   const dents = DENTS.slice(0, n);
-  // A beaten ship settles by the stern: a degree of list per two hits, so a
-  // full week's hull sits visibly lower and wearier than Monday's.
-  const list = Math.min(3.5, n * 0.5);
 
   return (
     <Svg
       width="100%"
       height="100%"
       viewBox={`0 0 ${W} ${H}`}
-      preserveAspectRatio="xMidYMax meet"
+      preserveAspectRatio="xMidYMax slice"
     >
-      <G rotation={list} origin={`${(BOW + STERN) / 2}, ${WATERLINE}`}>
-        {/* The hull, with the week's dents bitten out of it. */}
-        <Path d={hullPath(n)} fill={ink} />
-
-        {/* Armour belt: the heavy plating along the waterline, drawn as a
-            band of the faint colour so the hull has a seam a punch could
-            find. */}
-        <Rect
-          x={BOW + 18}
-          y={DECK + 8}
-          width={STERN - BOW - 30}
-          height={5}
-          fill={faint}
+      {/* The hull: a wall of plate, curving up and out of the frame. */}
+      <Path d={HULL} fill={ink} />
+      {/* The strakes — plating seams following the belly — and the rivets
+          along them. Drawn in the faint colour at low opacity so they read as
+          seams in armour rather than as stripes. */}
+      {[14, 30, 46, 62].map((off) => (
+        <Path
+          key={off}
+          d={strake(off)}
+          fill="none"
+          stroke={faint}
+          strokeWidth={1}
           opacity={0.45}
         />
-        {/* Portholes along the belt, skipped where a dent has taken the
-            plate they were on. */}
-        {Array.from({ length: 12 }, (_, i) => BOW + 34 + i * 15)
-          .filter((px) => px < STERN - 22)
-          .map((px) => {
-            const gone = dents.some((d) => Math.abs(d.x - px) < d.w / 2 + 2);
-            return gone ? null : (
-              <Circle key={px} cx={px} cy={DECK + 18} r={1.6} fill={faint} opacity={0.7} />
-            );
-          })}
+      ))}
+      {[14, 30, 46, 62].map((off) =>
+        [8, 32, 56, 80, 104, 128, 150, 170, 186].map((t) => {
+          // Rivets sit a little below each seam, spaced along the curve.
+          const p = pointOn(t, off + 4);
+          const gone = dents.some((d) => Math.hypot(d.x - p.x, d.y - p.y) < d.r + 2);
+          return gone ? null : (
+            <Circle key={`${off}-${t}`} cx={p.x} cy={p.y} r={1.1} fill={faint} opacity={0.75} />
+          );
+        }),
+      )}
+      {/* The keel: a heavier band along the very edge of the belly, the plate
+          a punch lands on first. */}
+      <Path d={BELLY} fill="none" stroke={faint} strokeWidth={3.5} opacity={0.35} />
+      <Path d={BELLY} fill="none" stroke={ink} strokeWidth={1.2} />
 
-        {/* Superstructure, from the bow back: a forward turret, the bridge
-            tower with its rangefinder, the funnel, a mast, an aft turret. */}
-        <Turret x={70} ink={ink} faint={faint} />
-        <Turret x={188} ink={ink} faint={faint} scale={0.9} />
-        {/* The bridge: a stepped tower, wide at the base. */}
-        <Rect x={100} y={DECK - 14} width={44} height={14} rx={2} fill={ink} />
-        <Rect x={106} y={DECK - 26} width={30} height={12} rx={2} fill={ink} />
-        <Rect x={112} y={DECK - 34} width={18} height={8} rx={1.5} fill={ink} />
-        {/* Bridge windows. */}
-        <Rect x={109} y={DECK - 23} width={24} height={2.4} fill={faint} opacity={0.6} />
-        {/* The funnel, aft of the bridge, with smoke that thickens as the
-            week wears on — a ship taking punishment runs her boilers. */}
-        <Rect x={150} y={DECK - 30} width={12} height={30} rx={2} fill={ink} />
-        <Rect x={149} y={DECK - 31} width={14} height={3} fill={ink} />
-        {[0, 1, 2].map((i) => (
-          <Ellipse
+      {/* The dents: craters punched through the plate, the sky showing
+          through them, with cracks running off across the armour and the
+          lens light catching on the torn edge — the coating, on the one place
+          a punch has been. */}
+      {dents.map((d, i) => (
+        <G key={i}>
+          <Path d={craterPath(d.x, d.y, d.r)} fill={ground} />
+          {/* Cracks, two per crater, in the ground colour so they read as
+              splits in the plate. */}
+          <Path
+            d={`M ${d.x + d.r * 0.8} ${d.y - d.r * 0.3} l ${d.r * 0.7} ${-d.r * 0.4} l ${d.r * 0.4} ${d.r * 0.2} l ${d.r * 0.6} ${-d.r * 0.45}`}
+            stroke={ground}
+            strokeWidth={1.1}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d={`M ${d.x - d.r * 0.6} ${d.y + d.r * 0.6} l ${-d.r * 0.4} ${d.r * 0.65} l ${d.r * 0.25} ${d.r * 0.3}`}
+            stroke={ground}
+            strokeWidth={1}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* The glint: the torn lip, lit. Short arcs on the upper-left rim,
+              where light would fall on bent metal. */}
+          <Path
+            d={`M ${d.x - d.r * 0.9} ${d.y - d.r * 0.1} Q ${d.x - d.r * 0.6} ${d.y - d.r * 0.85} ${d.x + d.r * 0.1} ${d.y - d.r * 0.82}`}
+            stroke={tint}
+            strokeWidth={1.8}
+            fill="none"
+            strokeLinecap="round"
+            opacity={0.95}
+          />
+          <Path
+            d={`M ${d.x + d.r * 0.3} ${d.y - d.r * 0.78} Q ${d.x + d.r * 0.75} ${d.y - d.r * 0.55} ${d.x + d.r * 0.85} ${d.y - d.r * 0.15}`}
+            stroke={tint}
+            strokeWidth={1.2}
+            fill="none"
+            strokeLinecap="round"
+            opacity={0.6}
+          />
+        </G>
+      ))}
+
+      {/* A full week: a split runs the length of the face, crater to crater.
+          The hull is caving, which is what Garp was working toward. */}
+      {n >= DENTS.length ? (
+        <Path
+          d={`M ${DENTS[3].x} ${DENTS[3].y} L ${DENTS[5].x - 6} ${DENTS[5].y - 4} L ${DENTS[0].x} ${DENTS[0].y + 6} L ${DENTS[6].x - 4} ${DENTS[6].y - 8} L ${DENTS[2].x} ${DENTS[2].y + 3} L ${DENTS[4].x} ${DENTS[4].y - 6}`}
+          stroke={ground}
+          strokeWidth={1.6}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.9}
+        />
+      ) : null}
+
+      {/* The yard: wreckage the hull rests on, painted after it so the keel
+          sits buried in it rather than floating above it. */}
+      <Rect x={0} y={FLOOR} width={W} height={H - FLOOR} fill={deck} />
+      {/* Broken timbers and plate lying about, in the faint colour, more of
+          it as the week goes on — what a punched hull sheds. */}
+      {[
+        [8, 114, 26, 116],
+        [40, 118, 62, 116],
+        [150, 116, 176, 118],
+        [200, 113, 226, 114],
+      ]
+        .concat(n >= 3 ? [[100, 119, 122, 121]] : [])
+        .concat(n >= 5 ? [[128, 113, 146, 115]] : [])
+        .concat(n >= 7 ? [[66, 112, 92, 111]] : [])
+        .map(([x1, y1, x2, y2], i) => (
+          <Line
             key={i}
-            cx={156 + i * 7 + n * 0.6}
-            cy={DECK - 40 - i * 7}
-            rx={5 + i * 2 + n * 0.5}
-            ry={3.5 + i * 1.3}
-            fill={faint}
-            opacity={Math.max(0.12, 0.42 - i * 0.1) * (0.6 + n * 0.08)}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke={faint}
+            strokeWidth={2.4}
+            strokeLinecap="round"
+            opacity={0.7}
           />
         ))}
-        {/* The mast, with a yard and a pennant. */}
-        <Line x1={121} y1={DECK - 34} x2={121} y2={DECK - 58} stroke={ink} strokeWidth={1.8} />
-        <Line x1={112} y1={DECK - 50} x2={130} y2={DECK - 50} stroke={ink} strokeWidth={1.4} />
-        <Path d={`M 121 ${DECK - 58} L 133 ${DECK - 55} L 121 ${DECK - 52} Z`} fill={faint} />
 
-        {/* The dents' fresh metal: the lens light catches on the torn edge,
-            which is the coating — Armament's own colour, on the one place a
-            punch has been. Drawn as short strokes along each crater rim, so
-            it reads as a glint and never as a fill. */}
-        {dents.map((dnt, i) => {
-          const left = dnt.x - dnt.w / 2;
-          const t2 = left + dnt.w * 0.55;
-          return (
-            <G key={i}>
-              <Line
-                x1={left + dnt.w * 0.3}
-                y1={KEEL - dnt.d * 0.7}
-                x2={t2}
-                y2={KEEL - dnt.d}
-                stroke={tint}
-                strokeWidth={1.6}
-                strokeLinecap="round"
-                opacity={0.9}
-              />
-              <Line
-                x1={t2}
-                y1={KEEL - dnt.d}
-                x2={left + dnt.w * 0.8}
-                y2={KEEL - dnt.d * 0.6}
-                stroke={tint}
-                strokeWidth={1.2}
-                strokeLinecap="round"
-                opacity={0.65}
-              />
-              {/* A crack running up the plate from the crater. */}
-              <Path
-                d={`M ${t2} ${KEEL - dnt.d} l ${-2} ${-4} l ${3} ${-3} l ${-1.5} ${-4}`}
-                stroke={ground}
-                strokeWidth={1.2}
-                fill="none"
-                strokeLinecap="round"
-                opacity={0.9}
-              />
-            </G>
-          );
-        })}
+      {/* The figure. Small, at the foot of the wall, fist up — the only
+          thing in the picture that says how big the hull is. */}
+      <G>
+        <Circle cx={222} cy={FLOOR - 15} r={2.4} fill={ink} />
+        <Path
+          d={`M 222 ${FLOOR - 12.5} L 222 ${FLOOR - 5} M 222 ${FLOOR - 5} L 219 ${FLOOR} M 222 ${FLOOR - 5} L 225 ${FLOOR} M 222 ${FLOOR - 11} L 215 ${FLOOR - 16} M 222 ${FLOOR - 10} L 226 ${FLOOR - 7}`}
+          stroke={ink}
+          strokeWidth={1.8}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Circle cx={214.5} cy={FLOOR - 16.5} r={1.5} fill={ink} />
       </G>
-
-      {/* The sea, drawn last so it crosses the keel and any dent that dips
-          below the waterline reads as flooded. A flat band with a swell on
-          top; the Sunny's own sea is a system and lives in Sea.tsx, but this
-          ship is at anchor in a scrapyard and does not need weather. */}
-      <Path
-        d={`M 0 ${WATERLINE} Q 20 ${WATERLINE - 3} 40 ${WATERLINE} T 80 ${WATERLINE} T 120 ${WATERLINE} T 160 ${WATERLINE} T 200 ${WATERLINE} T 240 ${WATERLINE} L 240 ${H} L 0 ${H} Z`}
-        fill={water}
-        opacity={0.92}
-      />
     </Svg>
   );
+}
+
+/**
+ * A point along a strake, for placing rivets: `x` runs 0..208 along the
+ * hull, and the y is read off the same curve the strake follows.
+ *
+ * Written as one expression on purpose. The first cut had a block-scoped
+ * `const u` derived from the parameter, and the minifier renamed both to
+ * `t` — the inner one shadowing the outer inside its own initialiser, which
+ * is a temporal-dead-zone throw on every render of the ability page. No
+ * inner binding, nothing to shadow.
+ */
+function pointOn(x: number, offset: number): { x: number; y: number } {
+  const y =
+    x <= 160
+      ? -6 + 54 * (((x + 8) / 168) ** 2 * 0.55 + ((x + 8) / 168) * 0.45)
+      : 48 + 60 * (((x - 160) / 48) ** 2 * 0.6 + ((x - 160) / 48) * 0.4);
+  return { x, y: y + offset };
 }

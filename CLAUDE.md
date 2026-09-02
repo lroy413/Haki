@@ -1232,13 +1232,31 @@ with the Gears as its second tab. The Do tab keeps one door and one line.
 - **Fresh hull on Monday.** The week resets because the app's whole position
   is that a caved-in hull is a record of a week, never a debt. The weekly
   target line stays what it was — a line to read against, never a verdict.
-- **The damage is the good news.** A whole hull on a Thursday is a warship at
-  anchor, not an empty bar; nothing here goes red. Each dent lands in a fixed
-  place (`DENTS`), so three hits look the same on Wednesday as Tuesday plus
-  one, and the lens light catches only on the torn rims — the coating, on the
-  one place a punch has been. The first cut put the waterline at 76 and
-  **drowned six of the seven craters**; the water sits at 86 now so every
-  bite shows. Read the pixels.
+- **It is the bottom of a hull, not a ship.** The first cut drew a warship
+  in profile at sea — turrets, funnel, the lot — and the owner sent the
+  frame: young Aokiji and Garp in a scrapyard, dwarfed by the underside of a
+  beached battleship, punching its plating. _"It isn't the whole ship, just
+  the bottom part."_ So the drawing is a wall of riveted plate curving up out
+  of the frame, the wreckage it rests on, and one small figure at its foot
+  with a fist up — the only thing in the picture that says how big it is.
+  It fills the dock (`xMidYMax slice`), because a letterboxed hull with the
+  card's ground either side of it is a ship in a box, not a wall you are
+  standing under; and the floor paints _after_ the hull so the keel sits
+  buried in the wreckage rather than floating above it.
+- **The damage is the good news.** A whole hull on a Thursday is a wall of
+  armour waiting for you, not an empty bar; nothing here goes red. Each dent
+  lands in a fixed place (`DENTS`), so three hits look the same on Wednesday
+  as Tuesday plus one. A crater is the sky showing through the plate, with
+  cracks running off across the armour and the lens light catching on the
+  torn lip — the coating, on the one place a punch has been. At seven a split
+  runs crater to crater: the hull is caving, which is what Garp was working
+  toward.
+- **No block-scoped const derived from a parameter in a drawing helper.**
+  `pointOn` had `const u = (t + 8) / 168` inside an `if`; the minifier renamed
+  both to `t`, the inner shadowing the outer inside its own initialiser, and
+  the ability page threw a temporal-dead-zone error on every render. Typecheck
+  and tests were green; only a `pageerror` listener in the browser drive
+  caught it. Write the helper as one expression, and keep that listener.
 - **Every row opens.** The owner logs from memory as often as from the gym
   floor, so `app/session.tsx` with an `id` is the same form over an existing
   session (Save it, Remove), and **the day is a field**. `pastDay` reads it:
