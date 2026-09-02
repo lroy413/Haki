@@ -1216,6 +1216,59 @@ So the unit is the _urge_, never the day and never the run.
   because armament is the tool for what you do and holding an urge is the
   hardest thing it has to hold.
 
+## The Battleship Bags, and the ability tool
+
+Garp's battleship bags, from the manga: warships he punched until their
+armoured hulls caved in, with no Haki and no Devil Fruit — _"a strength you
+have to earn."_ The owner's picture for the gym, and the gym is drawn as it
+now: `instruments/Battleship.tsx`, one hull a week, inside `app/ability.tsx`
+with the Gears as its second tab. The Do tab keeps one door and one line.
+
+- **A day is one hit, however many sessions it held.** `hitsThisWeek` counts
+  distinct days, capped at `MAX_HITS` (7), from Monday. The owner trains once
+  a day; counting sessions would draw a hull twice as broken for the same
+  day's work, and a backdated eighth session on a day already hit changes
+  nothing. Tested.
+- **Fresh hull on Monday.** The week resets because the app's whole position
+  is that a caved-in hull is a record of a week, never a debt. The weekly
+  target line stays what it was — a line to read against, never a verdict.
+- **The damage is the good news.** A whole hull on a Thursday is a warship at
+  anchor, not an empty bar; nothing here goes red. Each dent lands in a fixed
+  place (`DENTS`), so three hits look the same on Wednesday as Tuesday plus
+  one, and the lens light catches only on the torn rims — the coating, on the
+  one place a punch has been. The first cut put the waterline at 76 and
+  **drowned six of the seven craters**; the water sits at 86 now so every
+  bite shows. Read the pixels.
+- **Every row opens.** The owner logs from memory as often as from the gym
+  floor, so `app/session.tsx` with an `id` is the same form over an existing
+  session (Save it, Remove), and **the day is a field**. `pastDay` reads it:
+  a bare number is the most recent day with that number (`parseDay` rolls
+  forward, right for a deadline and wrong for a workout), and a day in the
+  future is refused — you cannot have trained on Friday when it is Wednesday.
+  A backdated session never gets the Return ceremony; the gap it closed is
+  still worked out against the day it was, but the drums are for today.
+- **Plain mode keeps the hull.** It is the app's own record of the week rather
+  than an effect, like the Sunny in the strip. The glint goes to `inkFaint`.
+- **The Gears are the second tab and nothing about them moved.** `GearsPane`
+  is the same pane `/gears` shows, so the practice card's door still opens.
+  What the Gears _become_ is the owner's open brief; until it is answered the
+  focus sessions stay exactly as `domain/gears.ts` describes them.
+
+## A bell is a thing you can tap
+
+_"Once I set a bell I don't know where it lives or can't change or adjust
+it."_ A bell is drawn as one now (`instruments/BellMark.tsx` — drawn, never
+typed; 🔔 renders as whatever the platform has) in a row you can tap, and
+tapping opens the bell itself: name and time editable where they are, with
+Keep and Take down beside them. `updateBell` edits in place, because a bell
+moved from three to half past is the same appointment.
+
+- **The open bell's fields carry their own labels** (`Dentist: time`) because
+  the hang-a-bell form below carries the same two words and a reader has to
+  tell them apart. Found by a test harness that filled the wrong one.
+- Take down lives inside the open bell, not on every row — a row that only
+  offered to destroy the thing was the complaint.
+
 ## A backup row is its table's row — except once
 
 The import inserts backup rows **straight into Drizzle**, so a backup type is

@@ -12,9 +12,10 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../src/db/client';
-import { addBell, bellsOn, removeBell } from '../src/db/repo';
+import { addBell, bellsOn, removeBell, updateBell } from '../src/db/repo';
 import { useSingleFlight } from '../src/state/useSingleFlight';
 import { useHaki } from '../src/state/HakiProvider';
+import { BellMark } from '../src/components/instruments/BellMark';
 import {
   MAX_BELL_CHARS,
   clockLabel,
@@ -40,6 +41,12 @@ import type { Palette } from '../src/theme/palettes';
  *
  * There is no done, no snooze and no reminder. A bell that has passed sits
  * astern; the only way one ends is that you take it down.
+ *
+ * **Every bell is a thing you can tap.** The owner: _"Once I set a bell I
+ * don't know where it lives or can't change or adjust it."_ So a bell is
+ * drawn as one, and tapping it opens the bell itself — its name and its time,
+ * editable in place, with the take-down beside them — rather than a row that
+ * only offered to destroy it.
  */
 export default function BellsScreen() {
   const { db } = useStore();
@@ -54,6 +61,10 @@ export default function BellsScreen() {
   const [rows, setRows] = useState<Bell[]>([]);
   const [title, setTitle] = useState('');
   const [when, setWhen] = useState('');
+  /** The bell that is open for editing, and the draft it holds. */
+  const [open, setOpen] = useState<number | null>(null);
+  const [draftTitle, setDraftTitle] = useState('');
+  const [draftWhen, setDraftWhen] = useState('');
   const committing = useSingleFlight();
 
   const load = useCallback(async () => {
@@ -93,10 +104,34 @@ export default function BellsScreen() {
     });
   }
 
+  const draftAt = parseClock(draftWhen);
+  const draftReady = draftTitle.trim().length > 0 && draftAt !== null;
+
+  function openBell(b: Bell) {
+    setDraftTitle(b.title);
+    setDraftWhen(clockLabel(b.at));
+    setOpen(b.id);
+  }
+
+  async function keep() {
+    if (open === null || !draftReady || draftAt === null) return;
+    const id = open;
+    const next = { title: draftTitle.trim(), at: draftAt };
+    await committing(async () => {
+      // Optimistic: the row wears the new name and time on the tap.
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...next } : r)));
+      setOpen(null);
+      await updateBell(db, id, next.title, next.at);
+      await load();
+      await refresh();
+    });
+  }
+
   async function take(id: number) {
     await committing(async () => {
       // Optimistic: the row leaves the list on the tap, not on the write.
       setRows((prev) => prev.filter((r) => r.id !== id));
+      setOpen(null);
       await removeBell(db, id);
       await load();
       await refresh();
@@ -146,27 +181,80 @@ export default function BellsScreen() {
             {plainMode ? 'Nothing at a set time.' : 'No bells on this day. Open water.'}
           </Text>
         ) : (
-          shown.map((b) => (
-            <View key={b.id} style={styles.row}>
-              <Text style={styles.rowTime}>{clockLabel(b.at)}</Text>
-              <View style={styles.rowBody}>
-                <Text style={styles.rowTitle}>{b.title}</Text>
-                <Text style={styles.rowWatch}>
-                  {plainMode ? WATCHES[watchOf(b)].short : WATCHES[watchOf(b)].label} ·{' '}
-                  {shortDay(b.day)}
-                </Text>
+          shown.map((b) =>
+            open === b.id ? (
+              // The bell, opened: its name and its time, editable where they
+              // are, with Keep and Take down beside them.
+              <View key={b.id} style={[styles.row, styles.rowOpen]}>
+                <View style={styles.editor}>
+                  <TextInput
+                    value={draftTitle}
+                    onChangeText={setDraftTitle}
+                    maxLength={MAX_BELL_CHARS}
+                    style={styles.input}
+                    // Named for the bell, because the form below carries the
+                    // same two labels and a reader has to tell them apart.
+                    accessibilityLabel={`${b.title}: name`}
+                  />
+                  <TextInput
+                    value={draftWhen}
+                    onChangeText={setDraftWhen}
+                    keyboardType="numbers-and-punctuation"
+                    style={styles.input}
+                    onSubmitEditing={() => void keep()}
+                    returnKeyType="done"
+                    accessibilityLabel={`${b.title}: time`}
+                  />
+                  <Text style={styles.readAs}>
+                    {draftAt === null ? 'Not a time yet.' : `Reads as ${clockLabel(draftAt)}.`}
+                  </Text>
+                  <View style={styles.editorRow}>
+                    <Pressable
+                      onPress={() => void take(b.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Take down: ${b.title}`}
+                      style={({ pressed }) => [styles.takeDown, pressed && styles.pressed]}
+                    >
+                      <Text style={styles.takeDownText}>Take down</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => void keep()}
+                      disabled={!draftReady}
+                      accessibilityRole="button"
+                      style={({ pressed }) => [
+                        styles.keep,
+                        !draftReady && styles.disabled,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={styles.keepText}>Keep</Text>
+                    </Pressable>
+                  </View>
+                </View>
               </View>
+            ) : (
               <Pressable
-                onPress={() => void take(b.id)}
+                key={b.id}
+                onPress={() => openBell(b)}
                 accessibilityRole="button"
-                accessibilityLabel={`Take down: ${b.title}`}
-                hitSlop={8}
-                style={({ pressed }) => [styles.take, pressed && styles.pressed]}
+                accessibilityLabel={`${b.title} at ${clockLabel(b.at)}. Open to change it.`}
+                style={({ pressed }) => [styles.row, pressed && styles.pressed]}
               >
-                <Text style={styles.takeText}>Take down</Text>
+                {/* Drawn, never typed — see BellMark. It wears the bells'
+                    own warmth, the one colour this screen is allowed. */}
+                <BellMark colour={palette.warn} />
+                <Text style={styles.rowTime}>{clockLabel(b.at)}</Text>
+                <View style={styles.rowBody}>
+                  <Text style={styles.rowTitle}>{b.title}</Text>
+                  <Text style={styles.rowWatch}>
+                    {plainMode ? WATCHES[watchOf(b)].short : WATCHES[watchOf(b)].label} ·{' '}
+                    {shortDay(b.day)}
+                  </Text>
+                </View>
+                <Text style={styles.rowGo}>›</Text>
               </Pressable>
-            </View>
-          ))
+            ),
+          )
         )}
 
         <View style={styles.form}>
@@ -252,12 +340,35 @@ const makeStyles = (c: Palette) =>
       padding: space.md,
       minHeight: 56,
     },
-    rowTime: { ...type.mono, color: c.warn, minWidth: 48 },
+    rowTime: { ...type.mono, color: c.warn, minWidth: 44 },
     rowBody: { flex: 1, gap: 2 },
     rowTitle: { ...type.heading, fontSize: 18, color: c.ink },
     rowWatch: { ...type.mono, fontSize: 12, color: c.inkFaint },
-    take: { minHeight: 44, justifyContent: 'center' },
-    takeText: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    rowOpen: { alignItems: 'stretch', borderColor: c.warn, backgroundColor: c.surface },
+    rowGo: { ...type.heading, fontSize: 18, color: c.inkFaint },
+    editor: { flex: 1, gap: space.sm },
+    editorRow: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
+    takeDown: {
+      flex: 1,
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.crimson,
+    },
+    takeDownText: { ...type.mono, fontSize: 13, color: c.crimson },
+    keep: {
+      flex: 1,
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+      backgroundColor: c.warnSoft,
+      borderWidth: 1,
+      borderColor: c.warn,
+    },
+    keepText: { ...type.mono, fontSize: 13, color: c.warn },
 
     form: { gap: space.xs, marginTop: space.lg },
     fieldLabel: { ...type.label, color: c.inkFaint, marginTop: space.xs },

@@ -302,6 +302,28 @@ export async function logSession(
   });
 }
 
+export async function getSession(db: Db, id: number): Promise<TrainingSessionRow | null> {
+  const [row] = await db.select().from(trainingSession).where(eq(trainingSession.id, id));
+  return row ?? null;
+}
+
+/**
+ * Change a session after the fact.
+ *
+ * The owner logs from memory as often as from the gym floor, so the day is
+ * editable along with everything else — a Tuesday session entered on
+ * Thursday is a Tuesday session. `closedGap` is left alone: the gap it closed
+ * was true when it was logged, and re-deriving it after the day moves would
+ * rewrite a Return that already happened.
+ */
+export async function updateSession(
+  db: Db,
+  id: number,
+  patch: Partial<Omit<Session, 'day'>> & { day?: DayKey },
+): Promise<void> {
+  await db.update(trainingSession).set(patch).where(eq(trainingSession.id, id));
+}
+
 export async function deleteSession(db: Db, id: number): Promise<void> {
   await db.delete(trainingSession).where(eq(trainingSession.id, id));
 }
@@ -1389,6 +1411,21 @@ export async function addBell(db: Db, title: string, day: DayKey, at: number): P
 }
 
 /** Take one down. There is no other way to end a bell — it is never ticked. */
+/**
+ * Rehang a bell with a different name or time.
+ *
+ * The owner: _"Once I set a bell I don't know where it lives or can't change
+ * or adjust it."_ Editing in place rather than take-down-and-hang, because a
+ * bell moved from three to half past is the same appointment, and the day it
+ * is on does not change — a bell is today's or tomorrow's, never further.
+ */
+export async function updateBell(db: Db, id: number, title: string, at: number): Promise<void> {
+  await db
+    .update(bell)
+    .set({ title: title.trim().slice(0, MAX_BELL_CHARS), at: clampClock(at) })
+    .where(eq(bell.id, id));
+}
+
 export async function removeBell(db: Db, id: number): Promise<void> {
   await db.delete(bell).where(eq(bell.id, id));
 }

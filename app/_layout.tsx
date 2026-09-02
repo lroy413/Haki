@@ -77,6 +77,9 @@ function Chrome() {
           name="gears"
           options={{ title: crew.name === 'zoro' ? t.stylesTitle : t.gearsTitle }}
         />
+        {/* The ability tool: the Battleship Bags and the Gears under one
+            roof, two tabs. See app/ability.tsx. */}
+        <Stack.Screen name="ability" options={{ title: t.abilityTitle }} />
         {/* The workshop behind the day's offers. See app/rhythms.tsx. */}
         <Stack.Screen name="rhythms" options={{ title: t.rhythmTitle }} />
         {/* The weekly ritual. See app/sail.tsx. */}
