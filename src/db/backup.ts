@@ -37,6 +37,10 @@ import {
   taskMove,
   trainingSession,
   urge,
+  ladderItem,
+  ladderTick,
+  ladderTrack,
+  ladderWeek,
 } from './schema';
 
 /**
@@ -75,6 +79,10 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     shifts,
     breaks,
     urges,
+    tracks,
+    ladderItems,
+    ladderTicks,
+    ladderWeeks,
     settings,
   ] = await Promise.all([
     db.select().from(dailyRead).orderBy(desc(dailyRead.day)),
@@ -102,6 +110,10 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
     db.select().from(weatherReading).orderBy(weatherReading.createdAt),
     db.select().from(breakItem).orderBy(breakItem.createdAt),
     db.select().from(urge).orderBy(urge.createdAt),
+    db.select().from(ladderTrack).orderBy(ladderTrack.createdAt),
+    db.select().from(ladderItem).orderBy(ladderItem.createdAt),
+    db.select().from(ladderTick).orderBy(ladderTick.createdAt),
+    db.select().from(ladderWeek).orderBy(ladderWeek.weekStart),
     db.select().from(setting),
   ]);
 
@@ -144,6 +156,7 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       endedAt: r.endedAt,
       completed: r.completed,
       createdAt: r.createdAt,
+      itemKey: r.itemKey,
     })),
     sitSession: sits.map((r) => ({
       depth: r.depth,
@@ -301,6 +314,37 @@ export async function readAllTables(db: Db): Promise<BackupTables> {
       outcome: r.outcome,
       createdAt: r.createdAt,
     })),
+    // The ladder's four tables are each their table's row: every child
+    // already carries its parent's stamp in a column.
+    ladderTrack: tracks.map((r) => ({
+      name: r.name,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      retiredAt: r.retiredAt,
+    })),
+    ladderItem: ladderItems.map((r) => ({
+      trackKey: r.trackKey,
+      title: r.title,
+      kind: r.kind,
+      target: r.target,
+      unit: r.unit,
+      closedOn: r.closedOn,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      retiredAt: r.retiredAt,
+    })),
+    ladderTick: ladderTicks.map((r) => ({
+      itemKey: r.itemKey,
+      day: r.day,
+      amount: r.amount,
+      createdAt: r.createdAt,
+    })),
+    ladderWeek: ladderWeeks.map((r) => ({
+      weekStart: r.weekStart,
+      held: r.held,
+      reachedBefore: r.reachedBefore,
+      createdAt: r.createdAt,
+    })),
     setting: settings.map((r) => ({ key: r.key, value: r.value })),
   };
 }
@@ -343,6 +387,10 @@ const TABLES = {
   weatherReading,
   breakItem,
   urge,
+  ladderTrack,
+  ladderItem,
+  ladderTick,
+  ladderWeek,
   setting,
 } as const;
 

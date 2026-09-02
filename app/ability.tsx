@@ -22,8 +22,9 @@ type Tab = 'bag' | 'gears';
  *   **Battleship Bags** — the gym, as the hull Garp punches. One hull a
  *   week, one hit per day trained, fresh on Monday. `components/BattleshipBag`.
  *
- *   **Gears** (Luffy) / **Styles** (Zoro) — the focus sessions, unchanged,
- *   mounted from the same pane `/gears` shows. `components/GearsPane`.
+ *   **Gears** (Luffy) / **Styles** (Zoro) — the career ladder, with the
+ *   focus sessions on its items, mounted from the same pane `/gears` shows.
+ *   `components/GearsPane`, and `domain/ladder.ts` for every rule.
  *
  * The owner's framing: _"Haki is will, Devil Fruit is ability."_ Armament is
  * the tool for what you do and everything under it hardens that lens; this

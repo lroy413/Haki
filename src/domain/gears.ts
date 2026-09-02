@@ -149,6 +149,12 @@ export type GearSession = {
   endedAt: number | null;
   /** True only if it ran the full duration. */
   completed: boolean;
+  /**
+   * The ladder item it was started from, by creation stamp, or null for a
+   * gear shifted on nothing in particular. Its minutes land on the item —
+   * see `domain/ladder.ts`. Optional because a year of sessions predate it.
+   */
+  itemKey?: number | null;
 };
 
 export function durationMs(gear: GearName): number {

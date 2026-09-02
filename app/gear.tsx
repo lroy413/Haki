@@ -3,7 +3,8 @@ import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useStore } from '../src/db/client';
-import { endGear, openGearSession } from '../src/db/repo';
+import { endGear, listItems, openGearSession } from '../src/db/repo';
+import { onItemLine } from '../src/domain/ladder';
 import {
   abandonMessage,
   completionMessage,
@@ -42,6 +43,8 @@ export default function GearScreen() {
   const [rowId, setRowId] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [outcome, setOutcome] = useState<string | null>(null);
+  /** The ladder item this gear was shifted into on, if any. */
+  const [onItem, setOnItem] = useState<string | null>(null);
   const closing = useRef(false);
 
   const load = useCallback(async () => {
@@ -49,6 +52,12 @@ export default function GearScreen() {
     if (open) {
       setRowId(open.id);
       setSession(open.session);
+      // The item rides on the row, not on the route, so a reload still
+      // knows what the minutes are landing on.
+      if (open.session.itemKey) {
+        const items = await listItems(db);
+        setOnItem(items.find((i) => i.key === open.session.itemKey)?.title ?? null);
+      }
     }
     setNow(Date.now());
   }, [db]);
@@ -99,6 +108,7 @@ export default function GearScreen() {
       <View style={styles.screen}>
         {!plainMode && <Text style={[styles.kanji, { color: tint }]}>{gear.kanji}</Text>}
         <Text style={styles.doneTitle}>{gear.label}</Text>
+        {onItem ? <Text style={styles.onItem}>{onItemLine(onItem)}</Text> : null}
         <Text style={styles.doneBody}>{outcome}</Text>
         <Pressable
           onPress={() => router.back()}
@@ -138,6 +148,7 @@ export default function GearScreen() {
     <View style={styles.screen}>
       {!plainMode && <Text style={[styles.kanji, { color: tint }]}>{gear.kanji}</Text>}
       <Text style={styles.label}>{gear.label}</Text>
+      {onItem ? <Text style={styles.onItem}>{onItemLine(onItem)}</Text> : null}
 
       <Text style={[styles.clock, { color: tint }]} accessibilityLabel={spoken(left)}>
         {clockFace(left)}
@@ -190,6 +201,7 @@ const makeStyles = (c: Palette) =>
     },
     kanji: { fontFamily: font.display, fontSize: 64 },
     label: { ...type.label, color: c.inkDim },
+    onItem: { ...type.body, color: c.inkDim, textAlign: 'center', maxWidth: 320 },
     clock: {
       fontFamily: font.displayBold,
       fontSize: 76,

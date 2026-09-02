@@ -547,6 +547,72 @@ const MIGRATIONS: { version: number; up: string }[] = [
       CREATE INDEX IF NOT EXISTS weather_reading_day_idx ON weather_reading (day);
     `,
   },
+  {
+    version: 20,
+    up: `
+      -- The ladder: the Gears as a weekly career ladder. See domain/ladder.ts.
+      --
+      -- The owner's brief: a career and business goal tracker, made game-like
+      -- — every week a number of practices and goals met activates the next
+      -- gear, progressively more of them, fresh every Monday. And a stamina
+      -- to it: a week held carries one rung into the next, a week under it
+      -- gives one back.
+      --
+      -- A track is a thing being mastered (the main career, each side
+      -- hustle). An item is a practice with a weekly target in times or
+      -- minutes, or a goal met once. A tick is one tap. Children carry their
+      -- parent's created_at, never its id, so a backup round-trips them.
+      --
+      -- ladder_week is the record: one row per week the app was opened in,
+      -- written once and never recomputed, holding what was carried into the
+      -- week and what the week before it reached. Nothing here counts weeks
+      -- at a rung and nothing here is a streak.
+      CREATE TABLE IF NOT EXISTS ladder_track (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        name       TEXT    NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        retired_at INTEGER
+      );
+
+      CREATE TABLE IF NOT EXISTS ladder_item (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        track_key  INTEGER NOT NULL,
+        title      TEXT    NOT NULL,
+        kind       TEXT    NOT NULL DEFAULT 'practice',
+        target     INTEGER NOT NULL DEFAULT 1,
+        unit       TEXT    NOT NULL DEFAULT 'times',
+        closed_on  TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        retired_at INTEGER
+      );
+
+      CREATE INDEX IF NOT EXISTS ladder_item_track_idx ON ladder_item (track_key);
+
+      CREATE TABLE IF NOT EXISTS ladder_tick (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_key   INTEGER NOT NULL,
+        day        TEXT    NOT NULL,
+        amount     INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS ladder_tick_day_idx ON ladder_tick (day);
+
+      CREATE TABLE IF NOT EXISTS ladder_week (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        week_start     TEXT    NOT NULL UNIQUE,
+        held           INTEGER NOT NULL,
+        reached_before INTEGER NOT NULL,
+        created_at     INTEGER NOT NULL
+      );
+
+      -- A gear started from an item lands its minutes on it. Null for a gear
+      -- shifted on nothing in particular, which every gear before this was.
+      ALTER TABLE gear_session ADD COLUMN item_key INTEGER;
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

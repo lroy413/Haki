@@ -17,12 +17,15 @@ describe('weight', () => {
     expect(weightOf(NO_ACTS)).toBe(0);
   });
 
-  it('counts gear in whole blocks, never in fractions', () => {
-    // Nine minutes of a twenty-five minute sprint is not a third of one.
-    expect(weightOf(acts({ gearMinutes: 9 }))).toBe(0);
-    expect(weightOf(acts({ gearMinutes: 25 }))).toBe(1);
-    expect(weightOf(acts({ gearMinutes: 49 }))).toBe(1);
-    expect(weightOf(acts({ gearMinutes: 50 }))).toBe(2);
+  it('does not weigh a gear at all', () => {
+    // The gears are the career ladder's, and the owner cut them from the
+    // ground on purpose: a practice evening climbs the ladder and must not
+    // also darken the app. Two hours of it weighs exactly nothing here.
+    expect(weightOf(acts({ gearMinutes: 25 }))).toBe(0);
+    expect(weightOf(acts({ gearMinutes: 120 }))).toBe(0);
+    expect(weightOf(acts({ read: true, gearMinutes: 120 }))).toBe(
+      weightOf(acts({ read: true })),
+    );
   });
 
   it('weighs training heaviest', () => {
@@ -72,20 +75,21 @@ describe('levelFor', () => {
       acts({ struck: 1 }),
       acts({ entries: 1 }),
       acts({ trained: 1 }),
-      acts({ gearMinutes: 25 }),
+      acts({ satMinutes: 5 }),
     ]) {
       expect(levelFor(one)).toBeGreaterThanOrEqual(1);
     }
   });
 
-  it('does not harden on a gear too short to count', () => {
+  it('does not harden on a gear, however long', () => {
     expect(levelFor(acts({ gearMinutes: 4 }))).toBe(0);
+    expect(levelFor(acts({ gearMinutes: 120 }))).toBe(0);
   });
 
   it('climbs with the day', () => {
     expect(levelFor(acts({ read: true }))).toBe(1);
     expect(levelFor(acts({ read: true, struck: 2 }))).toBe(2);
-    expect(levelFor(acts({ read: true, trained: 1, gearMinutes: 90, struck: 2 }))).toBe(3);
+    expect(levelFor(acts({ read: true, trained: 1, entries: 1, struck: 2 }))).toBe(3);
   });
 
   it('tops out rather than overflowing', () => {

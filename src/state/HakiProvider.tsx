@@ -364,9 +364,9 @@ export function HakiProvider({ children }: { children: React.ReactNode }) {
     // days here because the domain wants days and the database only has rows.
     //
     // Armament reads its own tool and nothing else: tasks struck and sessions
-    // logged. Gears are conspicuously not in this list — they are leaving the
-    // page for the ability tool, and hardening (which reads the whole day)
-    // is where a gear block still counts.
+    // logged. Gears are conspicuously not in this list — they are the career
+    // ladder's (`domain/ladder.ts`), and by the owner's decision they harden
+    // nothing either; the Reserve and the Calm Belt are what still read them.
     const now = Date.now();
     const armamentDays = new Map<string, ArmamentDay>();
     const dayOf = (key: string): ArmamentDay => {

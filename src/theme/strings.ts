@@ -216,6 +216,27 @@ export type Strings = {
   sessionEditTitle: string;
   sessionDay: string;
   stylesTitle: string;
+  /** The ladder — the Gears as a weekly career ladder. See `domain/ladder.ts`. */
+  ladderTracks: string;
+  ladderAddTrack: string;
+  ladderTrackName: string;
+  ladderTrackRetire: string;
+  ladderAddItem: string;
+  ladderItemName: string;
+  ladderPractice: string;
+  ladderGoal: string;
+  ladderTimes: string;
+  ladderMinutes: string;
+  ladderRetire: string;
+  ladderTapTimes: string;
+  ladderTapMinutes: (n: number) => string;
+  ladderTapGoal: string;
+  ladderUndo: string;
+  ladderShift: string;
+  ladderLoose: string;
+  ladderRungs: string;
+  ladderRungsBlurb: string;
+  ladderRungAsks: (n: number) => string;
   crewTitle: string;
   crewBlurb: string;
   trainingLog: string;
@@ -489,6 +510,27 @@ const haki: Strings = {
   sessionDay: 'When',
   // 刀流 — the sword styles, under Zoro's flag.
   stylesTitle: 'Sword Styles',
+  ladderTracks: 'What you are mastering',
+  ladderAddTrack: 'Name a thing to master',
+  ladderTrackName: 'What it is',
+  ladderTrackRetire: 'Let this go',
+  ladderAddItem: 'Add a practice or a goal',
+  ladderItemName: 'What it is',
+  ladderPractice: 'Practice',
+  ladderGoal: 'Goal',
+  ladderTimes: 'Times a week',
+  ladderMinutes: 'Minutes a week',
+  ladderRetire: 'Let it go',
+  ladderTapTimes: 'Done once',
+  ladderTapMinutes: (n: number) => `${n} min logged`,
+  ladderTapGoal: 'Done',
+  ladderUndo: 'Take one back',
+  ladderShift: 'Shift into',
+  ladderLoose: 'Or shift on nothing in particular',
+  ladderRungs: 'The rungs',
+  ladderRungsBlurb:
+    'What each one asks of a week. Raise any rung; the floor is the app’s, and a rung never goes under it.',
+  ladderRungAsks: (n: number) => (n === 1 ? '1 met' : `${n} met`),
   crewTitle: 'Whose will',
   crewBlurb:
     'Changes the instrument the impact frame draws, and what 覇王色 burns. Nothing recorded changes — a session logged under one flag reads under the other.',
@@ -635,6 +677,27 @@ const plain: Strings = {
   sessionEditTitle: 'This session',
   sessionDay: 'Date',
   stylesTitle: 'Focus',
+  ladderTracks: 'Areas',
+  ladderAddTrack: 'Add an area',
+  ladderTrackName: 'Name',
+  ladderTrackRetire: 'Remove this area',
+  ladderAddItem: 'Add a practice or a goal',
+  ladderItemName: 'Name',
+  ladderPractice: 'Practice',
+  ladderGoal: 'Goal',
+  ladderTimes: 'Times a week',
+  ladderMinutes: 'Minutes a week',
+  ladderRetire: 'Remove',
+  ladderTapTimes: 'Done once',
+  ladderTapMinutes: (n: number) => `${n} min logged`,
+  ladderTapGoal: 'Done',
+  ladderUndo: 'Undo one',
+  ladderShift: 'Start a timer',
+  ladderLoose: 'Or start a timer on its own',
+  ladderRungs: 'Levels',
+  ladderRungsBlurb:
+    'How many items met in a week reach each level. Raise any of them; none goes under the minimum.',
+  ladderRungAsks: (n: number) => (n === 1 ? '1 met' : `${n} met`),
   crewTitle: 'Style',
   crewBlurb: 'Changes the artwork and the accent colour. Nothing recorded changes.',
   hardnessLabel: 'Consistency',

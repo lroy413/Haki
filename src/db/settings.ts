@@ -4,6 +4,7 @@ import { DEFAULT_KEYSTONE, type KeystoneConfig } from '../domain/cascade';
 import { DEFAULT_TRAINING, type TrainingConfig } from '../domain/training';
 import { DEFAULT_CAPACITY_MINUTES } from '../domain/tasks';
 import { isCrewName, type CrewName } from '../domain/crew';
+import { encodeMinimums, parseMinimums, type Minimums } from '../domain/ladder';
 import { readSetting, writeSetting, type Db } from './repo';
 
 /**
@@ -49,6 +50,10 @@ const KEYS = {
   hardeningDay: 'hardening.day',
   hardeningLevel: 'hardening.level',
   hardeningWeight: 'hardening.weight',
+  /** The ladder's rungs, raised above the floor. See `domain/ladder.ts`. */
+  ladderRungs: 'ladder.rungs',
+  /** The Monday of the week the top rung last fired the burst. */
+  ladderBurst: 'ladder.burstWeek',
 } as const;
 
 export async function loadSettings(db: Db): Promise<Settings> {
@@ -203,4 +208,30 @@ export async function setCapacityMinutes(db: Db, minutes: number): Promise<void>
 
 export async function setSoundOn(db: Db, on: boolean): Promise<void> {
   await writeSetting(db, KEYS.sound, on ? 'true' : 'false');
+}
+
+/* ----------------------------------------------------------------- ladder */
+
+/** The rung table as the owner has raised it; the floor when never touched. */
+export async function readLadderMinimums(db: Db): Promise<Minimums> {
+  return parseMinimums(await readSetting(db, KEYS.ladderRungs));
+}
+
+export async function writeLadderMinimums(db: Db, m: Minimums): Promise<void> {
+  await writeSetting(db, KEYS.ladderRungs, encodeMinimums(m));
+}
+
+/**
+ * Which week the top rung last fired the Conqueror's burst.
+ *
+ * Written before the burst fires, so a second refresh landing in the same
+ * frame cannot fire it twice — and read on every load, so reaching the top
+ * lights the screen once a week at most and never again for the same week.
+ */
+export async function readBurstWeek(db: Db): Promise<string | null> {
+  return readSetting(db, KEYS.ladderBurst);
+}
+
+export async function writeBurstWeek(db: Db, weekStart: string): Promise<void> {
+  await writeSetting(db, KEYS.ladderBurst, weekStart);
 }

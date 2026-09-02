@@ -35,6 +35,26 @@ import { NO_ACTS } from '../domain/hardening';
 import { minutesToday as gearMinutes } from '../domain/gears';
 import { minutesToday as sitMinutes } from '../domain/stillness';
 import {
+  MAX_TITLE as MAX_ITEM_TITLE,
+  MAX_TRACK_NAME,
+  activeItems,
+  completedIn,
+  isKind as isItemKind,
+  isUnit,
+  mondayOf,
+  reachedRung,
+  settleWeeks,
+  type Item,
+  type ItemKind,
+  type Minimums,
+  type Rung,
+  type Tick,
+  type Timed,
+  type Track,
+  type Unit,
+  type WeekRecord,
+} from '../domain/ladder';
+import {
   bell,
   carried,
   course,
@@ -61,6 +81,10 @@ import {
   urge,
   trainingSession,
   weatherReading,
+  ladderItem,
+  ladderTick,
+  ladderTrack,
+  ladderWeek,
   type CarriedRow,
   type EntryRow,
   type SailingRow,
@@ -336,6 +360,7 @@ function toGearSession(row: {
   startedAt: number;
   endedAt: number | null;
   completed: number;
+  itemKey?: number | null;
 }): GearSession {
   return {
     gear: row.gear as GearName,
@@ -343,6 +368,7 @@ function toGearSession(row: {
     startedAt: row.startedAt,
     endedAt: row.endedAt,
     completed: row.completed === 1,
+    itemKey: row.itemKey ?? null,
   };
 }
 
@@ -401,11 +427,22 @@ export async function openGearSession(
   return row ? { id: row.id, session: toGearSession(row) } : null;
 }
 
-export async function startGear(db: Db, gear: GearName): Promise<number> {
+/**
+ * Shift into a gear — on a ladder item, or on nothing in particular.
+ *
+ * The item travels on the row rather than on the route, because the gear
+ * screen is reloaded, backgrounded and reopened without its params, and the
+ * minutes have to land on the right item whichever way it came back.
+ */
+export async function startGear(
+  db: Db,
+  gear: GearName,
+  itemKey: number | null = null,
+): Promise<number> {
   const stamp = now();
   const inserted = await db
     .insert(gearSession)
-    .values({ gear, day: todayKey(), startedAt: stamp, createdAt: stamp })
+    .values({ gear, day: todayKey(), startedAt: stamp, createdAt: stamp, itemKey })
     .returning({ id: gearSession.id });
   return inserted[0].id;
 }
@@ -1975,4 +2012,259 @@ export async function saveDayEnd(db: Db, day: DayKey, line: string): Promise<voi
       target: dayEnd.day,
       set: { line: value, updatedAt: stamp },
     });
+}
+
+/* ----------------------------------------------------------------- ladder */
+
+/**
+ * The ladder's tables. See `domain/ladder.ts` for what they mean; this is
+ * only how they are read and written.
+ */
+
+function toTrack(row: typeof ladderTrack.$inferSelect): Track {
+  return { id: row.id, key: row.createdAt, name: row.name, retired: row.retiredAt !== null };
+}
+
+function toItem(row: typeof ladderItem.$inferSelect): Item {
+  return {
+    id: row.id,
+    key: row.createdAt,
+    trackKey: row.trackKey,
+    title: row.title,
+    // Decided on the way out rather than on the way in, so a file written by
+    // a later version with a third kind in it still imports — an unknown one
+    // lands as a practice rather than throwing away somebody's row.
+    kind: isItemKind(row.kind) ? row.kind : 'practice',
+    target: Math.max(1, row.target),
+    unit: isUnit(row.unit) ? row.unit : 'times',
+    closedOn: row.closedOn,
+    retired: row.retiredAt !== null,
+  };
+}
+
+function toTick(row: typeof ladderTick.$inferSelect): Tick {
+  return {
+    id: row.id,
+    itemKey: row.itemKey,
+    day: row.day as DayKey,
+    amount: row.amount,
+    createdAt: row.createdAt,
+  };
+}
+
+/** Every track, oldest first, retired ones included — the pane decides. */
+export async function listTracks(db: Db): Promise<Track[]> {
+  const rows = await db.select().from(ladderTrack).orderBy(asc(ladderTrack.createdAt));
+  return rows.map(toTrack);
+}
+
+/** Returns the new track's key. */
+export async function addTrack(db: Db, name: string): Promise<number> {
+  const t = now();
+  await db.insert(ladderTrack).values({
+    name: name.trim().slice(0, MAX_TRACK_NAME),
+    createdAt: t,
+    updatedAt: t,
+  });
+  return t;
+}
+
+export async function renameTrack(db: Db, id: number, name: string): Promise<void> {
+  await db
+    .update(ladderTrack)
+    .set({ name: name.trim().slice(0, MAX_TRACK_NAME), updatedAt: now() })
+    .where(eq(ladderTrack.id, id));
+}
+
+/** Retire, or bring back. Never a delete — its items and their ticks stay. */
+export async function retireTrack(db: Db, id: number, retired: boolean): Promise<void> {
+  await db
+    .update(ladderTrack)
+    .set({ retiredAt: retired ? now() : null, updatedAt: now() })
+    .where(eq(ladderTrack.id, id));
+}
+
+/**
+ * Every item, oldest first, retired ones included.
+ *
+ * The settle needs them all: an item retired this morning still counts in
+ * the week it was met. `activeItems` in the domain is what a week can see.
+ */
+export async function listItems(db: Db): Promise<Item[]> {
+  const rows = await db.select().from(ladderItem).orderBy(asc(ladderItem.createdAt));
+  return rows.map(toItem);
+}
+
+export type ItemDraft = { title: string; kind: ItemKind; target: number; unit: Unit };
+
+export async function addItem(db: Db, trackKey: number, value: ItemDraft): Promise<void> {
+  const t = now();
+  await db.insert(ladderItem).values({
+    trackKey,
+    title: value.title.trim().slice(0, MAX_ITEM_TITLE),
+    kind: value.kind,
+    // A goal is met once; its target is one whatever the form held.
+    target: value.kind === 'goal' ? 1 : Math.max(1, value.target),
+    unit: value.kind === 'goal' ? 'times' : value.unit,
+    createdAt: t,
+    updatedAt: t,
+  });
+}
+
+export async function updateItem(db: Db, id: number, patch: Partial<ItemDraft>): Promise<void> {
+  const next: Record<string, unknown> = { updatedAt: now() };
+  if (patch.title !== undefined) next.title = patch.title.trim().slice(0, MAX_ITEM_TITLE);
+  if (patch.kind !== undefined) next.kind = patch.kind;
+  if (patch.target !== undefined) next.target = Math.max(1, patch.target);
+  if (patch.unit !== undefined) next.unit = patch.unit;
+  if (patch.kind === 'goal') {
+    next.target = 1;
+    next.unit = 'times';
+  }
+  await db.update(ladderItem).set(next).where(eq(ladderItem.id, id));
+}
+
+/** Retire, or bring back. The ticks it earned stay in the record. */
+export async function retireItem(db: Db, id: number, retired: boolean): Promise<void> {
+  await db
+    .update(ladderItem)
+    .set({ retiredAt: retired ? now() : null, updatedAt: now() })
+    .where(eq(ladderItem.id, id));
+}
+
+/**
+ * One tap on an item. A goal's tap also closes it on that day, which is what
+ * lets it leave the list once its week is over.
+ */
+export async function tickItem(db: Db, item: Item, day: DayKey, amount = 1): Promise<void> {
+  const t = now();
+  await db.insert(ladderTick).values({ itemKey: item.key, day, amount, createdAt: t });
+  if (item.kind === 'goal') {
+    await db
+      .update(ladderItem)
+      .set({ closedOn: day, updatedAt: t })
+      .where(eq(ladderItem.id, item.id));
+  }
+}
+
+/**
+ * Take back the most recent tap on an item this week — a slip of the finger,
+ * undone the same way it was made. A goal reopens.
+ */
+export async function untickItem(db: Db, item: Item, monday: DayKey): Promise<void> {
+  const rows = await db
+    .select()
+    .from(ladderTick)
+    .where(
+      and(
+        eq(ladderTick.itemKey, item.key),
+        gte(ladderTick.day, monday),
+        lte(ladderTick.day, addDays(monday, 6)),
+      ),
+    )
+    .orderBy(desc(ladderTick.createdAt))
+    .limit(1);
+  const last = rows[0];
+  if (!last) return;
+  await db.delete(ladderTick).where(eq(ladderTick.id, last.id));
+  if (item.kind === 'goal') {
+    await db
+      .update(ladderItem)
+      .set({ closedOn: null, updatedAt: now() })
+      .where(eq(ladderItem.id, item.id));
+  }
+}
+
+export async function ticksBetween(db: Db, from: DayKey, to: DayKey): Promise<Tick[]> {
+  const rows = await db
+    .select()
+    .from(ladderTick)
+    .where(and(gte(ladderTick.day, from), lte(ladderTick.day, to)))
+    .orderBy(asc(ladderTick.createdAt));
+  return rows.map(toTick);
+}
+
+/**
+ * Gear sessions across a window, as the ladder reads them: which item, which
+ * day, how many minutes actually ran. A session still running counts as far
+ * as now.
+ */
+export async function timedBetween(db: Db, from: DayKey, to: DayKey): Promise<Timed[]> {
+  const sessions = await gearSessionsBetween(db, from, to);
+  const at = now();
+  return sessions.map((s) => ({
+    itemKey: s.itemKey ?? null,
+    day: s.day,
+    minutes: gearMinutes([s], at),
+  }));
+}
+
+function toWeekRecord(row: typeof ladderWeek.$inferSelect): WeekRecord {
+  const clamp = (n: number): Rung => Math.max(0, Math.min(5, Math.trunc(n))) as Rung;
+  return {
+    weekStart: row.weekStart as DayKey,
+    held: clamp(row.held),
+    reachedBefore: clamp(row.reachedBefore),
+  };
+}
+
+export async function ladderWeekFor(db: Db, weekStart: DayKey): Promise<WeekRecord | null> {
+  const rows = await db.select().from(ladderWeek).where(eq(ladderWeek.weekStart, weekStart));
+  return rows[0] ? toWeekRecord(rows[0]) : null;
+}
+
+/**
+ * Bring the record up to this week and return it.
+ *
+ * Idempotent: a week already written is simply read back. Otherwise every
+ * week since the last written one is read live — the completions that week
+ * held against the rungs as they stand now — and written down, so the record
+ * and the rule cannot disagree about a fortnight the app was closed for.
+ * Two refreshes racing here both compute the same rows; the unique week
+ * start lets the second insert fall through.
+ */
+export async function settleLadder(
+  db: Db,
+  today: DayKey,
+  minimums: Minimums,
+): Promise<WeekRecord> {
+  const thisWeek = mondayOf(today);
+  const mine = await ladderWeekFor(db, thisWeek);
+  if (mine) return mine;
+
+  const previous = await db
+    .select()
+    .from(ladderWeek)
+    .where(lt(ladderWeek.weekStart, thisWeek))
+    .orderBy(desc(ladderWeek.weekStart))
+    .limit(1);
+  const last = previous[0] ? toWeekRecord(previous[0]) : null;
+
+  // Only the weeks that have not been written yet are read live — from the
+  // last settled week (whose own reach is what the next row records) up to
+  // the Sunday before this one.
+  const from = last ? last.weekStart : addDays(thisWeek, -7);
+  const to = addDays(thisWeek, -1);
+  const [items, ticks, timed] = await Promise.all([
+    listItems(db),
+    ticksBetween(db, from, to),
+    timedBetween(db, from, to),
+  ]);
+  const reachedIn = (week: DayKey): Rung =>
+    reachedRung(completedIn(activeItems(items, week, true), ticks, timed, week), minimums);
+
+  const rows = settleWeeks(last, thisWeek, reachedIn);
+  const t = now();
+  for (const r of rows) {
+    await db
+      .insert(ladderWeek)
+      .values({
+        weekStart: r.weekStart,
+        held: r.held,
+        reachedBefore: r.reachedBefore,
+        createdAt: t,
+      })
+      .onConflictDoNothing();
+  }
+  return (await ladderWeekFor(db, thisWeek)) ?? rows[rows.length - 1];
 }

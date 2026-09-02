@@ -30,6 +30,15 @@ import { SITS } from './stillness';
  * belongs to. Withholding the palette from meditation would be a mental-health
  * app punishing somebody for meditating.
  *
+ * **And a gear is not the day being used — it is the ladder being climbed.**
+ * Gear minutes darkened the app for a long time, and the owner cut it when
+ * the Gears became his career ladder (`domain/ladder.ts`): _"they should not
+ * feed hardening. The focus timers are going to be for the amount of time I
+ * spend practicing."_ A practice evening has its own thing to climb, and a
+ * screen that hardened for it as well would be paying twice for one act. The
+ * Reserve still spends on those minutes and the Calm Belt still counts them
+ * as resistance; only the ground stopped answering to them.
+ *
  * Two rules this must never break:
  *
  * 1. **Pale is not a scolding.** A light screen at seven in the morning means
@@ -54,7 +63,13 @@ export type Acts = {
   struck: number;
   /** Training sessions logged today. */
   trained: number;
-  /** Minutes spent in gear today. */
+  /**
+   * Minutes spent in gear today.
+   *
+   * Carried on the day's acts because the Reserve spends on them, the Calm
+   * Belt counts them as resistance and the evening reads them back — but
+   * **they do not harden the app.** See `weightOf`.
+   */
   gearMinutes: number;
   /** Minutes sat still today. */
   satMinutes: number;
@@ -84,9 +99,6 @@ const WEIGHT = {
   entry: 2,
   struck: 1,
   trained: 3,
-  /** One per full Gear 2. */
-  gearBlock: 1,
-  gearBlockMinutes: 25,
   /**
    * Flat, and equal to a journal entry.
    *
@@ -119,7 +131,6 @@ export function weightOf(acts: Acts): number {
     acts.entries * WEIGHT.entry +
     acts.struck * WEIGHT.struck +
     acts.trained * WEIGHT.trained +
-    Math.floor(acts.gearMinutes / WEIGHT.gearBlockMinutes) * WEIGHT.gearBlock +
     (acts.satMinutes >= SAT_COUNTS_FROM ? WEIGHT.sat : 0)
   );
 }
@@ -207,14 +218,16 @@ export const CHARGE_FROM = THRESHOLDS[3];
 /**
  * Where the charge saturates.
  *
- * Ten points past black, which is about a full day again: the morning that got
- * you there, plus a training session, an hour in gear and half a dozen struck
+ * Eight points past black, which is about a full day again: the morning that
+ * got you there, plus an entry, a training session and half a dozen struck
  * tasks. Reachable on a good day and not on an ordinary one, which is the
  * right frequency for the loudest thing the interface does — and it has to be
  * genuinely reachable, or the top half of the ramp is dead and the app has
- * simply moved the point at which it stops answering.
+ * simply moved the point at which it stops answering. It was eighteen while
+ * an hour in gear was worth two points; when the gears stopped hardening the
+ * app the top came down with them, so a full day without one still gets here.
  */
-export const CHARGE_FULL = 18;
+export const CHARGE_FULL = 16;
 
 /**
  * How charged the day is, 0..1.
