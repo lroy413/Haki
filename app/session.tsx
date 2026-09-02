@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,16 +9,22 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Dial } from '../src/components/Dial';
 import { useStore } from '../src/db/client';
-import { allSessions, logSession } from '../src/db/repo';
+import {
+  allSessions,
+  deleteSession,
+  getSession,
+  logSession,
+  updateSession,
+} from '../src/db/repo';
 import { useSingleFlight } from '../src/state/useSingleFlight';
 import { useHaki } from '../src/state/HakiProvider';
 import { underCrew } from '../src/theme/palettes';
-import { gapClosedBy, returnMessage } from '../src/domain/training';
+import { gapClosedBy, pastDay, returnMessage } from '../src/domain/training';
 import { play } from '../src/sound';
-import { todayKey } from '../src/domain/date';
+import { shortDay, todayKey } from '../src/domain/date';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { press } from '../src/theme/surfaces';
 import type { Palette } from '../src/theme/palettes';
@@ -26,11 +32,21 @@ import type { Palette } from '../src/theme/palettes';
 const QUICK_KINDS = ['Push', 'Pull', 'Legs', 'Full body', 'Run', 'Conditioning'];
 
 /**
- * Log a training session.
+ * Log a training session — or change one.
  *
  * Only `kind` is required. Everything else is optional, because a session
  * logged in five seconds beats a session not logged at all — and the gap
  * detection that matters only needs the date.
+ *
+ * Two things the owner asked for by name: **the day is a field**, because a
+ * session is logged from memory as often as from the gym floor and a Tuesday
+ * entered on Thursday is a Tuesday; and **a row opens back up** — with an
+ * `id` this is the same form over an existing session, with Save writing the
+ * changes and a Remove at the foot.
+ *
+ * A backdated session is bookkeeping rather than a comeback, so it never
+ * gets the Return ceremony: the gap it closed is still worked out against the
+ * day it was, and written, but the drums are for today.
  */
 export default function SessionScreen() {
   const router = useRouter();
@@ -39,15 +55,39 @@ export default function SessionScreen() {
   const lens = useMemo(() => underCrew(palette, crew), [palette, crew]);
   const styles = useMemo(() => makeStyles(lens), [lens]);
 
+  const { id: rawId } = useLocalSearchParams<{ id?: string }>();
+  const editing = typeof rawId === 'string' && /^\d+$/.test(rawId) ? Number(rawId) : null;
+
   const [kind, setKind] = useState('');
   const [minutes, setMinutes] = useState('');
   const [intensity, setIntensity] = useState<number | null>(null);
   const [note, setNote] = useState('');
+  const [when, setWhen] = useState('');
   const [returned, setReturned] = useState<string | null>(null);
+
+  const today = todayKey();
+  // Empty means today. Anything else has to read as a day that has happened.
+  const day = pastDay(when, today);
+
+  useEffect(() => {
+    if (editing === null) return;
+    let cancelled = false;
+    void getSession(db, editing).then((row) => {
+      if (cancelled || !row) return;
+      setKind(row.kind);
+      setMinutes(row.minutes ? String(row.minutes) : '');
+      setIntensity(row.intensity);
+      setNote(row.note ?? '');
+      setWhen(row.day === today ? '' : row.day);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [db, editing, today]);
 
   // The flight guard, not a state flag, is what stops a second tap: state
   // is exactly what is too slow here.
-  const canSave = kind.trim().length > 0;
+  const canSave = kind.trim().length > 0 && day !== null;
 
   const committing = useSingleFlight();
 
@@ -64,10 +104,13 @@ export default function SessionScreen() {
       note: note.trim() || null,
     };
 
+    const landsOn = day ?? today;
+
     // Whether this lands as a Return is already known synchronously — the
     // provider works it out on every refresh — so the screen does not have to
-    // wait for a database read to know which acknowledgement to give.
-    const willReturn = training.inGap;
+    // wait for a database read to know which acknowledgement to give. Only a
+    // session for *today* can be a comeback; a backdated one is bookkeeping.
+    const willReturn = editing === null && landsOn === today && training.inGap;
     const gapDays = training.daysSinceLast ?? 0;
 
     await committing(async () => {
@@ -82,14 +125,27 @@ export default function SessionScreen() {
         router.back();
       }
 
-      const today = todayKey();
+      if (editing !== null) {
+        await updateSession(db, editing, { ...draft, day: landsOn });
+        await refresh();
+        return;
+      }
 
       // Work out the gap before writing, or this session becomes its own
       // "previous session" and every Return would read as zero.
       const existing = await allSessions(db);
-      const gap = gapClosedBy(existing, today, settings.training);
+      const gap = gapClosedBy(existing, landsOn, settings.training);
 
-      await logSession(db, { ...draft, day: today }, gap);
+      await logSession(db, { ...draft, day: landsOn }, gap);
+      await refresh();
+    });
+  }
+
+  function remove() {
+    if (editing === null) return;
+    void committing(async () => {
+      router.back();
+      await deleteSession(db, editing);
       await refresh();
     });
   }
@@ -118,6 +174,9 @@ export default function SessionScreen() {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* The same form over an existing session says so in the header —
+          "Log a session" above a row you came to correct is the wrong word. */}
+      {editing !== null ? <Stack.Screen options={{ title: t.sessionEditTitle }} /> : null}
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.field}>
           <Text style={styles.label}>{t.trainingKind}</Text>
@@ -149,6 +208,27 @@ export default function SessionScreen() {
               </Pressable>
             ))}
           </View>
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>{t.sessionDay}</Text>
+          <TextInput
+            value={when}
+            onChangeText={setWhen}
+            placeholder="Today"
+            placeholderTextColor={palette.inkFaint}
+            keyboardType="numbers-and-punctuation"
+            style={styles.input}
+            accessibilityLabel={t.sessionDay}
+          />
+          {/* Says what it read rather than validating at you. */}
+          <Text style={styles.readAs}>
+            {when.trim().length === 0
+              ? 'Today. A day number, "aug 28" or "8/28" for one that has been.'
+              : day === null
+                ? 'Not a day that has happened.'
+                : `Reads as ${day === today ? 'today' : shortDay(day, today)}.`}
+          </Text>
         </View>
 
         <View style={styles.field}>
@@ -195,8 +275,31 @@ export default function SessionScreen() {
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.saveText}>{kind.trim() ? 'Log it' : 'Name it first'}</Text>
+          <Text style={styles.saveText}>
+            {!kind.trim()
+              ? 'Name it first'
+              : day === null
+                ? 'Fix the day'
+                : editing !== null
+                  ? 'Save it'
+                  : 'Log it'}
+          </Text>
         </Pressable>
+
+        {/* A session logged twice by a slipped thumb is not a record of
+            anything. This removes the row and nothing else — the day it
+            happened on keeps every other mark it earned. Crimson-less on
+            purpose: it is a correction, not a breach. */}
+        {editing !== null ? (
+          <Pressable
+            onPress={remove}
+            accessibilityRole="button"
+            accessibilityLabel="Remove this session"
+            style={({ pressed }) => [styles.remove, pressed && styles.pressed]}
+          >
+            <Text style={styles.removeText}>Remove this session</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -221,6 +324,9 @@ const makeStyles = (c: Palette) =>
       height: 54,
     },
     multiline: { height: 90, paddingTop: space.md, textAlignVertical: 'top' },
+    readAs: { ...type.small, color: c.inkFaint },
+    remove: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+    removeText: { ...type.mono, fontSize: 13, color: c.inkFaint },
 
     quick: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     chip: {

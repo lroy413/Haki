@@ -46,10 +46,11 @@ import { addDays, type DayKey } from './date';
  * record of the workouts, the schedule — so its hardness reads exactly that.
  * Not just the workouts logged, and not the rest of the app either.
  *
- * Gears are deliberately absent. They were on this page once, and they are
- * leaving it: Haki is will and a Devil Fruit is ability, and the gears belong
- * to the ability page when it forms. Hardening still counts them toward the
- * day — a day with a gear in it got used — but this lens no longer does.
+ * Gears are deliberately absent. They were on this page once, and they left
+ * it: Haki is will and a Devil Fruit is ability, and the gears are the
+ * ability tool's career ladder now (`domain/ladder.ts`). A day with a gear in
+ * it still counts as used for the voyage, but neither this lens nor the
+ * hardening reads them — the ladder is what a gear climbs.
  */
 export type ArmamentDay = {
   day: DayKey;

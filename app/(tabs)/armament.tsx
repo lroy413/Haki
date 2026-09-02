@@ -25,7 +25,6 @@ import {
   addTask,
   allTasks,
   commitTask,
-  deleteSession,
   deleteTask,
   lastDoneByRhythm,
   listRhythms,
@@ -41,7 +40,6 @@ import { useHaki } from '../../src/state/HakiProvider';
 import { underCrew } from '../../src/theme/palettes';
 import { Steel } from '../../src/components/instruments/Steel';
 import { Crackle } from '../../src/components/instruments/Crackle';
-import { returnMessage } from '../../src/domain/training';
 import {
   backlog,
   DEFAULT_TASK_MINUTES,
@@ -242,34 +240,6 @@ export default function ArmamentScreen() {
     setTasks((prev) => prev.filter((item) => item.id !== taskItem.id));
     await deleteTask(db, taskItem.id);
     await reload();
-  }
-
-  /**
-   * Take a logged session back off the record.
-   *
-   * Confirmed, because unlike a task this cannot be undone by re-ticking a
-   * box, and unlike a task it may be carrying a Return. Optimistic once
-   * confirmed: the row leaves on the tap, not on the write.
-   */
-  async function dropSession(id: number, kind: string) {
-    const go = async () => {
-      setSessions((prev) => prev.filter((item) => item.id !== id));
-      await deleteSession(db, id);
-      await reload();
-      await refresh();
-    };
-
-    if (Platform.OS === 'web') {
-      // eslint-disable-next-line no-alert
-      if (typeof window !== 'undefined' && !window.confirm(`Remove the ${kind} session?`))
-        return;
-      await go();
-      return;
-    }
-    Alert.alert(`Remove the ${kind} session?`, 'The day keeps everything else it earned.', [
-      { text: 'Keep', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => void go() },
-    ]);
   }
 
   const day = todayKey();
@@ -874,79 +844,40 @@ export default function ArmamentScreen() {
             ))
           : null}
 
-        {/* ----------------------------------------------------- training */}
-        {/* The gym, under its own name, in about a fifth of the room it used
-            to take. It was two stat cards, a gap card, and four session cards
-            each carrying a heading, a day, a Remove and two more lines — a
-            third of this screen to say "I trained on Tuesday". It tracks one
-            thing and it now looks like it tracks one thing.
-
-            The two figures are one line. A gap colours the second of them
-            rather than opening a card to explain itself. */}
-        <SectionLabel label={t.trainingSection} style={styles.trainingLabel} />
-
-        <View style={styles.trainRow}>
-          <Text style={styles.trainWeek}>
-            {training.sessionsThisWeek === 0
-              ? t.trainingPlanned(training.weeklyTarget)
-              : `${training.sessionsThisWeek}/${training.weeklyTarget} this week`}
-          </Text>
-          <Text
-            style={[styles.trainSince, training.inGap && { color: palette.warn }]}
-            numberOfLines={1}
-          >
-            {since === null
-              ? t.trainingNever
-              : since === 0
-                ? t.trainingToday
-                : `${since} days since`}
-          </Text>
-        </View>
-
-        {sessions.slice(0, 3).map((item) => (
-          <View key={item.id} style={styles.sessionRow}>
-            <View style={styles.sessionBody}>
-              <Text style={styles.sessionKind} numberOfLines={1}>
-                {item.kind}
-              </Text>
-              <Text style={styles.sessionMeta} numberOfLines={1}>
-                {[
-                  shortDay(item.day),
-                  item.minutes ? `${item.minutes} min` : null,
-                  item.intensity ? `${item.intensity}/5` : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </Text>
-              {/* The Return keeps the signature violet under both crews: it is
-                  not a lens's light, and the lens palette would turn it jade. */}
-              {item.closedGap > 0 ? (
-                <Text style={[styles.sessionReturn, { color: palette.violet }]}>
-                  {returnMessage(item.closedGap)}
-                </Text>
-              ) : null}
-            </View>
-            {/* A session logged twice by a slipped thumb is not a record of
-                anything. This removes the row and nothing else — the day it
-                happened on keeps every other mark it earned. */}
-            <Pressable
-              onPress={() => void dropSession(item.id, item.kind)}
-              accessibilityRole="button"
-              accessibilityLabel={`Remove the ${item.kind} session from ${shortDay(item.day)}`}
-              style={({ pressed }) => [styles.sessionDrop, pressed && styles.pressed]}
-            >
-              <Text style={styles.sessionDropText}>✕</Text>
-            </Pressable>
-          </View>
-        ))}
-
+        {/* ------------------------------------------------ the ability tool */}
+        {/* The gym and the gears, behind one door. Training used to take a
+            fifth of this screen to say "I trained on Tuesday"; it is a hull
+            Garp punches now, on a room of its own with the Gears beside it,
+            and this screen keeps the one line that changes the plan for the
+            day — how the week stands, and whether it is a comeback. */}
+        {/* The label is the room and the door is the thing in it — the same
+            word twice, one above the other, is the tab-labels-drawn-twice bug. */}
+        <SectionLabel label={t.abilityTitle} style={styles.trainingLabel} />
         <Pressable
-          onPress={() => router.push('/session')}
+          onPress={() => router.push('/ability')}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.logSession, pressed && styles.pressed]}
+          accessibilityLabel={`${t.abilityTitle}: ${t.bagTitle} and ${crew.name === 'zoro' ? t.stylesTitle : t.gearsTitle}`}
+          style={({ pressed }) => [styles.abilityDoor, pressed && styles.pressed]}
         >
-          <Text style={styles.logSessionText}>{t.trainingLog}</Text>
-          <Text style={styles.logSessionGo}>+</Text>
+          <View style={styles.abilityText}>
+            <Text style={styles.abilityName}>
+              {plainMode ? t.bagTitle : `砲艦  ${t.bagTitle}`}
+            </Text>
+            <Text style={styles.abilityLine} numberOfLines={1}>
+              {training.sessionsThisWeek === 0
+                ? t.trainingPlanned(training.weeklyTarget)
+                : `${training.sessionsThisWeek}/${training.weeklyTarget} this week`}
+              {' · '}
+              {since === null
+                ? t.trainingNever
+                : since === 0
+                  ? t.trainingToday
+                  : `${since} days since`}
+            </Text>
+          </View>
+          <Text style={[styles.abilityGo, training.inGap && { color: palette.warn }]}>
+            Open
+          </Text>
         </Pressable>
 
         {/* 断ち — the things you are trying not to do. Under 武装色 because
@@ -1379,54 +1310,24 @@ const makeStyles = (c: Palette) =>
       padding: space.md,
     },
 
-    /* ----------------------------------------------------------- training */
+    /* ------------------------------------------------- the ability door */
     trainingLabel: { marginTop: space.lg, marginBottom: space.xs },
-
-    sessionKind: { ...type.heading, color: c.ink },
-    sessionDrop: { minHeight: 44, justifyContent: 'center' },
-    sessionDropText: { ...type.mono, fontSize: 12, color: c.inkFaint },
-    sessionMeta: { ...type.small, fontSize: 14, color: c.inkDim },
-    sessionReturn: { ...type.small, fontSize: 14, color: c.violet },
-
-    trainRow: {
+    abilityDoor: {
       flexDirection: 'row',
-      alignItems: 'baseline',
-      justifyContent: 'space-between',
+      alignItems: 'center',
       gap: space.md,
-      paddingVertical: space.xs,
-    },
-    trainWeek: { ...type.body, color: c.ink },
-    trainSince: { ...type.mono, fontSize: 13, color: c.inkFaint },
-
-    sessionRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.sm,
-      borderWidth: 1,
-      borderColor: c.line,
-      borderRadius: radius.md,
-      backgroundColor: c.surface,
-      paddingLeft: space.md,
-      paddingRight: space.xs,
-      paddingVertical: space.sm,
-      minHeight: 44,
-    },
-    sessionBody: { flex: 1, gap: 1 },
-
-    logSession: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
       borderWidth: 1,
       borderColor: c.line,
       borderRadius: radius.md,
       backgroundColor: c.surface,
       paddingHorizontal: space.md,
       paddingVertical: space.md,
-      minHeight: 44,
+      minHeight: 56,
     },
-    logSessionText: { ...type.heading, fontSize: 18, color: c.ink },
-    logSessionGo: { ...type.heading, fontSize: 16, color: c.crimson },
+    abilityText: { flex: 1, gap: 2 },
+    abilityName: { ...type.heading, fontSize: 18, color: c.ink },
+    abilityLine: { ...type.mono, fontSize: 12, color: c.inkFaint },
+    abilityGo: { ...type.heading, fontSize: 16, color: c.crimson },
 
     breakDoor: {
       flexDirection: 'row',

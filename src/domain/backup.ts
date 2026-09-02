@@ -239,6 +239,46 @@ export type GearSessionBackup = {
   endedAt: number | null;
   completed: number;
   createdAt: number;
+  /** The ladder item it ran on, by stamp. Absent in backups before schema v20. */
+  itemKey?: number | null;
+};
+
+/**
+ * The ladder. Four tables, every child keyed by its parent's `created_at`,
+ * so all four are their table's row and none needs a translation on the way
+ * back in. See `domain/ladder.ts`.
+ */
+export type LadderTrackBackup = {
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  retiredAt: number | null;
+};
+
+export type LadderItemBackup = {
+  trackKey: number;
+  title: string;
+  kind: string;
+  target: number;
+  unit: string;
+  closedOn: string | null;
+  createdAt: number;
+  updatedAt: number;
+  retiredAt: number | null;
+};
+
+export type LadderTickBackup = {
+  itemKey: number;
+  day: string;
+  amount: number;
+  createdAt: number;
+};
+
+export type LadderWeekBackup = {
+  weekStart: string;
+  held: number;
+  reachedBefore: number;
+  createdAt: number;
 };
 
 export type SitSessionBackup = {
@@ -305,6 +345,10 @@ export type BackupTables = {
   weatherReading: WeatherReadingBackup[];
   breakItem: BreakBackup[];
   urge: UrgeBackup[];
+  ladderTrack: LadderTrackBackup[];
+  ladderItem: LadderItemBackup[];
+  ladderTick: LadderTickBackup[];
+  ladderWeek: LadderWeekBackup[];
   sounding: SoundingBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
@@ -351,6 +395,10 @@ export const EMPTY_TABLES: BackupTables = {
   weatherReading: [],
   breakItem: [],
   urge: [],
+  ladderTrack: [],
+  ladderItem: [],
+  ladderTick: [],
+  ladderWeek: [],
   sounding: [],
   carried: [],
   task: [],
@@ -429,7 +477,9 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     num(r.startedAt) &&
     nullableNum(r.endedAt) &&
     num(r.completed) &&
-    num(r.createdAt),
+    num(r.createdAt) &&
+    // The item arrived in schema v20 and is absent from every earlier export.
+    absentableNum(r.itemKey),
   sitSession: (r) =>
     str(r.depth) &&
     str(r.day) &&
@@ -483,6 +533,23 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
   weatherReading: (r) => str(r.day) && str(r.word) && str(r.note) && num(r.createdAt),
   breakItem: (r) => str(r.name) && num(r.createdAt) && nullableNum(r.retiredAt),
   urge: (r) => num(r.breakKey) && str(r.day) && str(r.outcome) && num(r.createdAt),
+  ladderTrack: (r) =>
+    str(r.name) && num(r.createdAt) && num(r.updatedAt) && nullableNum(r.retiredAt),
+  // Kind and unit are checked as strings, not as the unions, for the same
+  // reason a stone's kind is: a later version's third kind must still land.
+  ladderItem: (r) =>
+    num(r.trackKey) &&
+    str(r.title) &&
+    str(r.kind) &&
+    num(r.target) &&
+    str(r.unit) &&
+    nullableStr(r.closedOn) &&
+    num(r.createdAt) &&
+    num(r.updatedAt) &&
+    nullableNum(r.retiredAt),
+  ladderTick: (r) => num(r.itemKey) && str(r.day) && num(r.amount) && num(r.createdAt),
+  ladderWeek: (r) =>
+    str(r.weekStart) && num(r.held) && num(r.reachedBefore) && num(r.createdAt),
   // The line is never empty — an emptied field deletes the row rather than
   // storing a blank, so a blank one arriving in an import is not a day
   // somebody said nothing about, it is a malformed row.
@@ -650,6 +717,12 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   breakItem: (r) => String(r.name),
   // One urge per break per moment.
   urge: (r) => `${r.breakKey} ${r.createdAt}`,
+  ladderTrack: (r) => String(r.createdAt),
+  ladderItem: (r) => String(r.createdAt),
+  // One tap per item per moment.
+  ladderTick: (r) => `${r.itemKey} ${r.createdAt}`,
+  // One record per week by definition.
+  ladderWeek: (r) => r.weekStart,
   sounding: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),

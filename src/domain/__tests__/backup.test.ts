@@ -362,6 +362,20 @@ describe('key hygiene', () => {
       weatherReading: { day: '2026-09-15', word: 'Fog', note: 'before the call', createdAt: 2 },
       breakItem: { name: 'Doomscrolling', createdAt: 1, retiredAt: null },
       urge: { breakKey: 1, day: '2026-09-15', outcome: 'held', createdAt: 2 },
+      ladderTrack: { name: 'Main career', createdAt: 1, updatedAt: 1, retiredAt: null },
+      ladderItem: {
+        trackKey: 1,
+        title: 'Practice scales',
+        kind: 'practice',
+        target: 3,
+        unit: 'times',
+        closedOn: null,
+        createdAt: 2,
+        updatedAt: 2,
+        retiredAt: null,
+      },
+      ladderTick: { itemKey: 2, day: '2026-09-15', amount: 1, createdAt: 3 },
+      ladderWeek: { weekStart: '2026-09-14', held: 2, reachedBefore: 3, createdAt: 4 },
       note: { title: '', body: '- milk\n- bread', createdAt: 3, updatedAt: 4 },
       setting: { key: 'ui.plainMode', value: 'false' },
     };
@@ -635,5 +649,67 @@ describe('a move made without a line', () => {
     if (!result.ok) return;
     expect(result.backup.data.taskMove[0].reason).toBe('Not this quarter.');
     expect(result.backup.data.taskMove[0].toDay).toBeNull();
+  });
+});
+
+describe('the tables added in v20', () => {
+  it('carries the ladder with everything else', () => {
+    // A week held is a record of a month's practice, and a ladder that did
+    // not travel would strand it on the old phone. Every child points at its
+    // parent's stamp, so the four tables round-trip as their own rows.
+    const original = tables({
+      ladderTrack: [{ name: 'Main career', createdAt: 10, updatedAt: 10, retiredAt: null }],
+      ladderItem: [
+        {
+          trackKey: 10,
+          title: 'Ship one thing',
+          kind: 'goal',
+          target: 1,
+          unit: 'times',
+          closedOn: '2026-09-16',
+          createdAt: 11,
+          updatedAt: 12,
+          retiredAt: null,
+        },
+      ],
+      ladderTick: [{ itemKey: 11, day: '2026-09-16', amount: 1, createdAt: 12 }],
+      ladderWeek: [{ weekStart: '2026-09-14', held: 1, reachedBefore: 2, createdAt: 13 }],
+      gearSession: [
+        {
+          gear: 'third',
+          day: '2026-09-16',
+          startedAt: 14,
+          endedAt: 15,
+          completed: 1,
+          createdAt: 14,
+          itemKey: 11,
+        },
+      ],
+    });
+    const result = parseBackup(serializeBackup(buildBackup(original, 20, 0)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data).toEqual(original);
+    expect(result.rejected).toEqual({});
+  });
+
+  it('still reads a gear session exported before it could carry an item', () => {
+    const older = tables({
+      gearSession: [
+        {
+          gear: 'second',
+          day: '2026-09-16',
+          startedAt: 1,
+          endedAt: 2,
+          completed: 0,
+          createdAt: 1,
+        },
+      ],
+    });
+    const result = parseBackup(serializeBackup(buildBackup(older, 19, 0)));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.data.gearSession).toHaveLength(1);
+    expect(result.backup.data.ladderTrack).toEqual([]);
   });
 });

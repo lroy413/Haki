@@ -23,7 +23,8 @@
  * verdict. Nothing in here returns a pass or a fail.
  */
 
-import { addDays, daysBetween, fromDayKey, todayKey, type DayKey } from './date';
+import { addDays, daysBetween, fromDayKey, toDayKey, todayKey, type DayKey } from './date';
+import { parseDay } from './pressing';
 
 export type Session = {
   day: DayKey;
@@ -68,6 +69,66 @@ function sessionsBetween(sessions: Session[], from: DayKey, to: DayKey): Session
 
 export function sessionsThisWeek(sessions: Session[], today: DayKey): number {
   return sessionsBetween(sessions, startOfWeek(today), today).length;
+}
+
+/**
+ * The Battleship Bag's week: how many days of it have landed a hit.
+ *
+ * Garp's "battleship bags" — the owner's own picture for this — are warships
+ * he punches until their armoured hulls cave in, and the bag here is one hull
+ * a week. **A day is one hit, however many sessions it held**: the owner
+ * trains once a day, so two sessions on a Tuesday is a Tuesday, and counting
+ * them twice would draw a hull twice as broken for the same day's work.
+ *
+ * Seven is the most a week can hold, which is also the reason the picture is
+ * allowed at all — it cannot run away from you, and it starts again on
+ * Monday. A fresh hull every week is what makes a caved-in one a record of a
+ * week rather than a debt.
+ */
+export const MAX_HITS = 7;
+
+export function hitsThisWeek(sessions: Session[], today: DayKey): number {
+  const days = new Set(sessionsBetween(sessions, startOfWeek(today), today).map((s) => s.day));
+  return Math.min(MAX_HITS, days.size);
+}
+
+/**
+ * Read the day a session was logged for, when it was not today.
+ *
+ * `parseDay` reads a date the way somebody types one, but it rolls a bare
+ * day *forward* — right for a deadline, wrong for a workout, where "30" typed
+ * on the 2nd means the 30th just gone. So a bare day is the most recent one
+ * with that number, and anything that lands in the future is refused: you
+ * cannot have trained on a day that has not happened.
+ */
+export function pastDay(text: string, today: DayKey): DayKey | null {
+  const raw = text.trim();
+  if (raw.length === 0) return today;
+
+  const bare = /^(\d{1,2})$/.exec(raw);
+  if (bare) {
+    const dom = Number(bare[1]);
+    if (dom < 1 || dom > 31) return null;
+    const now = fromDayKey(today);
+    // This month if that day has come, otherwise last month.
+    for (const back of [0, 1, 2]) {
+      const d = new Date(now.getFullYear(), now.getMonth() - back, dom);
+      if (d.getDate() !== dom) continue; // the 31st of a short month
+      const key = toDayKey(d);
+      if (key <= today) return key;
+    }
+    return null;
+  }
+
+  const read = parseDay(raw, today);
+  if (read === null) return null;
+  if (read > today) {
+    // A named month that came out ahead is last year's, if that is close
+    // enough to be what was meant; otherwise it is simply not a past day.
+    const lastYear = addDays(read, -365);
+    return daysBetween(lastYear, today) <= 60 ? lastYear : null;
+  }
+  return read;
 }
 
 export function lastSessionDay(sessions: Session[], onOrBefore: DayKey): DayKey | null {

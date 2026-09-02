@@ -1216,6 +1216,140 @@ So the unit is the _urge_, never the day and never the run.
   because armament is the tool for what you do and holding an urge is the
   hardest thing it has to hold.
 
+## The Battleship Bags, and the ability tool
+
+Garp's battleship bags, from the manga: warships he punched until their
+armoured hulls caved in, with no Haki and no Devil Fruit — _"a strength you
+have to earn."_ The owner's picture for the gym, and the gym is drawn as it
+now: `instruments/Battleship.tsx`, one hull a week, inside `app/ability.tsx`
+with the Gears as its second tab. The Do tab keeps one door and one line.
+
+- **A day is one hit, however many sessions it held.** `hitsThisWeek` counts
+  distinct days, capped at `MAX_HITS` (7), from Monday. The owner trains once
+  a day; counting sessions would draw a hull twice as broken for the same
+  day's work, and a backdated eighth session on a day already hit changes
+  nothing. Tested.
+- **Fresh hull on Monday.** The week resets because the app's whole position
+  is that a caved-in hull is a record of a week, never a debt. The weekly
+  target line stays what it was — a line to read against, never a verdict.
+- **It is the bottom of a hull, not a ship.** The first cut drew a warship
+  in profile at sea — turrets, funnel, the lot — and the owner sent the
+  frame: young Aokiji and Garp in a scrapyard, dwarfed by the underside of a
+  beached battleship, punching its plating. _"It isn't the whole ship, just
+  the bottom part."_ So the drawing is a wall of riveted plate curving up out
+  of the frame, the wreckage it rests on, and one small figure at its foot
+  with a fist up — the only thing in the picture that says how big it is.
+  It fills the dock (`xMidYMax slice`), because a letterboxed hull with the
+  card's ground either side of it is a ship in a box, not a wall you are
+  standing under; and the floor paints _after_ the hull so the keel sits
+  buried in the wreckage rather than floating above it.
+- **The damage is the good news.** A whole hull on a Thursday is a wall of
+  armour waiting for you, not an empty bar; nothing here goes red. Each dent
+  lands in a fixed place (`DENTS`), so three hits look the same on Wednesday
+  as Tuesday plus one. A crater is the sky showing through the plate, with
+  cracks running off across the armour and the lens light catching on the
+  torn lip — the coating, on the one place a punch has been. At seven a split
+  runs crater to crater: the hull is caving, which is what Garp was working
+  toward.
+- **No block-scoped const derived from a parameter in a drawing helper.**
+  `pointOn` had `const u = (t + 8) / 168` inside an `if`; the minifier renamed
+  both to `t`, the inner shadowing the outer inside its own initialiser, and
+  the ability page threw a temporal-dead-zone error on every render. Typecheck
+  and tests were green; only a `pageerror` listener in the browser drive
+  caught it. Write the helper as one expression, and keep that listener.
+- **Every row opens.** The owner logs from memory as often as from the gym
+  floor, so `app/session.tsx` with an `id` is the same form over an existing
+  session (Save it, Remove), and **the day is a field**. `pastDay` reads it:
+  a bare number is the most recent day with that number (`parseDay` rolls
+  forward, right for a deadline and wrong for a workout), and a day in the
+  future is refused — you cannot have trained on Friday when it is Wednesday.
+  A backdated session never gets the Return ceremony; the gap it closed is
+  still worked out against the day it was, but the drums are for today.
+- **Plain mode keeps the hull.** It is the app's own record of the week rather
+  than an effect, like the Sunny in the strip. The glint goes to `inkFaint`.
+- **The Gears are the second tab and nothing about them moved.** `GearsPane`
+  is the same pane `/gears` shows, so the practice card's door still opens.
+  What the Gears _become_ is the owner's open brief; until it is answered the
+  focus sessions stay exactly as `domain/gears.ts` describes them.
+
+## A bell is a thing you can tap
+
+_"Once I set a bell I don't know where it lives or can't change or adjust
+it."_ A bell is drawn as one now (`instruments/BellMark.tsx` — drawn, never
+typed; 🔔 renders as whatever the platform has) in a row you can tap, and
+tapping opens the bell itself: name and time editable where they are, with
+Keep and Take down beside them. `updateBell` edits in place, because a bell
+moved from three to half past is the same appointment.
+
+- **The open bell's fields carry their own labels** (`Dentist: time`) because
+  the hang-a-bell form below carries the same two words and a reader has to
+  tell them apart. Found by a test harness that filled the wrong one.
+- Take down lives inside the open bell, not on every row — a row that only
+  offered to destroy the thing was the complaint.
+
+## The Gears are a ladder
+
+`domain/ladder.ts`, `components/GearsPane.tsx`, `components/ladder/`. The
+three timers were a list; the owner made them his career ladder: _"a career,
+business goal tracker and planner... strictly career goals and aspiration
+focused. I want to make it game like. Every week I can set a number of goals
+or practice activities needed to activate the next gear."_ Five rungs —
+Luffy's Gear 1–5, Zoro's Ittoryu, Nitoryu, Santoryu, Ashura and King of Hell
+— and the week climbs them. A rung is a number 0–5 under every flag; a crew
+renames it and never restructures it.
+
+- **Tracks and items, one ladder.** A track is a thing being mastered (the
+  main career, each side hustle); an item under it is a practice with a
+  weekly target in times or minutes, or a goal met once. Meeting the target
+  completes the item for the week and the ladder counts completed items
+  across every track — one ladder, not one per track. A goal met leaves the
+  list when its week is over; a practice never closes.
+- **Two gears at once: reached and held.** Reached is how far this week's
+  completions got. Held is stamina — the owner's word — and every Monday it
+  moves **one rung toward last week's reached**: up, down or not at all,
+  never zeroed and never jumped. `settleLadder` writes each week down once,
+  on the first open in it, and **a settled week is never recomputed**:
+  raising a target later does not rewrite last month. Weeks the app was
+  closed for are written on the way past, one rung given back each, so the
+  record and the rule cannot disagree.
+- **The page wears the higher of the two, and the held rung is drawn all the
+  time** — the owner asked for the drop to be _"expressed visually"_. Steam
+  off the plate under Luffy, Enma's green flame under Zoro, thickening with
+  the rung. A dropped week thins it, and that is the whole of what a drop
+  does: no red, no message. `ladderScreen.test.ts` reads every file in the
+  pane for "streak", "missed", "down from" and their neighbours.
+- **Rungs have a floor and can only be raised** — brought back down to the
+  floor, never under it, and never onto the rung below, so the ladder cannot
+  fold. `FLOOR` is 1/2/4/6/8 and `raiseRung` pushes the rungs above it up.
+  "Two more for Gear 3" is the one count the game needs and the owner asked
+  for; nothing else here is totalled.
+- **The timers are how you practise.** A gear is shifted into _on_ an item,
+  and the row carries the item (`gear_session.item_key`) so the gear screen
+  still knows what the minutes land on after a reload. On a times item a
+  gear counts one time however long it ran; on a minutes item, its minutes.
+  Ticks and gear sessions are the only two credits and progress is derived
+  from them — nothing is double-written, and an undo deletes the tap.
+- **And they do not harden the app.** The owner's decision, and why
+  `weightOf` reads no gear minutes now: a practice evening has its own thing
+  to climb. The Reserve still spends on them and the Calm Belt still counts
+  them as resistance. `CHARGE_FULL` came down from eighteen to sixteen with
+  them, or a full day without a gear could no longer reach the top of the
+  ramp — the rule that the top stays reachable outranks the constant.
+- **The top rung fires the burst**, which has two callers now instead of one.
+  This one is at most weekly by construction and only at the top of a ladder
+  the owner raises himself; `ladder.burstWeek` is written _before_ it fires,
+  so a second refresh cannot fire it twice. Then the page changes: Luffy's
+  fifth gear turns the pane white with clouds, Zoro's King of Hell runs it
+  black with green fire. It is the one place an Armament screen wears
+  覇王色's colour, because King of Hell _is_ Conqueror's down the blade. Plain
+  mode gets the words and none of it.
+- **Two drawings learned the toolbar's lesson.** A single pointed tongue is a
+  leaf whatever its outline — fire is a main tongue with a shorter lick
+  beside it, in a continuous fringe rather than a few tall spikes, and the
+  fringe stays narrow while little is held or it reads as a hedge. And a
+  white cloud on a white page is its shadow and nothing else: the sky needs a
+  whisper of the shade over it for a cloud to be white against.
+
 ## A backup row is its table's row — except once
 
 The import inserts backup rows **straight into Drizzle**, so a backup type is

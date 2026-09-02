@@ -103,7 +103,6 @@ describe('the charge reads the whole day, not one lens', () => {
       satMinutes: 20,
       entries: 1,
       trained: 1,
-      gearMinutes: 75,
       struck: 6,
     });
     expect(weightOf(full)).toBeGreaterThanOrEqual(CHARGE_FULL);

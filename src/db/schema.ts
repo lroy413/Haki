@@ -161,6 +161,12 @@ export const gearSession = sqliteTable(
     endedAt: integer('ended_at'),
     completed: integer('completed').notNull().default(0),
     createdAt: integer('created_at').notNull(),
+    /**
+     * The ladder item this gear was started from, by its creation stamp —
+     * null for a gear shifted on nothing in particular. Its minutes land on
+     * the item. See `domain/ladder.ts`.
+     */
+    itemKey: integer('item_key'),
   },
   (t) => [index('gear_session_day_idx').on(t.day)],
 );
@@ -572,3 +578,71 @@ export const dayEnd = sqliteTable('day_end', {
 });
 
 export type DayEndRow = typeof dayEnd.$inferSelect;
+
+/**
+ * The ladder — the Gears as a weekly career ladder. See `domain/ladder.ts`.
+ *
+ * A track is a thing being mastered; an item under it is a practice with a
+ * weekly target or a goal done once; a tick is one tap on an item. Children
+ * point at their parent's `created_at`, never its id, so they round-trip
+ * through a backup untouched — the same rule every other child table keeps.
+ */
+export const ladderTrack = sqliteTable('ladder_track', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  retiredAt: integer('retired_at'),
+});
+
+export const ladderItem = sqliteTable(
+  'ladder_item',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    trackKey: integer('track_key').notNull(),
+    title: text('title').notNull(),
+    /** 'practice' | 'goal'. */
+    kind: text('kind').notNull().default('practice'),
+    /** Per week. A goal's is one. */
+    target: integer('target').notNull().default(1),
+    /** 'times' | 'minutes'. */
+    unit: text('unit').notNull().default('times'),
+    /** The day a goal was met. A practice never closes. */
+    closedOn: text('closed_on'),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+    retiredAt: integer('retired_at'),
+  },
+  (t) => [index('ladder_item_track_idx').on(t.trackKey)],
+);
+
+export const ladderTick = sqliteTable(
+  'ladder_tick',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    itemKey: integer('item_key').notNull(),
+    day: text('day').notNull(),
+    /** One for a tap on a times item; a block of minutes on a minutes item. */
+    amount: integer('amount').notNull().default(1),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('ladder_tick_day_idx').on(t.day)],
+);
+
+/**
+ * One row per week the app was opened in, written once on the first open and
+ * never recomputed: what was held going into the week, and what the week
+ * before it reached. See `settleWeeks` in `domain/ladder.ts`.
+ */
+export const ladderWeek = sqliteTable('ladder_week', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  weekStart: text('week_start').notNull().unique(),
+  held: integer('held').notNull(),
+  reachedBefore: integer('reached_before').notNull(),
+  createdAt: integer('created_at').notNull(),
+});
+
+export type LadderTrackRow = typeof ladderTrack.$inferSelect;
+export type LadderItemRow = typeof ladderItem.$inferSelect;
+export type LadderTickRow = typeof ladderTick.$inferSelect;
+export type LadderWeekRow = typeof ladderWeek.$inferSelect;
