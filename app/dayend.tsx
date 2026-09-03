@@ -74,7 +74,7 @@ import type { Palette } from '../src/theme/palettes';
 export default function DayEndScreen() {
   const router = useRouter();
   const { db } = useStore();
-  const { palette, plainMode, acts, refresh, t } = useHaki();
+  const { palette, plainMode, acts, refresh, t, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const insets = useSafeAreaInsets();
   const committing = useSingleFlight();
@@ -120,7 +120,7 @@ export default function DayEndScreen() {
     void load();
   }, [load]);
 
-  const facts = readBack(acts, plainMode);
+  const facts = readBack(acts, plainMode, crew.name);
 
   /**
    * A task shows up once, never twice.

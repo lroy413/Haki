@@ -40,7 +40,7 @@ const WINDOW_DAYS = 365;
 
 export default function ForesightScreen() {
   const { db, settings } = useStore();
-  const { palette, plainMode, hardening } = useHaki();
+  const { palette, plainMode, hardening, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const insets = useSafeAreaInsets();
 
@@ -77,7 +77,7 @@ export default function ForesightScreen() {
                 key={`${finding.source}-${finding.dial}`}
                 style={[styles.card, lit(palette.cyan, plainMode ? 0 : hardening)]}
               >
-                <Text style={styles.finding}>{findingLine(finding, plainMode)}</Text>
+                <Text style={styles.finding}>{findingLine(finding, plainMode, crew.name)}</Text>
                 {/* Not fine print. Which way a pattern runs is half of what is
                     known about it, so it reads at the same weight. */}
                 {note ? <Text style={styles.note}>{note}</Text> : null}

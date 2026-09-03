@@ -81,7 +81,8 @@ const VOLUME = [0];
 export default function ObservationScreen() {
   const router = useRouter();
   const { db, settings } = useStore();
-  const { t, palette, refresh, observation, acts, plainMode, hardening, charge } = useHaki();
+  const { t, palette, refresh, observation, acts, plainMode, hardening, charge, crew } =
+    useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const pad = useTabInsets();
   // A lens's material is a performance: plain mode gets none, and paper
@@ -261,7 +262,7 @@ export default function ObservationScreen() {
                 {reading.state === 'reading' ? (
                   <>
                     <Text style={styles.foresightLine}>
-                      {findingLine(reading.findings[0], plainMode)}
+                      {findingLine(reading.findings[0], plainMode, crew.name)}
                     </Text>
                     {reading.findings.length > 1 ? (
                       <Text style={styles.foresightMore}>
