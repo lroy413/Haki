@@ -2,18 +2,21 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useHaki } from '../state/HakiProvider';
 import { dayEndOpen } from '../domain/dayEnd';
+import { getDayStartHour } from '../domain/date';
 import { radius, space, type } from '../theme/tokens';
 import { lit, press } from '../theme/surfaces';
 import type { Palette } from '../theme/palettes';
 
 /**
- * The door to Day's End, and it only exists in the evening.
+ * The door to Day's End, and it only exists late in the day.
  *
  * A "close the day" card standing open at nine in the morning is a nag about
  * a day that has not happened yet — and worse, it is a thing you learn to
  * scroll past, which is how the one card that wanted your attention became
- * furniture. It appears when the evening watch starts and goes when the day
- * turns over.
+ * furniture. It appears eighteen hours after the day boundary — ten at night
+ * on a day that starts at four — and goes when the day turns over. See
+ * `dayEndOpen`. It stands at the foot of the home screen, after everything
+ * the day is made of, because it is the door that closes it.
  *
  * **It does not print what you wrote.** The first cut showed three lines of
  * the evening's note here, which put the most private paragraph in the app on
@@ -29,9 +32,9 @@ export function DayEndDoor({ onOpen }: { onOpen: () => void }) {
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   // Read once per render, like the day strip's sun. The home screen refreshes
-  // on every focus, so the door appears the first time you open the app after
-  // five — which is soon enough for a thing that has all evening.
-  if (!dayEndOpen(new Date().getHours())) return null;
+  // on every focus, so the door appears the first time you open the app once
+  // the hour has come — which is soon enough for a thing that has all night.
+  if (!dayEndOpen(new Date().getHours(), getDayStartHour())) return null;
 
   const written = dayEnd !== null && dayEnd.length > 0;
 

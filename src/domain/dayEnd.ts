@@ -1,4 +1,3 @@
-import { watchAt } from './watches';
 import type { Acts } from './hardening';
 
 /**
@@ -34,16 +33,28 @@ import type { Acts } from './hardening';
  *   sentence — see the day's practice card, which established this.
  */
 
+/** How far into the day the door opens. */
+export const DAY_END_AFTER_HOURS = 18;
+
 /**
  * When the day's end is available.
  *
- * The evening watch, which `watchAt` already defines — and which already
- * knows that someone working at one in the morning is still in tonight's
- * evening. Reusing it means the strip and this screen can never disagree
- * about when the evening is.
+ * Eighteen hours after the day boundary, and until the day turns over. The
+ * owner's own arithmetic: _"if I put that my day ends at 4am then it should
+ * be 18hrs after 4am, so in this instance it would start at 10:00pm."_ It
+ * used to open with the strip's evening watch at five, which on a day that
+ * starts at four in the morning is a door standing open for eleven hours —
+ * and a door that is always open is furniture, which is the one thing the
+ * door was built not to be.
+ *
+ * `dayStart` is the voyage's boundary (`voyage.dayStartHour`), passed in
+ * rather than read here so this stays arithmetic. The strip's watches are a
+ * different clock — they divide the day's picture, this closes the day — and
+ * they were never the same thing.
  */
-export function dayEndOpen(hour: number): boolean {
-  return watchAt(hour) === 'evening';
+export function dayEndOpen(hour: number, dayStart = 0): boolean {
+  const into = (((hour - dayStart) % 24) + 24) % 24;
+  return into >= DAY_END_AFTER_HOURS;
 }
 
 /**
