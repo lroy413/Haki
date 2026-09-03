@@ -168,7 +168,10 @@ export default function SailScreen() {
     { label: plainMode ? 'Meditations' : 'Days sat', value: `${week.daysSat}` },
     { label: plainMode ? 'Entries' : 'Logbook', value: `${week.entries}` },
     { label: plainMode ? 'Workouts' : 'Sessions', value: `${week.trained}` },
-    { label: plainMode ? 'Focus' : 'In gear', value: formatMinutes(week.gearMinutes) },
+    {
+      label: plainMode ? 'Focus' : crew.name === 'zoro' ? 'Drawn' : 'In gear',
+      value: formatMinutes(week.gearMinutes),
+    },
   ];
 
   return (

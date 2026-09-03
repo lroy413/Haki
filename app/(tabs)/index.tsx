@@ -34,7 +34,6 @@ export default function Home() {
     reserve,
     cascade,
     intensity,
-    day,
     t,
     read,
     training,
@@ -68,10 +67,20 @@ export default function Home() {
         <RefreshControl refreshing={false} onRefresh={refresh} tintColor={palette.inkDim} />
       }
     >
-      {/* Wordmark and day count on one line, the way a masthead carries its
-          date. Two stacked rows for six words was the header's habit, not a
-          layout. */}
-      <PageHeading title={t.appName} trailing={t.daysAtSea(day)} />
+      {/* Wordmark and the day's course on one line, the way a masthead
+          carries its date. The day count used to stand here; the owner has
+          been at sea a while and the heading is the line that says what
+          this particular day is for. See `CourseLine`. */}
+      <PageHeading
+        title={t.appName}
+        slot={
+          <CourseLine
+            course={course}
+            label={t.courseTitle}
+            onPress={() => router.push('/course')}
+          />
+        }
+      />
 
       {/* What is bearing down, above everything else on the screen you open.
           Absent when nothing is — a card that always stands here is one you
@@ -95,14 +104,6 @@ export default function Home() {
 
       <QuoteLine quote={quote} />
 
-      {/* Directly under the day count, because that is what it is: the line
-          saying what this particular day at sea is for. */}
-      <CourseLine
-        course={course}
-        label={t.courseTitle}
-        onPress={() => router.push('/course')}
-      />
-
       {/* What the day looks like: the Sunny on the water, the sun where it
           actually is above her, three watches and what each is carrying. The
           ship used to sail in a band of its own at the top of this screen,
@@ -115,11 +116,6 @@ export default function Home() {
         onBells={() => router.push('/bells')}
         onZoom={(to) => router.push(to === 'week' ? '/week' : '/tide')}
       />
-
-      {/* The evening pass. Only present during the evening watch — see
-          `DayEndDoor`. Directly under the strip, because the strip is the
-          day and this is the door that closes it. */}
-      <DayEndDoor onOpen={() => router.push('/dayend')} />
 
       {/* The gauge is the way into the Daily Read now that the loose button
           below is gone. It already says "no reading yet today" when there
@@ -216,6 +212,11 @@ export default function Home() {
           </Text>
         )}
       </Pressable>
+
+      {/* The evening pass, last. Only present from eighteen hours into the
+          day — see `DayEndDoor` — and at the foot because it is the door
+          that closes everything above it. */}
+      <DayEndDoor onOpen={() => router.push('/dayend')} />
     </ScrollView>
   );
 }

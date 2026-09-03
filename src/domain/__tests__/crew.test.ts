@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { CREWS, CREW_ORDER, crewFor, isCrewName } from '../crew';
 import { GEARS, GEAR_ORDER, focusBlurb, styleFor } from '../gears';
+import { NO_ACTS } from '../hardening';
+import { practice } from '../practice';
+import { readBack } from '../dayEnd';
+import { spendNote, NO_SPEND } from '../willReserve';
 
 describe('the crews', () => {
   it('lists every crew once, Luffy first', () => {
@@ -115,6 +119,51 @@ describe('the focus sessions under each crew', () => {
       // The shortest one is still free in both crews — the whole reason it is
       // the shortest is that starting must not be a decision.
       expect(styleFor(crew, 'second').cost).toBeNull();
+    }
+  });
+});
+
+describe('the rest of the app under each crew', () => {
+  // The home page's practice tile, the Reserve's spend note and the evening's
+  // read-back all name the focus session. Under Zoro's flag the word is his:
+  // the owner saw "Gear" on the home page with the swords flying.
+  const gearing = { ...NO_ACTS, gearMinutes: 90 };
+  const spend = { ...NO_SPEND, fraction: 0.4, gearMinutes: 90 };
+
+  it('names the tile, the spend and the read-back in Zoro’s words', () => {
+    const tile = practice(gearing, false, null, 'zoro').find((p) => p.key === 'gear');
+    expect(tile?.label).toBe('Sword');
+    expect(tile?.kanji).toBe('一刀流');
+    const said = [
+      tile?.label ?? '',
+      tile?.kanji ?? '',
+      readBack(gearing, false, 'zoro').join(' '),
+      spendNote(spend, false, 'zoro') ?? '',
+    ]
+      .join(' ')
+      .toLowerCase();
+    for (const word of ['gear', '速']) expect(said, `zoro says "${word}"`).not.toContain(word);
+    expect(said).toContain('drawn');
+  });
+
+  it('leaves Luffy exactly as he was, and never with a blade', () => {
+    const tile = practice(gearing, false, null, 'luffy').find((p) => p.key === 'gear');
+    expect(tile?.label).toBe('Gear');
+    expect(tile?.kanji).toBe('二速');
+    const said = [tile?.label ?? '', readBack(gearing).join(' '), spendNote(spend) ?? '']
+      .join(' ')
+      .toLowerCase();
+    for (const word of ['sword', 'blade', 'drawn', '刀']) {
+      expect(said, `luffy says "${word}"`).not.toContain(word);
+    }
+    expect(said).toContain('in gear');
+  });
+
+  it('keeps the tile’s key and route the same under both flags', () => {
+    // A theme renames; it never restructures.
+    for (const crew of CREW_ORDER) {
+      const tile = practice(NO_ACTS, false, null, crew).find((p) => p.key === 'gear');
+      expect(tile?.route).toBe('/gears');
     }
   });
 });

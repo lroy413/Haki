@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHaki } from '../state/HakiProvider';
@@ -24,9 +24,16 @@ export function PageHeading({
   title,
   trailing,
   tint,
+  slot,
 }: {
   title: string;
   trailing?: string;
+  /**
+   * Something other than a label in the corner — the home screen's course.
+   * Takes the place of `trailing`, and the row aligns to the top rather than
+   * the baseline, because a two-line slot has no single baseline to share.
+   */
+  slot?: ReactNode;
   /**
    * Colours the trailing mark. Passed the lens's own colour on the three
    * lens tabs, so the kanji in the corner is the same violet, crimson or
@@ -39,13 +46,14 @@ export function PageHeading({
   const styles = useMemo(() => makeStyles(palette), [palette]);
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, slot ? styles.rowSlot : null]}>
       <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
         {title}
       </Text>
-      {trailing ? (
-        <Text style={[styles.trailing, tint ? { color: tint } : null]}>{trailing}</Text>
-      ) : null}
+      {slot ??
+        (trailing ? (
+          <Text style={[styles.trailing, tint ? { color: tint } : null]}>{trailing}</Text>
+        ) : null)}
     </View>
   );
 }
@@ -62,6 +70,7 @@ const makeStyles = (c: Palette) =>
       // the first section label.
       marginBottom: space.sm,
     },
+    rowSlot: { alignItems: 'flex-start' },
     // Shrinks so a long trailing label can never push the title off the edge.
     title: { ...type.title, fontSize: 26, color: c.ink, flexShrink: 1 },
     trailing: { ...type.label, color: c.inkFaint },

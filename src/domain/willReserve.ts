@@ -1,4 +1,5 @@
 import type { Acts } from './hardening';
+import type { CrewName } from './crew';
 
 /**
  * Will Reserve — a level, a burn rate, and a recovery curve.
@@ -278,15 +279,22 @@ export function computeReserve(inputs: ReserveInputs): Reserve {
  * nothing. Descriptive only — it names the acts and stops, and there is no
  * version of this that says what to do about them.
  */
-export function spendNote(spend: Spend, plain = false): string | null {
+export function spendNote(
+  spend: Spend,
+  plain = false,
+  crew: CrewName = 'luffy',
+): string | null {
   if (spend.fraction <= 0) return null;
 
+  // Zoro draws swords rather than shifting gears, and neither crew may speak
+  // the other's vocabulary — see `domain/crew.ts`.
+  const inGear = crew === 'zoro' ? 'drawn' : 'in gear';
   const parts: string[] = [];
   if (spend.gearMinutes >= 60) {
     const hours = Math.round((spend.gearMinutes / 60) * 10) / 10;
-    parts.push(`${hours === Math.floor(hours) ? hours : hours.toFixed(1)}h in gear`);
+    parts.push(`${hours === Math.floor(hours) ? hours : hours.toFixed(1)}h ${inGear}`);
   } else if (spend.gearMinutes > 0) {
-    parts.push(`${spend.gearMinutes}m in gear`);
+    parts.push(`${spend.gearMinutes}m ${inGear}`);
   }
   if (spend.sessions > 0) {
     parts.push(

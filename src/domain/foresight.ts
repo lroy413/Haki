@@ -1,4 +1,5 @@
 import type { DayKey } from './date';
+import type { CrewName } from './crew';
 
 /**
  * 未来視 — Foresight. What the record has been trying to say.
@@ -293,7 +294,11 @@ const DIAL_WORDS: Record<Dial, string> = {
 };
 
 /** What each side of the split is called, in the app's own language. */
-function sourceWords(source: SourceKey, plain: boolean): { withIt: string; withoutIt: string } {
+function sourceWords(
+  source: SourceKey,
+  plain: boolean,
+  crew: CrewName,
+): { withIt: string; withoutIt: string } {
   switch (source) {
     case 'sleep':
       return { withIt: 'a full night', withoutIt: 'a short one' };
@@ -310,7 +315,9 @@ function sourceWords(source: SourceKey, plain: boolean): { withIt: string; witho
     case 'gear':
       return plain
         ? { withIt: 'days you use focus', withoutIt: 'days you do not' }
-        : { withIt: 'days with a gear in them', withoutIt: 'days without' };
+        : crew === 'zoro'
+          ? { withIt: 'days with a sword drawn', withoutIt: 'days without' }
+          : { withIt: 'days with a gear in them', withoutIt: 'days without' };
     case 'wrote':
       return plain
         ? { withIt: 'days you write', withoutIt: 'days you do not' }
@@ -325,8 +332,8 @@ function sourceWords(source: SourceKey, plain: boolean): { withIt: string; witho
  * never "so you should". The number is rounded to one place because a dial
  * that only takes whole values cannot support two.
  */
-export function findingLine(finding: Finding, plain = false): string {
-  const words = sourceWords(finding.source, plain);
+export function findingLine(finding: Finding, plain = false, crew: CrewName = 'luffy'): string {
+  const words = sourceWords(finding.source, plain, crew);
   const size = Math.abs(finding.effect).toFixed(1);
   const way = finding.effect > 0 ? 'higher' : 'lower';
   const dial = DIAL_WORDS[finding.dial];

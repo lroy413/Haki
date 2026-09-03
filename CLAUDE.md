@@ -694,11 +694,28 @@ one question — and five rules:
   wants to ask about. The first cut queried `from_day` and missed every one of
   them. A timestamp cannot stand in: a day here does not end at midnight.
 
-The door on the home screen (`DayEndDoor`) exists only during the evening
-watch. A "close the day" card standing open at nine in the morning is a nag
-about a day that has not happened, and worse, a thing you learn to scroll
-past. It wears the signature violet like the Return — this belongs to the day
-rather than to any one lens.
+The door on the home screen (`DayEndDoor`) exists only from **eighteen hours
+after the day boundary** — ten at night on a day that starts at four — and
+stands at the foot of the page, after everything the day is made of. It
+opened with the strip's evening watch once, which on a four-in-the-morning
+day was a door standing open for eleven hours: a "close the day" card at nine
+in the morning is a nag about a day that has not happened, and worse, a thing
+you learn to scroll past. `dayEndOpen` takes the boundary as an argument and
+stays arithmetic; the watches are a different clock. It wears the signature
+violet like the Return — this belongs to the day rather than to any one lens.
+
+## The masthead carries the course
+
+The home screen's header held "Day 6 at sea" beside the wordmark, and the
+course sat in a card of its own under the quote. The owner: _"That doesn't
+matter as much to me. I'm 37, I've been on the sea awhile already."_ The
+count meant nothing to him and the course is the line that says what the day
+is for, so the course took the corner and the count left the home screen (it
+still reads on a journal entry, where "Day 3 at sea" is a date). `CourseLine`
+is the masthead now: label and heading right-aligned, two lines at most, and
+the unset state says "Where today points" with no frame — a dashed box in a
+corner is furniture. `PageHeading` grew a `slot` for it, top-aligned because a
+two-line slot has no baseline to share with the wordmark.
 
 ## Loose pages, and the writing bar
 

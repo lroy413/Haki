@@ -57,8 +57,8 @@ export function DayPractice({ onOpen }: { onOpen: (route: string) => void }) {
     [palette, crew],
   );
   const items = useMemo(
-    () => practice(acts, plainMode, read?.weather ?? null),
-    [acts, plainMode, read],
+    () => practice(acts, plainMode, read?.weather ?? null, crew.name),
+    [acts, plainMode, read, crew],
   );
 
   return (

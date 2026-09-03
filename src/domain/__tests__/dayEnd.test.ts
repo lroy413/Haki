@@ -23,19 +23,29 @@ const NOTHING: Acts = {
 };
 
 describe('when it opens', () => {
-  it('waits for the evening watch', () => {
+  it('opens eighteen hours into the day and not before', () => {
     expect(dayEndOpen(9)).toBe(false);
-    expect(dayEndOpen(13)).toBe(false);
-    expect(dayEndOpen(17)).toBe(true);
+    expect(dayEndOpen(17)).toBe(false);
+    expect(dayEndOpen(18)).toBe(true);
     expect(dayEndOpen(22)).toBe(true);
+    expect(dayEndOpen(23)).toBe(true);
   });
 
-  it('is still open at one in the morning', () => {
-    // The small hours belong to the evening watch — somebody working at one
-    // is in tonight's evening, and closing the day they just had must not
-    // require them to have done it before midnight.
-    expect(dayEndOpen(1)).toBe(true);
-    expect(dayEndOpen(3)).toBe(true);
+  it('counts from the day boundary, not from midnight', () => {
+    // The owner's own example: a day that starts at four opens its end at
+    // ten at night, and one in the morning is still that day's evening.
+    expect(dayEndOpen(21, 4)).toBe(false);
+    expect(dayEndOpen(22, 4)).toBe(true);
+    expect(dayEndOpen(1, 4)).toBe(true);
+    expect(dayEndOpen(3, 4)).toBe(true);
+    expect(dayEndOpen(4, 4)).toBe(false);
+  });
+
+  it('closes when the day turns over', () => {
+    // Under the midnight boundary one in the morning is tomorrow: the day
+    // the door would close has gone, and the new one has barely started.
+    expect(dayEndOpen(0)).toBe(false);
+    expect(dayEndOpen(1)).toBe(false);
   });
 });
 

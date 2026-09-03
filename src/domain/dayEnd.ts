@@ -1,5 +1,5 @@
-import { watchAt } from './watches';
 import type { Acts } from './hardening';
+import type { CrewName } from './crew';
 
 /**
  * Day's End — the evening ritual.
@@ -34,16 +34,28 @@ import type { Acts } from './hardening';
  *   sentence — see the day's practice card, which established this.
  */
 
+/** How far into the day the door opens. */
+export const DAY_END_AFTER_HOURS = 18;
+
 /**
  * When the day's end is available.
  *
- * The evening watch, which `watchAt` already defines — and which already
- * knows that someone working at one in the morning is still in tonight's
- * evening. Reusing it means the strip and this screen can never disagree
- * about when the evening is.
+ * Eighteen hours after the day boundary, and until the day turns over. The
+ * owner's own arithmetic: _"if I put that my day ends at 4am then it should
+ * be 18hrs after 4am, so in this instance it would start at 10:00pm."_ It
+ * used to open with the strip's evening watch at five, which on a day that
+ * starts at four in the morning is a door standing open for eleven hours —
+ * and a door that is always open is furniture, which is the one thing the
+ * door was built not to be.
+ *
+ * `dayStart` is the voyage's boundary (`voyage.dayStartHour`), passed in
+ * rather than read here so this stays arithmetic. The strip's watches are a
+ * different clock — they divide the day's picture, this closes the day — and
+ * they were never the same thing.
  */
-export function dayEndOpen(hour: number): boolean {
-  return watchAt(hour) === 'evening';
+export function dayEndOpen(hour: number, dayStart = 0): boolean {
+  const into = (((hour - dayStart) % 24) + 24) % 24;
+  return into >= DAY_END_AFTER_HOURS;
 }
 
 /**
@@ -54,7 +66,7 @@ export function dayEndOpen(hour: number): boolean {
  * an app that implied it would be inventing the denominator this whole
  * project refuses to invent.
  */
-export function readBack(acts: Acts, plain = false): string[] {
+export function readBack(acts: Acts, plain = false, crew: CrewName = 'luffy'): string[] {
   const lines: string[] = [];
   if (acts.read) lines.push(plain ? 'Checked in' : 'The read was taken');
   if (acts.struck > 0) {
@@ -63,7 +75,11 @@ export function readBack(acts: Acts, plain = false): string[] {
   if (acts.trained > 0) {
     lines.push(`${acts.trained} ${acts.trained === 1 ? 'session' : 'sessions'} logged`);
   }
-  if (acts.gearMinutes > 0) lines.push(`${Math.round(acts.gearMinutes)} minutes in gear`);
+  if (acts.gearMinutes > 0) {
+    lines.push(
+      `${Math.round(acts.gearMinutes)} minutes ${crew === 'zoro' ? 'drawn' : 'in gear'}`,
+    );
+  }
   if (acts.satMinutes > 0) lines.push(`${Math.round(acts.satMinutes)} minutes sat`);
   if (acts.entries > 0) {
     lines.push(`${acts.entries} ${acts.entries === 1 ? 'entry' : 'entries'} written`);

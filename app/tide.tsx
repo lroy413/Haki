@@ -58,7 +58,7 @@ const INK: Record<HardeningLevel, number> = { 0: 0, 1: 0.3, 2: 0.58, 3: 0.9 };
  */
 export default function TideScreen() {
   const { db, settings } = useStore();
-  const { palette, plainMode, t } = useHaki();
+  const { palette, plainMode, t, crew } = useHaki();
   const styles = useMemo(() => makeStyles(palette), [palette]);
   const insets = useSafeAreaInsets();
 
@@ -140,6 +140,7 @@ export default function TideScreen() {
       lines: readBack(
         { ...found, entries: bodies.filter((b) => b.trim().length > 0).length },
         plainMode,
+        crew.name,
       ),
       heading: course?.heading ?? null,
     });

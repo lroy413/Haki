@@ -1,4 +1,5 @@
 import type { Acts, HardeningLevel } from './hardening';
+import type { CrewName } from './crew';
 
 /**
  * The day's practice — hardening, said out loud.
@@ -59,7 +60,12 @@ function plural(n: number, one: string, many: string): string {
  * the word lands somewhere after the modal closes. Purely a caption — it
  * changes no `done` state and nothing counts it.
  */
-export function practice(acts: Acts, plain = false, weather: string | null = null): Practice[] {
+export function practice(
+  acts: Acts,
+  plain = false,
+  weather: string | null = null,
+  crew: CrewName = 'luffy',
+): Practice[] {
   const k = (glyph: string) => (plain ? '' : glyph);
   return [
     {
@@ -106,8 +112,11 @@ export function practice(acts: Acts, plain = false, weather: string | null = nul
     },
     {
       key: 'gear',
-      kanji: k('二速'),
-      label: plain ? 'Focus' : 'Gear',
+      // The first timer under each flag: Gear 2 for Luffy, one blade for
+      // Zoro. A crew renames and never restructures — the key stays `gear`
+      // and so does the route, whichever word is on the tile.
+      kanji: k(crew === 'zoro' ? '一刀流' : '二速'),
+      label: plain ? 'Focus' : crew === 'zoro' ? 'Sword' : 'Gear',
       line: acts.gearMinutes > 0 ? `${acts.gearMinutes} min` : '25 minutes',
       done: acts.gearMinutes > 0,
       route: '/gears',

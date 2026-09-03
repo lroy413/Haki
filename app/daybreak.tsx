@@ -66,7 +66,8 @@ export default function DaybreakScreen() {
         </Pressable>
       </View>
       <Text style={styles.footnote}>
-        Only changes what counts as today. Nothing already written moves.
+        Only changes what counts as today, and when Day’s End opens: eighteen hours after it.
+        Nothing already written moves.
       </Text>
     </SettingsPage>
   );
