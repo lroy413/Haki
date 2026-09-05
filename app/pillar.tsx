@@ -27,6 +27,10 @@ import {
   setIslandUnit,
   soundingsFor,
   takeSounding,
+  headwayFor,
+  logHeadway,
+  updateHeadway,
+  removeHeadway,
 } from '../src/db/repo';
 import {
   arrivalMessage,
@@ -37,7 +41,15 @@ import {
   type Poneglyph,
   type Road,
 } from '../src/domain/logpose';
-import { shortDay, todayKey } from '../src/domain/date';
+import { shortDay, todayKey, type DayKey } from '../src/domain/date';
+import {
+  MAX_TEXT as MAX_HEADWAY,
+  emptyLine as headwayEmpty,
+  isSayable,
+  newestFirst as marksNewestFirst,
+  type Mark,
+} from '../src/domain/headway';
+import { pastDay } from '../src/domain/training';
 import { fireConquerors } from '../src/impact';
 import { play } from '../src/sound';
 import { NeedleCard } from '../src/components/logpose/NeedleCard';
@@ -53,9 +65,10 @@ import {
 import { SoundingLine } from '../src/components/logpose/SoundingLine';
 import { SectionLabel } from '../src/components/SectionLabel';
 import { useHaki } from '../src/state/HakiProvider';
+import { useSingleFlight } from '../src/state/useSingleFlight';
 import { font, radius, space, type } from '../src/theme/tokens';
 import { usableBottom } from '../src/theme/viewport';
-import { press } from '../src/theme/surfaces';
+import { offer, press } from '../src/theme/surfaces';
 import { underCrew } from '../src/theme/palettes';
 import type { Palette } from '../src/theme/palettes';
 
@@ -95,11 +108,40 @@ export default function PillarScreen() {
   const [hasOpen, setHasOpen] = useState(false);
   const [open, setOpen] = useState<Poneglyph | null>(null);
   const [soundings, setSoundings] = useState<Sounding[]>([]);
+  /** Ground made toward this pillar. See `domain/headway.ts`. */
+  const [marks, setMarks] = useState<Mark[]>([]);
+  /**
+   * The mark being written, or the one open for editing.
+   *
+   * `day` is what an empty `when` field means: today for a new mark, and the
+   * day it already has for one being edited. The placeholder shows that day,
+   * so blank reading as "move it to today" was the field quietly disagreeing
+   * with its own placeholder — a typo fixed on a mark from August landed it
+   * on this morning.
+   */
+  const [markDraft, setMarkDraft] = useState<{
+    id: number | null;
+    text: string;
+    when: string;
+    day: DayKey;
+  }>({ id: null, text: '', when: '', day: todayKey() });
+  const [markingUp, setMarkingUp] = useState(false);
   const [reading, setReading] = useState('');
   const [unitDraft, setUnitDraft] = useState('');
   const [settingUnit, setSettingUnit] = useState(false);
   const [title, setTitle] = useState('');
   const [why, setWhy] = useState('');
+  /**
+   * Whether the pillar's words are open for editing.
+   *
+   * Closed by default, and that is the whole point: the title is already in
+   * the navigation header and the reason is already cut into the stone at
+   * the top of this screen, so two filled text fields carrying the same two
+   * sentences made the screen say everything twice. The owner: _"there is
+   * repeated information we probably don't need."_ Editing is a thing you
+   * come here to do, so it sits behind a door with the other administration.
+   */
+  const [editing, setEditing] = useState(false);
   /** Every poneglyph, kept so this screen can build its own needle. */
   const [glyphs, setGlyphs] = useState<Poneglyph[]>([]);
   /** The one line that speaks after something closes. Cleared on the next act. */
@@ -121,6 +163,7 @@ export default function PillarScreen() {
       setHasOpen(live !== null);
       setOpen(live);
       setSoundings(live ? await soundingsFor(db, live.key) : []);
+      setMarks(await headwayFor(db, mine.key));
       setAstern(
         under
           .filter((g) => g.state !== 'open')
@@ -141,6 +184,7 @@ export default function PillarScreen() {
     }, [load]),
   );
 
+  const committing = useSingleFlight();
   const dropping = useRef(false);
   async function drop() {
     const value = parseSounding(reading);
@@ -156,6 +200,45 @@ export default function PillarScreen() {
     } finally {
       dropping.current = false;
     }
+  }
+
+  /**
+   * Write a mark, or keep an edited one.
+   *
+   * The form closes in the same frame as the tap and the row lands behind it
+   * — the app's own answers-the-finger rule — and the single-flight guard
+   * holds the door against a second tap while the insert is in the channel.
+   */
+  /** The day the draft lands on. Blank keeps the day it already has. */
+  function markDay(): DayKey | null {
+    return markDraft.when.trim().length === 0
+      ? markDraft.day
+      : pastDay(markDraft.when, todayKey());
+  }
+
+  const freshDraft = () => ({ id: null, text: '', when: '', day: todayKey() });
+
+  async function keepMark() {
+    const day = markDay();
+    if (!road || !isSayable(markDraft.text) || day === null) return;
+    const draft = markDraft;
+    const key = road.key;
+    await committing(async () => {
+      setMarkingUp(false);
+      setMarkDraft(freshDraft());
+      if (draft.id === null) await logHeadway(db, key, draft.text, day);
+      else await updateHeadway(db, draft.id, draft.text, day);
+      await load();
+    });
+  }
+
+  async function takeMarkOff(id: number) {
+    await committing(async () => {
+      setMarkingUp(false);
+      setMarkDraft(freshDraft());
+      await removeHeadway(db, id);
+      await load();
+    });
   }
 
   async function saveUnit() {
@@ -191,8 +274,16 @@ export default function PillarScreen() {
 
   async function save() {
     if (!title.trim() || !dirty) return;
+    setEditing(false);
     await updateRoad(db, roadId, { title: title.trim(), why: why.trim() || null });
     await load();
+  }
+
+  /** Put the fields back to what is stored and shut the door. */
+  function cancelEdit() {
+    setTitle(road?.title ?? '');
+    setWhy(road?.why ?? '');
+    setEditing(false);
   }
 
   /**
@@ -254,7 +345,10 @@ export default function PillarScreen() {
             <NeedleCard
               needle={needle}
               wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
-              depth={needle.next ? latest(soundings) : null}
+              // No depth here: the soundings card below carries the same
+              // figure at four times the size. On the tab, where there is no
+              // such card, the slab is the only place it can appear.
+              depth={null}
               onOpen={(text) => {
                 setSaid(null);
                 void openPoneglyph(db, road!.key, text).then(load);
@@ -271,46 +365,14 @@ export default function PillarScreen() {
               }}
             />
             {said ? <Text style={styles.said}>{said}</Text> : null}
+            {/* Why there is no "add another" here. The limit is the treatment
+                for the failure this feature exists to treat, and a rule the
+                app enforces without saying reads as a missing button — the
+                owner went looking for one. Said once, quietly, on the screen
+                where the acts are. */}
+            {open ? <Text style={styles.limitNote}>{t.islandOneAtATime}</Text> : null}
           </>
         ) : null}
-
-        {/* --------------------------------------------------------- the pillar */}
-
-        <SectionLabel label={t.roadEditLabel} />
-
-        <View style={styles.card}>
-          <Text style={styles.fieldLabel}>{t.roadTitleField}</Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            style={styles.input}
-            placeholderTextColor={palette.inkFaint}
-            accessibilityLabel={t.roadTitleField}
-          />
-          <Text style={styles.fieldLabel}>{t.roadWhyField}</Text>
-          <TextInput
-            value={why}
-            onChangeText={setWhy}
-            multiline
-            style={[styles.input, styles.inputTall]}
-            placeholderTextColor={palette.inkFaint}
-            accessibilityLabel={t.roadWhyField}
-          />
-          {dirty ? (
-            <Pressable
-              onPress={() => void save()}
-              disabled={!title.trim()}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.filled,
-                !title.trim() && styles.disabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.filledText}>Save</Text>
-            </Pressable>
-          ) : null}
-        </View>
 
         {/* --------------------------------------------------------- at sea */}
         {/* Soundings live here rather than on the needle card: the tab is
@@ -325,11 +387,14 @@ export default function PillarScreen() {
               trailing={plainMode ? undefined : '測深'}
               tint={lens.violet}
             />
-            <View style={styles.card}>
-              <Text style={styles.islandTitle}>{open.title}</Text>
-
-              {open.unit === null ? (
-                settingUnit ? (
+            {/* The island is named on the slab directly above, at display
+                weight. Naming it again at the head of this card was the same
+                words twice, four inches apart — and with the name gone, a
+                card holding one quiet link was a large empty box. So the
+                offer is a bare line and the card arrives with the readings. */}
+            {open.unit === null ? (
+              settingUnit ? (
+                <View style={styles.card}>
                   <>
                     <Text style={styles.fieldLabel}>{t.soundingUnitField}</Text>
                     <TextInput
@@ -365,17 +430,19 @@ export default function PillarScreen() {
                       </Pressable>
                     </View>
                   </>
-                ) : (
-                  <Pressable
-                    onPress={() => setSettingUnit(true)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t.soundingUnitCta}
-                    style={({ pressed }) => [styles.quiet, pressed && styles.pressed]}
-                  >
-                    <Text style={styles.quietText}>{t.soundingUnitCta}</Text>
-                  </Pressable>
-                )
+                </View>
               ) : (
+                <Pressable
+                  onPress={() => setSettingUnit(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.soundingUnitCta}
+                  style={({ pressed }) => [styles.quiet, pressed && styles.pressed]}
+                >
+                  <Text style={styles.quietText}>{t.soundingUnitCta}</Text>
+                </Pressable>
+              )
+            ) : (
+              <View style={styles.card}>
                 <>
                   {soundings.length > 0 ? (
                     <View style={styles.depth}>
@@ -433,10 +500,163 @@ export default function PillarScreen() {
                       </View>
                     ))}
                 </>
-              )}
-            </View>
+              </View>
+            )}
           </>
         ) : null}
+
+        {/* ----------------------------------------------------------- headway */}
+        {/* Ground made toward this pillar that was not the island under it.
+            Above Astern because it is the live half — things are still
+            landing here — and below the island because the island is what
+            you are steering at. Listed, never totalled: see
+            `domain/headway.ts`. */}
+
+        <SectionLabel
+          label={t.headwayLabel}
+          trailing={plainMode ? undefined : '前進'}
+          tint={lens.violet}
+        />
+
+        {marks.length === 0 && !markingUp ? (
+          <Text style={styles.empty}>{headwayEmpty(plainMode)}</Text>
+        ) : null}
+
+        {marksNewestFirst(marks).map((m) =>
+          markDraft.id === m.id ? (
+            <View key={m.id} style={styles.card}>
+              <Text style={styles.fieldLabel}>{`${m.text}: ${t.headwayField}`}</Text>
+              <TextInput
+                value={markDraft.text}
+                onChangeText={(text) =>
+                  setMarkDraft({ ...markDraft, text: text.slice(0, MAX_HEADWAY) })
+                }
+                multiline
+                style={[styles.input, styles.inputTall]}
+                placeholderTextColor={palette.inkFaint}
+                accessibilityLabel={`${m.text}: ${t.headwayField}`}
+              />
+              <Text style={styles.fieldLabel}>{`${m.text}: ${t.sessionDay}`}</Text>
+              <TextInput
+                value={markDraft.when}
+                onChangeText={(when) => setMarkDraft({ ...markDraft, when })}
+                style={styles.input}
+                placeholder={shortDay(m.day)}
+                placeholderTextColor={palette.inkFaint}
+                accessibilityLabel={`${m.text}: ${t.sessionDay}`}
+              />
+              <View style={styles.row}>
+                <Pressable
+                  onPress={() => void takeMarkOff(m.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t.headwayRemove}: ${m.text}`}
+                  style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+                >
+                  <Text style={styles.ghostText}>{t.headwayRemove}</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => void keepMark()}
+                  disabled={!isSayable(markDraft.text) || markDay() === null}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.filled,
+                    (!isSayable(markDraft.text) || markDay() === null) && styles.disabled,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.filledText}>
+                    {markDay() === null ? 'Fix the day' : 'Keep'}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            /* A row you can tap, like a bell: a row that only offered to
+               destroy the thing was the complaint that made bells editable. */
+            <Pressable
+              key={m.id}
+              onPress={() => {
+                setMarkingUp(false);
+                setMarkDraft({ id: m.id, text: m.text, when: '', day: m.day });
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`${m.text}, ${shortDay(m.day)}. Open to change it.`}
+              style={({ pressed }) => [styles.markRow, pressed && styles.pressed]}
+            >
+              <Text style={styles.markText}>{m.text}</Text>
+              <Text style={styles.markDay}>{shortDay(m.day)}</Text>
+            </Pressable>
+          ),
+        )}
+
+        {markingUp ? (
+          <View style={styles.card}>
+            <Text style={styles.fieldLabel}>{t.headwayField}</Text>
+            <TextInput
+              value={markDraft.text}
+              onChangeText={(text) =>
+                setMarkDraft({ ...markDraft, text: text.slice(0, MAX_HEADWAY) })
+              }
+              multiline
+              autoFocus={Platform.OS !== 'web'}
+              style={[styles.input, styles.inputTall]}
+              placeholder={t.headwayPlaceholder}
+              placeholderTextColor={palette.inkFaint}
+              accessibilityLabel={t.headwayField}
+            />
+            {/* Backdatable and never forward — you write these up when you
+                get to them, and you cannot have made headway tomorrow. The
+                same parser the gym's backdating uses. */}
+            <Text style={styles.fieldLabel}>{t.sessionDay}</Text>
+            <TextInput
+              value={markDraft.when}
+              onChangeText={(when) => setMarkDraft({ ...markDraft, when })}
+              style={styles.input}
+              placeholder="Today, 2, 9/2"
+              placeholderTextColor={palette.inkFaint}
+              accessibilityLabel={t.sessionDay}
+            />
+            <View style={styles.row}>
+              <Pressable
+                onPress={() => {
+                  setMarkingUp(false);
+                  setMarkDraft(freshDraft());
+                }}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+              >
+                <Text style={styles.ghostText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void keepMark()}
+                disabled={!isSayable(markDraft.text) || markDay() === null}
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.filled,
+                  (!isSayable(markDraft.text) || markDay() === null) && styles.disabled,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.filledText}>
+                  {markDay() === null ? 'Fix the day' : 'Mark it'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => {
+              setMarkDraft(freshDraft());
+              setMarkingUp(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.headwayAdd}
+            style={({ pressed }) => [styles.markOffer, pressed && styles.pressed]}
+          >
+            <Text style={styles.markOfferText}>{t.headwayAdd}</Text>
+            <Text style={[styles.markOfferPlus, { color: lens.violet }]}>+</Text>
+          </Pressable>
+        )}
 
         {/* ------------------------------------------------------------ astern */}
 
@@ -494,6 +714,65 @@ export default function PillarScreen() {
             )}
           </View>
         ))}
+
+        {/* ------------------------------------------------- the pillar itself */}
+        {/* Administration, at the foot: the words, and the way to retire it.
+            Both are things you come to this screen on purpose to do, and
+            neither belongs above the island you are actually sailing to. */}
+
+        <SectionLabel label={t.roadEditLabel} />
+
+        {editing ? (
+          <View style={styles.card}>
+            <Text style={styles.fieldLabel}>{t.roadTitleField}</Text>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              style={styles.input}
+              placeholderTextColor={palette.inkFaint}
+              accessibilityLabel={t.roadTitleField}
+            />
+            <Text style={styles.fieldLabel}>{t.roadWhyField}</Text>
+            <TextInput
+              value={why}
+              onChangeText={setWhy}
+              multiline
+              style={[styles.input, styles.inputTall]}
+              placeholderTextColor={palette.inkFaint}
+              accessibilityLabel={t.roadWhyField}
+            />
+            <View style={styles.row}>
+              <Pressable
+                onPress={cancelEdit}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+              >
+                <Text style={styles.ghostText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void save()}
+                disabled={!title.trim() || !dirty}
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.filled,
+                  (!title.trim() || !dirty) && styles.disabled,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.filledText}>Save</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => setEditing(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${t.roadEditCta}: ${road.title}`}
+            style={({ pressed }) => [styles.quiet, pressed && styles.pressed]}
+          >
+            <Text style={styles.quietText}>{t.roadEditCta}</Text>
+          </Pressable>
+        )}
 
         {/* ----------------------------------------------------------- retire */}
 
@@ -559,6 +838,34 @@ const makeStyles = (c: Palette) =>
     wake: { ...type.mono, color: c.inkFaint, fontSize: 13 },
 
     row: { flexDirection: 'row', gap: space.sm, alignItems: 'stretch' },
+    // Why there is no second island on offer. Faint, one line, said once.
+    limitNote: { ...type.small, color: c.inkFaint, lineHeight: 19 },
+
+    // One mark of headway: the words, and the day it happened. A row rather
+    // than a card — these accumulate, and a column of cards down the screen
+    // would outweigh the island they are all about.
+    markRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: space.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.lineSoft,
+      paddingVertical: space.sm,
+      minHeight: 44,
+    },
+    markText: { ...type.body, color: c.ink, flex: 1, lineHeight: 22 },
+    markDay: { ...type.mono, color: c.inkFaint, fontSize: 13 },
+    markOffer: {
+      ...offer(c),
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 48,
+      paddingHorizontal: space.md,
+      marginTop: space.xs,
+    },
+    markOfferText: { ...type.small, color: c.inkDim },
+    markOfferPlus: { ...type.heading, fontSize: 18 },
 
     depth: { gap: space.xs, marginTop: space.xs },
     // The one figure this screen is actually about, at the size of a figure

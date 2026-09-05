@@ -227,6 +227,19 @@ export type SailingBackup = {
   updatedAt: number;
 };
 
+/**
+ * One mark of headway, keyed by its pillar's `createdAt` — the same trick
+ * `poneglyph.road_created_at` plays, and for the same reason: row ids are
+ * reassigned on import and a child keyed on one arrives pointing at nothing.
+ */
+export type HeadwayBackup = {
+  roadKey: number;
+  text: string;
+  day: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type SettingBackup = {
   key: string;
   value: string;
@@ -350,6 +363,7 @@ export type BackupTables = {
   ladderTick: LadderTickBackup[];
   ladderWeek: LadderWeekBackup[];
   sounding: SoundingBackup[];
+  headway: HeadwayBackup[];
   carried: CarriedBackup[];
   task: TaskBackup[];
   /**
@@ -400,6 +414,7 @@ export const EMPTY_TABLES: BackupTables = {
   ladderTick: [],
   ladderWeek: [],
   sounding: [],
+  headway: [],
   carried: [],
   task: [],
   // After `task` — the order is the import's order. See the type above.
@@ -571,6 +586,8 @@ const CHECKS: { [K in keyof BackupTables]: RowCheck } = {
     (r.at as number) <= 1439 &&
     num(r.createdAt),
   sounding: (r) => num(r.islandKey) && num(r.value) && str(r.day) && num(r.createdAt),
+  headway: (r) =>
+    num(r.roadKey) && str(r.text) && str(r.day) && num(r.createdAt) && num(r.updatedAt),
   carried: (r) =>
     str(r.name) &&
     nullableStr(r.relationship) &&
@@ -724,6 +741,8 @@ export const KEYS: { [K in keyof BackupTables]: (row: BackupTables[K][number]) =
   // One record per week by definition.
   ladderWeek: (r) => r.weekStart,
   sounding: (r) => String(r.createdAt),
+  // One mark per moment; the stamp is what makes it unique.
+  headway: (r) => String(r.createdAt),
   carried: (r) => `${r.name} ${r.createdAt}`,
   task: (r) => String(r.createdAt),
   setting: (r) => r.key,

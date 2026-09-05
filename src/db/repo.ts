@@ -23,6 +23,7 @@ import { normaliseValue, type Value } from '../domain/flag';
 import type { EternalPose } from '../domain/eternal';
 import { normaliseUnit, type Sounding } from '../domain/soundings';
 import { asternOn, type Astern } from '../domain/astern';
+import { MAX_TEXT as MAX_HEADWAY, type Mark } from '../domain/headway';
 import { MAX_NOTE } from '../domain/weather';
 import { decodeWeekdays, encodeWeekdays, type Rhythm, type RhythmKind } from '../domain/rhythm';
 import type { WeekDay } from '../domain/sail';
@@ -65,6 +66,7 @@ import {
   gearSession,
   poneglyph,
   sounding,
+  headway,
   rhythm,
   roadPoneglyph,
   sailing,
@@ -1381,6 +1383,69 @@ export async function soundingsFor(db: Db, islandKey: number): Promise<Sounding[
     createdAt: row.createdAt,
   }));
 }
+
+/* ---------------------------------------------------------------- headway */
+
+/**
+ * Every mark against a pillar, oldest first — the screen orders them.
+ *
+ * Keyed by the pillar's `createdAt` like everything else that points at a
+ * parent here, so a backup round-trips it untouched.
+ */
+export async function headwayFor(db: Db, roadKey: number): Promise<Mark[]> {
+  const rows = await db
+    .select()
+    .from(headway)
+    .where(eq(headway.roadKey, roadKey))
+    .orderBy(headway.createdAt);
+  return rows.map((row) => ({
+    id: row.id,
+    roadKey: row.roadKey,
+    text: row.text,
+    day: row.day as DayKey,
+    createdAt: row.createdAt,
+  }));
+}
+
+export async function logHeadway(
+  db: Db,
+  roadKey: number,
+  text: string,
+  day: DayKey = todayKey(),
+): Promise<void> {
+  const t = now();
+  await db.insert(headway).values({
+    roadKey,
+    text: text.trim().slice(0, MAX_HEADWAY),
+    day,
+    createdAt: t,
+    updatedAt: t,
+  });
+}
+
+/** Edit a mark where it stands — a typo is not a reason to lose the record. */
+export async function updateHeadway(
+  db: Db,
+  id: number,
+  text: string,
+  day: DayKey,
+): Promise<void> {
+  await db
+    .update(headway)
+    .set({ text: text.trim().slice(0, MAX_HEADWAY), day, updatedAt: now() })
+    .where(eq(headway.id, id));
+}
+
+/**
+ * Take a mark off. A real delete, unlike an island or a stone: nothing else
+ * in the app points at it, nothing counted it, and a line written by mistake
+ * is not a record of anything.
+ */
+export async function removeHeadway(db: Db, id: number): Promise<void> {
+  await db.delete(headway).where(eq(headway.id, id));
+}
+
+/* ------------------------------------------------------------- soundings */
 
 export async function takeSounding(db: Db, islandKey: number, value: number): Promise<void> {
   await db.insert(sounding).values({ islandKey, value, day: todayKey(), createdAt: now() });

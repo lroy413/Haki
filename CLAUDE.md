@@ -1759,10 +1759,64 @@ is onboarding that never leaves.
 
 Tapping a stone or a row opens `app/pillar.tsx`, and **that screen is where
 the acts live now**: it mounts the same `NeedleCard` the plain list does, so
-there is one island card in this app rather than two that drift. The card
-drops its own title there — the navigation header is already carrying it, and
-the same words twice at display weight is the tab-labels-drawn-twice bug with
-a different label in it.
+there is one island card in this app rather than two that drift.
+
+**And on that screen the card stops repeating what the screen already says.**
+The owner, looking at four duplications at once: _"there is repeated
+information we probably don't need."_ The card knows where it is standing —
+`onDetail` is the tell, because a card that can navigate to the pillar is not
+already on it — and there it drops its title (the navigation header has it),
+its astern count (the Astern section has it) and its reading (the soundings
+card has it at four times the size). The screen drops the island's name from
+the soundings card for the same reason, and the pillar's own two fields sit
+behind a **Change these words** door at the foot beside retiring: an editor
+standing permanently open is two filled text fields reciting the header and
+the stone. What is left is each thing said once, in the place that says it
+best.
+
+**The one-at-a-time limit says so out loud.** One island per pillar is
+enforced in `openPoneglyph`, and a rule the app enforces silently reads as a
+missing button — the owner went looking for the way to add a second. The
+pillar screen now carries one faint line under the card while an island is
+open: reach it or sail past it, and the needle points at the next.
+
+## Headway — what moved a pillar that you were not sailing for
+
+`domain/headway.ts`, the Headway section on `app/pillar.tsx`. The Log Pose
+models one thing: something you steer toward, one at a time, closed by
+reaching it or sailing past it. That is right for what you _plan_, and it had
+no room at all for what happens. The owner: _"yesterday the main cam Op on the
+show I was sick and I filled in for him. Unplanned and unexpected but it's a
+big step towards that main goal and I wanted a way to log it as progress."_
+
+An island cannot hold that — an island is set before it happens and closed
+after, and you cannot name one for a thing that already arrived by surprise.
+Nor is it a task, which is a thing you decide to do. So a **mark** is its own
+shape: one line, one day, attached to the pillar rather than to the island.
+No state, nothing to close, no limit on how many.
+
+- **Marks are listed and never totalled.** Islands astern are counted because
+  you steered to every one of them; a chance you were ready for is not
+  something you can decide to have more of, and a figure you cannot influence,
+  shown as an achievement, is luck wearing a score's clothes. Reading the list
+  back is the whole feature, exactly as it is for the reasons above it.
+- **Planned or not is not recorded.** The first cut had a flag for it, and a
+  flag is a grade — it invites the question of which kind counts more, and the
+  answer would be a rule about somebody's luck.
+- **A mark never hardens the app.** It is usually written down about a day
+  that has already gone, and weight for a backdated record would let a good
+  week be re-entered as a better one.
+- **The day moves back and never forward**, through `pastDay` — the gym's own
+  backdating parser, so there is one implementation. **An empty day field
+  means the day it already has**, which for a new mark is today: the
+  placeholder shows that day, and blank reading as "move it to today" was the
+  field disagreeing with its own placeholder — fixing a typo on a mark from
+  August landed it on this morning.
+- The row opens to edit, like a bell. A row that only offered to destroy the
+  thing was the complaint that made bells editable in the first place.
+- Deleting one is a real delete, unlike an island or a stone: nothing points
+  at it, nothing counted it, and a line written by mistake is not a record of
+  anything.
 
 ## `palette.ink` is not the dark one
 
