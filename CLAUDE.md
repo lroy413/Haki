@@ -1759,10 +1759,26 @@ is onboarding that never leaves.
 
 Tapping a stone or a row opens `app/pillar.tsx`, and **that screen is where
 the acts live now**: it mounts the same `NeedleCard` the plain list does, so
-there is one island card in this app rather than two that drift. The card
-drops its own title there — the navigation header is already carrying it, and
-the same words twice at display weight is the tab-labels-drawn-twice bug with
-a different label in it.
+there is one island card in this app rather than two that drift.
+
+**And on that screen the card stops repeating what the screen already says.**
+The owner, looking at four duplications at once: _"there is repeated
+information we probably don't need."_ The card knows where it is standing —
+`onDetail` is the tell, because a card that can navigate to the pillar is not
+already on it — and there it drops its title (the navigation header has it),
+its astern count (the Astern section has it) and its reading (the soundings
+card has it at four times the size). The screen drops the island's name from
+the soundings card for the same reason, and the pillar's own two fields sit
+behind a **Change these words** door at the foot beside retiring: an editor
+standing permanently open is two filled text fields reciting the header and
+the stone. What is left is each thing said once, in the place that says it
+best.
+
+**The one-at-a-time limit says so out loud.** One island per pillar is
+enforced in `openPoneglyph`, and a rule the app enforces silently reads as a
+missing button — the owner went looking for the way to add a second. The
+pillar screen now carries one faint line under the card while an island is
+open: reach it or sail past it, and the needle points at the next.
 
 ## `palette.ink` is not the dark one
 

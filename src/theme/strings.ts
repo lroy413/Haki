@@ -59,6 +59,10 @@ export type Strings = {
   roadWhyLabel: string;
   /** Section label over the pillar's own fields, on its screen. */
   roadEditLabel: string;
+  /** Opens the pillar's own words for editing. See `app/pillar.tsx`. */
+  roadEditCta: string;
+  /** Why there is no way to add a second island while one is open. */
+  islandOneAtATime: string;
   roadRetire: string;
   roadUnretire: string;
   roadRetired: string;
@@ -333,6 +337,9 @@ const haki: Strings = {
   roadWhyField: 'Why the dream needs it',
   roadWhyLabel: 'Why',
   roadEditLabel: 'The pillar itself',
+  roadEditCta: 'Change these words',
+  islandOneAtATime:
+    'One island at a time. Reach this one or sail past it, and the needle points at the next.',
   roadRetire: 'Retire this pillar',
   roadUnretire: 'Bring it back',
   roadRetired: 'Retired',
@@ -626,6 +633,8 @@ const plain: Strings = {
   roadAdd: 'Add a main goal',
   roadWhyField: 'Why the big one needs it',
   roadEditLabel: 'The goal itself',
+  roadEditCta: 'Change these words',
+  islandOneAtATime: 'One step at a time. Finish this one or set it aside, and the next opens.',
   roadRetire: 'Retire this goal',
   roadUnretire: 'Bring it back',
   islandLabel: 'Milestone',

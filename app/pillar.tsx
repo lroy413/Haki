@@ -100,6 +100,17 @@ export default function PillarScreen() {
   const [settingUnit, setSettingUnit] = useState(false);
   const [title, setTitle] = useState('');
   const [why, setWhy] = useState('');
+  /**
+   * Whether the pillar's words are open for editing.
+   *
+   * Closed by default, and that is the whole point: the title is already in
+   * the navigation header and the reason is already cut into the stone at
+   * the top of this screen, so two filled text fields carrying the same two
+   * sentences made the screen say everything twice. The owner: _"there is
+   * repeated information we probably don't need."_ Editing is a thing you
+   * come here to do, so it sits behind a door with the other administration.
+   */
+  const [editing, setEditing] = useState(false);
   /** Every poneglyph, kept so this screen can build its own needle. */
   const [glyphs, setGlyphs] = useState<Poneglyph[]>([]);
   /** The one line that speaks after something closes. Cleared on the next act. */
@@ -191,8 +202,16 @@ export default function PillarScreen() {
 
   async function save() {
     if (!title.trim() || !dirty) return;
+    setEditing(false);
     await updateRoad(db, roadId, { title: title.trim(), why: why.trim() || null });
     await load();
+  }
+
+  /** Put the fields back to what is stored and shut the door. */
+  function cancelEdit() {
+    setTitle(road?.title ?? '');
+    setWhy(road?.why ?? '');
+    setEditing(false);
   }
 
   /**
@@ -254,7 +273,10 @@ export default function PillarScreen() {
             <NeedleCard
               needle={needle}
               wake={needle.next ? (wakes.get(needle.next.key) ?? null) : null}
-              depth={needle.next ? latest(soundings) : null}
+              // No depth here: the soundings card below carries the same
+              // figure at four times the size. On the tab, where there is no
+              // such card, the slab is the only place it can appear.
+              depth={null}
               onOpen={(text) => {
                 setSaid(null);
                 void openPoneglyph(db, road!.key, text).then(load);
@@ -271,46 +293,14 @@ export default function PillarScreen() {
               }}
             />
             {said ? <Text style={styles.said}>{said}</Text> : null}
+            {/* Why there is no "add another" here. The limit is the treatment
+                for the failure this feature exists to treat, and a rule the
+                app enforces without saying reads as a missing button — the
+                owner went looking for one. Said once, quietly, on the screen
+                where the acts are. */}
+            {open ? <Text style={styles.limitNote}>{t.islandOneAtATime}</Text> : null}
           </>
         ) : null}
-
-        {/* --------------------------------------------------------- the pillar */}
-
-        <SectionLabel label={t.roadEditLabel} />
-
-        <View style={styles.card}>
-          <Text style={styles.fieldLabel}>{t.roadTitleField}</Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            style={styles.input}
-            placeholderTextColor={palette.inkFaint}
-            accessibilityLabel={t.roadTitleField}
-          />
-          <Text style={styles.fieldLabel}>{t.roadWhyField}</Text>
-          <TextInput
-            value={why}
-            onChangeText={setWhy}
-            multiline
-            style={[styles.input, styles.inputTall]}
-            placeholderTextColor={palette.inkFaint}
-            accessibilityLabel={t.roadWhyField}
-          />
-          {dirty ? (
-            <Pressable
-              onPress={() => void save()}
-              disabled={!title.trim()}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.filled,
-                !title.trim() && styles.disabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.filledText}>Save</Text>
-            </Pressable>
-          ) : null}
-        </View>
 
         {/* --------------------------------------------------------- at sea */}
         {/* Soundings live here rather than on the needle card: the tab is
@@ -325,11 +315,14 @@ export default function PillarScreen() {
               trailing={plainMode ? undefined : '測深'}
               tint={lens.violet}
             />
-            <View style={styles.card}>
-              <Text style={styles.islandTitle}>{open.title}</Text>
-
-              {open.unit === null ? (
-                settingUnit ? (
+            {/* The island is named on the slab directly above, at display
+                weight. Naming it again at the head of this card was the same
+                words twice, four inches apart — and with the name gone, a
+                card holding one quiet link was a large empty box. So the
+                offer is a bare line and the card arrives with the readings. */}
+            {open.unit === null ? (
+              settingUnit ? (
+                <View style={styles.card}>
                   <>
                     <Text style={styles.fieldLabel}>{t.soundingUnitField}</Text>
                     <TextInput
@@ -365,17 +358,19 @@ export default function PillarScreen() {
                       </Pressable>
                     </View>
                   </>
-                ) : (
-                  <Pressable
-                    onPress={() => setSettingUnit(true)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t.soundingUnitCta}
-                    style={({ pressed }) => [styles.quiet, pressed && styles.pressed]}
-                  >
-                    <Text style={styles.quietText}>{t.soundingUnitCta}</Text>
-                  </Pressable>
-                )
+                </View>
               ) : (
+                <Pressable
+                  onPress={() => setSettingUnit(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.soundingUnitCta}
+                  style={({ pressed }) => [styles.quiet, pressed && styles.pressed]}
+                >
+                  <Text style={styles.quietText}>{t.soundingUnitCta}</Text>
+                </Pressable>
+              )
+            ) : (
+              <View style={styles.card}>
                 <>
                   {soundings.length > 0 ? (
                     <View style={styles.depth}>
@@ -433,8 +428,8 @@ export default function PillarScreen() {
                       </View>
                     ))}
                 </>
-              )}
-            </View>
+              </View>
+            )}
           </>
         ) : null}
 
@@ -494,6 +489,65 @@ export default function PillarScreen() {
             )}
           </View>
         ))}
+
+        {/* ------------------------------------------------- the pillar itself */}
+        {/* Administration, at the foot: the words, and the way to retire it.
+            Both are things you come to this screen on purpose to do, and
+            neither belongs above the island you are actually sailing to. */}
+
+        <SectionLabel label={t.roadEditLabel} />
+
+        {editing ? (
+          <View style={styles.card}>
+            <Text style={styles.fieldLabel}>{t.roadTitleField}</Text>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              style={styles.input}
+              placeholderTextColor={palette.inkFaint}
+              accessibilityLabel={t.roadTitleField}
+            />
+            <Text style={styles.fieldLabel}>{t.roadWhyField}</Text>
+            <TextInput
+              value={why}
+              onChangeText={setWhy}
+              multiline
+              style={[styles.input, styles.inputTall]}
+              placeholderTextColor={palette.inkFaint}
+              accessibilityLabel={t.roadWhyField}
+            />
+            <View style={styles.row}>
+              <Pressable
+                onPress={cancelEdit}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+              >
+                <Text style={styles.ghostText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void save()}
+                disabled={!title.trim() || !dirty}
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.filled,
+                  (!title.trim() || !dirty) && styles.disabled,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.filledText}>Save</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => setEditing(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${t.roadEditCta}: ${road.title}`}
+            style={({ pressed }) => [styles.quiet, pressed && styles.pressed]}
+          >
+            <Text style={styles.quietText}>{t.roadEditCta}</Text>
+          </Pressable>
+        )}
 
         {/* ----------------------------------------------------------- retire */}
 
@@ -559,6 +613,8 @@ const makeStyles = (c: Palette) =>
     wake: { ...type.mono, color: c.inkFaint, fontSize: 13 },
 
     row: { flexDirection: 'row', gap: space.sm, alignItems: 'stretch' },
+    // Why there is no second island on offer. Faint, one line, said once.
+    limitNote: { ...type.small, color: c.inkFaint, lineHeight: 19 },
 
     depth: { gap: space.xs, marginTop: space.xs },
     // The one figure this screen is actually about, at the size of a figure
