@@ -63,6 +63,12 @@ export type Strings = {
   roadEditCta: string;
   /** Why there is no way to add a second island while one is open. */
   islandOneAtATime: string;
+  /** Headway — ground made toward a pillar. See `domain/headway.ts`. */
+  headwayLabel: string;
+  headwayAdd: string;
+  headwayField: string;
+  headwayPlaceholder: string;
+  headwayRemove: string;
   roadRetire: string;
   roadUnretire: string;
   roadRetired: string;
@@ -340,6 +346,11 @@ const haki: Strings = {
   roadEditCta: 'Change these words',
   islandOneAtATime:
     'One island at a time. Reach this one or sail past it, and the needle points at the next.',
+  headwayLabel: 'Headway',
+  headwayAdd: 'Mark something that moved this',
+  headwayField: 'What moved it',
+  headwayPlaceholder: 'Filled in as main cam op',
+  headwayRemove: 'Take it off',
   roadRetire: 'Retire this pillar',
   roadUnretire: 'Bring it back',
   roadRetired: 'Retired',
@@ -635,6 +646,11 @@ const plain: Strings = {
   roadEditLabel: 'The goal itself',
   roadEditCta: 'Change these words',
   islandOneAtATime: 'One step at a time. Finish this one or set it aside, and the next opens.',
+  headwayLabel: 'Progress',
+  headwayAdd: 'Add something that moved this',
+  headwayField: 'What happened',
+  headwayPlaceholder: 'Filled in as main cam op',
+  headwayRemove: 'Remove',
   roadRetire: 'Retire this goal',
   roadUnretire: 'Bring it back',
   islandLabel: 'Milestone',
