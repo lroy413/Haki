@@ -613,6 +613,33 @@ const MIGRATIONS: { version: number; up: string }[] = [
       ALTER TABLE gear_session ADD COLUMN item_key INTEGER;
     `,
   },
+  {
+    version: 21,
+    up: `
+      -- Headway: ground made toward a pillar that was not the island you
+      -- were sailing to. See domain/headway.ts.
+      --
+      -- The owner filled in for a sick camera operator on the show — a big
+      -- step toward "hired as an official Can Operator", unplanned, already
+      -- over by the time he wanted to record it. An island cannot hold that:
+      -- an island is set before it happens and closed after. So a mark is one
+      -- line and one day, with no state to close and no limit on how many.
+      --
+      -- Keyed by the pillar's created_at, never its id, so it round-trips
+      -- through a backup — the same rule poneglyph.road_created_at keeps.
+      -- Marks are listed and never totalled: nothing counts them.
+      CREATE TABLE IF NOT EXISTS headway (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        road_key   INTEGER NOT NULL,
+        text       TEXT    NOT NULL,
+        day        TEXT    NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS headway_road_idx ON headway (road_key);
+    `,
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

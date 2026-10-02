@@ -372,6 +372,29 @@ export const sounding = sqliteTable(
 );
 
 /**
+ * One mark of headway against a pillar, by that Road Poneglyph's `createdAt`.
+ *
+ * There is no state column and deliberately nowhere to add one: a mark has
+ * already happened, so there is nothing to close. There is no "planned" flag
+ * either — a flag is a grade, and grading somebody's luck is not this app's
+ * business. See `domain/headway.ts`.
+ */
+export const headway = sqliteTable(
+  'headway',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    roadKey: integer('road_key').notNull(),
+    text: text('text').notNull(),
+    day: text('day').notNull(),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (t) => [index('headway_road_idx').on(t.roadKey)],
+);
+
+export type HeadwayRow = typeof headway.$inferSelect;
+
+/**
  * One bearing of the Eternal Pose. The held one has no `endedOn`.
  *
  * No state column, no count, no target, and nowhere to put one: this is the

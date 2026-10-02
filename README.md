@@ -137,6 +137,7 @@ src/
     tasks.ts              today's load, capacity, the next strike
     gears.ts              focus blocks and their honest costs
     ladder.ts             the Gears as a weekly career ladder — tracks, items, reached and held
+    headway.ts            ground made toward a pillar that was not the island under it
     stillness.ts          sits, and the breath the ring is drawn to
     course.ts             the day's heading
     logbook.ts            folding one captured line into today's entry

@@ -66,7 +66,8 @@ type Mode = 'idle' | 'naming' | 'passing' | 'striking' | 'porting';
  * is already carrying the title — the same words twice, a hundred points
  * apart and both at display weight, is the tab-labels-drawn-twice bug with
  * a different label in it. The reason stays, because the header does not
- * carry that.
+ * carry that, and it is the only thing this card says about the pillar
+ * there.
  */
 function Head({
   needle,
@@ -138,6 +139,18 @@ export function NeedleCard({
 
   const today = todayKey();
   const port = needle.next ? portLine(needle.next.portBy, today, plainMode) : null;
+
+  /**
+   * Whether this card is standing on the pillar's own screen.
+   *
+   * `onDetail` is the tell: a card that can navigate to the pillar is not
+   * already on it. There the screen says several of these things better —
+   * the header carries the title, the Astern section carries the count, and
+   * the soundings card carries the reading at four times this size — so the
+   * card stops repeating them. Everywhere else it is the only thing on
+   * screen and says the lot.
+   */
+  const onOwnScreen = onDetail === undefined;
 
   const ready = draft.trim().length > 0;
   function commit(run: (value: string) => void) {
@@ -440,7 +453,7 @@ export function NeedleCard({
         </View>
       )}
 
-      {needle.reached > 0 ? (
+      {needle.reached > 0 && !onOwnScreen ? (
         <Text style={styles.astern}>{reachedLine(needle.reached, plainMode)}</Text>
       ) : null}
     </View>

@@ -377,6 +377,13 @@ describe('key hygiene', () => {
       ladderTick: { itemKey: 2, day: '2026-09-15', amount: 1, createdAt: 3 },
       ladderWeek: { weekStart: '2026-09-14', held: 2, reachedBefore: 3, createdAt: 4 },
       note: { title: '', body: '- milk\n- bread', createdAt: 3, updatedAt: 4 },
+      headway: {
+        roadKey: 1,
+        text: 'Filled in as main cam op',
+        day: '2026-09-15',
+        createdAt: 5,
+        updatedAt: 5,
+      },
       setting: { key: 'ui.plainMode', value: 'false' },
     };
 
